@@ -1,48 +1,149 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Prata&display=swap');
 @import "tailwindcss";
 
-a.active hr{
-  display: block;
+a.active hr {
+display: block;
 }
 
-*{
+* {
   font-family: outfit;
-}
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  }
 
 .prata-regular {
-  font-family: "Prata", serif;
-  font-weight: 400;
-  font-style: normal;
+font-family: "Prata", serif;
+font-weight: 400;
+font-style: normal;
+}
+
+/* ─── THEME TOKENS ─── */
+:root {
+--bg-primary: #EEF1FC;
+--bg-secondary: #EDE9DF;
+--bg-card: #FAF8F4;
+--bg-elevated: #FFFFFF;
+
+--olive-primary: #5C6B3A;
+--olive-secondary: #7A8C4E;
+--olive-light: #A3B07A;
+--olive-muted: #DDE3D0;
+--olive-glow: rgba(92, 107, 58, 0.10);
+
+--text-primary: #2A2E1E;
+--text-secondary: #7A7D6A;
+--text-accent: #5C6B3A;
+
+--border-subtle: rgba(92, 107, 58, 0.08);
+--border-default: rgba(92, 107, 58, 0.18);
+--border-strong: rgba(92, 107, 58, 0.40);
 }
 
 body {
-  background-color: #FFF8E7;
+background-color: var(--bg-primary);
+color: var(--text-primary);
+background-image: radial-gradient(
+ellipse 80% 50% at 50% -10%,
+rgba(46, 93, 255, 0.06) 0%,
+transparent 70%
+);
+background-attachment: fixed;
+min-height: 100vh;
 }
 
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar {
+width: 6px;
+}
+::-webkit-scrollbar-track {
+background: var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+background: var(--olive-muted);
+border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+background: var(--olive-secondary);
+}
+
+/* ─── SELECTION ─── */
+::selection {
+background: rgba(92, 107, 58, 0.18);
+color: var(--olive-primary);
+}
+
+/* ─── ANIMATIONS ─── */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+from { opacity: 0; }
+to   { opacity: 1; }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.25s ease;
+animation: fadeIn 0.25s ease;
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+from {
+opacity: 0;
+transform: translateY(-20px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
 }
 
 .animate-slideDown {
-  animation: slideDown 0.3s ease;
+animation: slideDown 0.3s ease;
+}
+
+/* ─────────────────────────────────────────────
+DARK MODE
+───────────────────────────────────────────── */
+
+html.dark-mode {
+--bg-primary: #0F172A;
+--bg-secondary: #111827;
+--bg-card: #1E293B;
+--bg-elevated: #1E293B;
+
+--olive-primary: #93A4FF;
+--olive-secondary: #7C8FFF;
+--olive-light: #A8B4FF;
+--olive-muted: #334155;
+--olive-glow: rgba(47, 93, 255, 0.16);
+
+--text-primary: #F8FAFC;
+--text-secondary: #94A3B8;
+--text-accent: #93A4FF;
+
+--border-subtle: rgba(148, 163, 184, 0.10);
+--border-default: rgba(148, 163, 184, 0.18);
+--border-strong: rgba(148, 163, 184, 0.35);
+}
+
+html.dark-mode body {
+background-color: var(--bg-primary);
+color: var(--text-primary);
+background-image: radial-gradient(
+ellipse 80% 50% at 50% -10%,
+rgba(47, 93, 255, 0.12) 0%,
+transparent 70%
+);
+}
+
+html.dark-mode ::-webkit-scrollbar-track {
+background: var(--bg-secondary);
+}
+
+html.dark-mode ::-webkit-scrollbar-thumb {
+background: #334155;
+}
+
+html.dark-mode ::-webkit-scrollbar-thumb:hover {
+background: #475569;
+}
+
+html.dark-mode ::selection {
+background: rgba(47, 93, 255, 0.30);
+color: #FFFFFF;
 }

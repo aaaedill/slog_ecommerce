@@ -8,7 +8,6 @@ const AdminLayout = () => {
 
     <>
       <AdminNavbar />
-      {/* ✅ mobile + tablet only fixed */}
       <div className="p-4 sm:p-6 lg:p-6">
         <Outlet />
       </div>

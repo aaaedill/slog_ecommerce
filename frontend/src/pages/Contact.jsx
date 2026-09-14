@@ -6,15 +6,15 @@ const Contact = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&display=swap');
 
-        .contact-root { font-family: 'Jost', sans-serif; }
+        .contact-root { font-family: 'Outfit', sans-serif; }
 
         /* Contact image */
         .contact-img {
           width: 100%;
-          border-radius: 1rem;
-          border: 1px solid #D4CCC0;
+          border-radius: 1.2rem;
+          border: 1px solid rgba(47,93,255,0.14);
           object-fit: cover;
           transition: transform 0.6s cubic-bezier(0.76,0,0.24,1);
           display: block;
@@ -23,61 +23,61 @@ const Contact = () => {
 
         /* Section label */
         .contact-eyebrow {
-          font-family: 'Jost', sans-serif;
-          font-size: 0.65rem;
+          font-family: 'Outfit', sans-serif;
+          font-size: 0.72rem;
           font-weight: 500;
-          letter-spacing: 0.3em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #8B6F5E;
+          color: #2F5DFF;
         }
 
         /* Thin rule */
         .contact-rule {
           height: 1px;
           width: 3rem;
-          background: linear-gradient(to right, #8B6F5E, transparent);
+          background: linear-gradient(to right, #2F5DFF, transparent);
           margin: 0.6rem 0 1.2rem;
         }
 
         /* Section headings */
         .contact-heading {
-          font-family: 'Fraunces', serif;
-          font-weight: 300;
-          color: #2C2825;
+          font-weight: 600;
+          color: var(--text-primary);
+          letter-spacing: -0.02em;
           line-height: 1.15;
         }
 
         /* Info text */
         .contact-info-label {
-          font-family: 'Jost', sans-serif;
-          font-size: 0.65rem;
+          font-family: 'Outfit', sans-serif;
+          font-size: 0.68rem;
           font-weight: 500;
-          letter-spacing: 0.22em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #6B6058;
+          color: var(--text-secondary);
           margin-bottom: 0.3rem;
         }
 
         .contact-info-value {
-          font-family: 'Jost', sans-serif;
-          font-size: 0.98rem;
-          font-weight: 300;
-          color: #2C2825;
+          font-family: 'Outfit', sans-serif;
+          font-size: 0.95rem;
+          font-weight: 400;
+          color: var(--text-primary);
           line-height: 1.8;
         }
 
         /* Info item row */
         .contact-info-item {
           padding: 1rem 0;
-          border-bottom: 1px solid #D4CCC0;
+          border-bottom: 1px solid rgba(47,93,255,0.14);
         }
-        .contact-info-item:first-child { border-top: 1px solid #D4CCC0; }
+        .contact-info-item:first-child { border-top: 1px solid rgba(47,93,255,0.14); }
 
         /* Exclusives block */
         .contact-exclusive-wrap {
-          background: #2C2825;
-          border-radius: 1rem;
-          border: 1px solid #3D3532;
+          background: #10131F;
+          border-radius: 1.2rem;
+          border: 1px solid rgba(110,139,255,0.18);
           padding: 2rem;
           position: relative;
           overflow: hidden;
@@ -90,24 +90,22 @@ const Contact = () => {
           right: -10%;
           width: 60%;
           height: 160%;
-          background: radial-gradient(ellipse, rgba(139,111,94,0.15) 0%, transparent 65%);
+          background: radial-gradient(ellipse, rgba(47,93,255,0.18) 0%, transparent 65%);
           pointer-events: none;
         }
 
         .contact-exclusive-title {
-          font-family: 'Fraunces', serif;
-          font-weight: 300;
-          font-style: italic;
-          color: #F2EDE6;
-          letter-spacing: 0.01em;
+          font-weight: 600;
+          color: #FFFFFF;
+          letter-spacing: -0.01em;
           margin-bottom: 0.5rem;
         }
 
         .contact-exclusive-body {
-          font-family: 'Jost', sans-serif;
+          font-family: 'Outfit', sans-serif;
           font-size: 0.92rem;
-          font-weight: 300;
-          color: rgba(242,237,230,0.72);
+          font-weight: 400;
+          color: rgba(255,255,255,0.72);
           line-height: 1.8;
           margin-bottom: 1.5rem;
         }
@@ -115,23 +113,24 @@ const Contact = () => {
         /* CTA Button */
         .contact-btn {
           display: inline-block;
-          font-family: 'Jost', sans-serif;
-          font-size: 0.68rem;
-          font-weight: 500;
-          letter-spacing: 0.22em;
-          text-transform: uppercase;
-          color: #2C2825;
-          background: #EDE8E0;
+          font-family: 'Outfit', sans-serif;
+          font-size: 0.78rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          color: #FFFFFF;
+          background: #2F5DFF;
           border: none;
-          border-radius: 2px;
-          padding: 0.85rem 2rem;
+          border-radius: 100px;
+          padding: 0.9rem 2rem;
           cursor: pointer;
-          transition: background 0.25s ease, transform 0.2s ease;
+          box-shadow: 0 8px 24px rgba(47,93,255,0.28);
+          transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
           white-space: nowrap;
         }
         .contact-btn:hover {
-          background: #C9A96E;
+          background: #16307A;
           transform: translateY(-2px);
+          box-shadow: 0 12px 32px rgba(47,93,255,0.34);
         }
         .contact-btn a {
           color: inherit;
@@ -140,22 +139,32 @@ const Contact = () => {
 
         /* Title override */
         .contact-title-eyebrow {
-          font-family: 'Jost', sans-serif;
-          font-size: 0.65rem;
-          font-weight: 500;
-          letter-spacing: 0.32em;
-          text-transform: uppercase;
-          color: #6B6058;
+          font-family: 'Outfit', sans-serif;
+          font-size: 0.75rem;
+          font-weight: 400;
+          letter-spacing: 0.04em;
+          color: var(--text-secondary);
           margin-top: 0.5rem;
         }
 
         /* Entrance animations */
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; filter: blur(8px); transform: translateY(18px); }
+          to   { opacity: 1; filter: blur(0); transform: translateY(0); }
         }
-        .a1 { animation: fadeUp 0.8s ease both 0.05s; }
-        .a2 { animation: fadeUp 0.8s ease both 0.2s; }
+        .a1 { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both 0.05s; }
+        .a2 { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both 0.2s; }
+
+        /* ── DARK MODE ── */
+        html.dark-mode .contact-img {
+          border-color: rgba(96,130,255,0.22) !important;
+        }
+        html.dark-mode .contact-info-item {
+          border-bottom-color: rgba(96,130,255,0.20) !important;
+        }
+        html.dark-mode .contact-info-item:first-child {
+          border-top-color: rgba(96,130,255,0.20) !important;
+        }
       `}</style>
 
       <div className="contact-root px-4 sm:px-6 md:px-16 lg:px-24 pt-8 sm:pt-10 pb-16 sm:pb-20">
@@ -201,7 +210,7 @@ const Contact = () => {
 
             {/* Exclusives block */}
             <div className="contact-exclusive-wrap">
-              <p className="contact-eyebrow mb-3" style={{ color: '#C9A96E' }}>Exclusives</p>
+              <p className="contact-eyebrow mb-3" style={{ color: '#6E8BFF' }}>Exclusives</p>
               <h2 className="contact-exclusive-title text-xl sm:text-2xl">
                 SLOG-FASHION Exclusives
               </h2>

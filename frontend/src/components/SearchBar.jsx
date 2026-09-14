@@ -28,7 +28,7 @@ const SearchBar = ({ setShowSearch }) => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&display=swap');
 
         .sb-overlay {
           animation: sbFadeIn 0.2s ease both;
@@ -39,90 +39,137 @@ const SearchBar = ({ setShowSearch }) => {
         }
 
         .sb-panel {
-          animation: sbSlideDown 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: sbSlideDown 0.35s cubic-bezier(0.16,1,0.3,1) both;
         }
         @keyframes sbSlideDown {
-          from { opacity: 0; transform: translateY(-12px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; filter: blur(8px); transform: translateY(-14px); }
+          to   { opacity: 1; filter: blur(0); transform: translateY(0); }
         }
 
         .sb-input {
-          font-family: 'Jost', sans-serif;
-          font-weight: 300;
-          font-size: 0.85rem;
-          letter-spacing: 0.05em;
-          background: #EDE8E0;
-          border: 1px solid #D4CCC0;
-          color: #2C2825;
+          font-family: 'Outfit', sans-serif;
+          font-weight: 400;
+          font-size: 0.9rem;
+          letter-spacing: 0.01em;
+          background: rgba(255,255,255,0.7);
+          border: 1.5px solid rgba(47,93,255,0.16);
+          color: #10131F;
           outline: none;
-          transition: border-color 0.2s ease;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
-        .sb-input::placeholder { color: #9A9188; }
-        .sb-input:focus { border-color: #8B6F5E; }
+        .sb-input::placeholder { color: #9CA3AF; }
+        .sb-input:focus {
+          border-color: #2F5DFF;
+          box-shadow: 0 0 0 3px rgba(47,93,255,0.14);
+        }
 
         .sb-close-btn {
-          font-family: 'Jost', sans-serif;
-          color: #9A9188;
+          font-family: 'Outfit', sans-serif;
+          color: #6B7280;
           transition: color 0.2s ease;
           background: none;
           border: none;
           cursor: pointer;
           line-height: 1;
         }
-        .sb-close-btn:hover { color: #8B6F5E; }
+        .sb-close-btn:hover { color: #2F5DFF; }
 
         .sb-result-row {
           display: flex;
           gap: 1rem;
           align-items: center;
-          border: 1px solid #D4CCC0;
+          border: 1px solid rgba(47,93,255,0.14);
           padding: 0.6rem;
-          border-radius: 0.25rem;
+          border-radius: 0.85rem;
           margin-bottom: 0.5rem;
-          background: #EDE8E0;
-          transition: background 0.2s ease;
+          background: rgba(255,255,255,0.6);
+          backdrop-filter: blur(12px) saturate(1.5);
+          -webkit-backdrop-filter: blur(12px) saturate(1.5);
+          transition: background 0.2s ease, border-color 0.2s ease, transform 0.25s ease;
           text-decoration: none;
+          cursor: pointer;
         }
-        .sb-result-row:hover { background: #DAD3C8; }
+        .sb-result-row:hover {
+          background: rgba(47,93,255,0.06);
+          border-color: rgba(47,93,255,0.28);
+          transform: translateY(-1px);
+        }
 
         .sb-result-thumb {
           width: 60px;
           height: 75px;
           object-fit: cover;
-          border-radius: 2px;
+          border-radius: 0.5rem;
           flex-shrink: 0;
-          background: #DAD3C8;
+          background: #F5F7FF;
         }
 
         .sb-result-name {
-          font-family: 'Fraunces', serif;
-          font-weight: 300;
+          font-weight: 500;
           font-size: 0.95rem;
-          color: #2C2825;
+          color: #10131F;
           margin-bottom: 0.2rem;
         }
 
         .sb-result-price {
-          font-family: 'Jost', sans-serif;
-          font-weight: 500;
-          font-size: 0.78rem;
-          letter-spacing: 0.04em;
-          color: #8B6F5E;
+          font-family: 'Outfit', sans-serif;
+          font-weight: 600;
+          font-size: 0.8rem;
+          letter-spacing: 0.01em;
+          color: #2F5DFF;
         }
 
         .sb-empty {
-          font-family: 'Fraunces', serif;
-          font-style: italic;
-          font-weight: 300;
-          font-size: 1rem;
-          color: #D4CCC0;
+          font-family: 'Outfit', sans-serif;
+          font-weight: 500;
+          font-size: 0.9rem;
+          color: rgba(16,19,31,0.3);
           text-align: center;
           padding: 2rem 0;
         }
 
         .sb-results-scroll::-webkit-scrollbar { width: 4px; }
-        .sb-results-scroll::-webkit-scrollbar-track { background: #EDE8E0; }
-        .sb-results-scroll::-webkit-scrollbar-thumb { background: #D4CCC0; border-radius: 2px; }
+        .sb-results-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sb-results-scroll::-webkit-scrollbar-thumb { background: rgba(47,93,255,0.2); border-radius: 2px; }
+
+        /* ── DARK MODE ── */
+        html.dark-mode .sb-panel {
+          background: rgba(30,41,59,0.85) !important;
+          border-color: rgba(96,130,255,0.24) !important;
+          box-shadow: 0 8px 40px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.05) inset !important;
+        }
+        html.dark-mode .sb-label-title {
+          color: var(--text-primary) !important;
+        }
+        html.dark-mode .sb-label-caption {
+          color: var(--text-secondary) !important;
+        }
+        html.dark-mode .sb-divider {
+          background: rgba(96,130,255,0.18) !important;
+        }
+        html.dark-mode .sb-input {
+          background: rgba(15,23,42,0.6) !important;
+          border-color: rgba(96,130,255,0.20) !important;
+          color: var(--text-primary) !important;
+        }
+        html.dark-mode .sb-input::placeholder { color: #64748B !important; }
+        html.dark-mode .sb-input:focus {
+          border-color: #6E8BFF !important;
+          box-shadow: 0 0 0 3px rgba(110,139,255,0.18) !important;
+        }
+        html.dark-mode .sb-close-btn { color: var(--text-secondary) !important; }
+        html.dark-mode .sb-close-btn:hover { color: #6E8BFF !important; }
+        html.dark-mode .sb-result-row {
+          background: rgba(30,41,59,0.65) !important;
+          border-color: rgba(96,130,255,0.20) !important;
+        }
+        html.dark-mode .sb-result-row:hover {
+          background: rgba(96,130,255,0.10) !important;
+          border-color: rgba(96,130,255,0.35) !important;
+        }
+        html.dark-mode .sb-result-thumb { background: var(--bg-card) !important; }
+        html.dark-mode .sb-result-name { color: var(--text-primary) !important; }
+        html.dark-mode .sb-empty { color: var(--text-secondary) !important; }
       `}</style>
 
       <div className="
@@ -131,25 +178,31 @@ const SearchBar = ({ setShowSearch }) => {
         z-50
         flex justify-center items-start
         pt-20
-      " style={{ background: 'rgba(44,40,37,0.25)', backdropFilter: 'blur(4px)' }}>
+      " style={{ background: 'rgba(16,19,31,0.35)', backdropFilter: 'blur(4px)' }}>
 
         <div
           ref={searchRef}
           className="sb-panel w-[95%] sm:w-[600px] rounded-3xl p-5 border"
-          style={{ background: '#E4DDD3', borderColor: '#D4CCC0', boxShadow: '0 8px 40px rgba(44,40,37,0.12)' }}
+          style={{
+            background: 'rgba(255,255,255,0.75)',
+            borderColor: 'rgba(47,93,255,0.18)',
+            backdropFilter: 'blur(24px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+            boxShadow: '0 8px 40px rgba(47,93,255,0.16), 0 1px 0 rgba(255,255,255,0.85) inset'
+          }}
         >
           {/* Top bar label */}
           <div className="flex items-center justify-between mb-4">
-            <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 300, fontSize: '1.05rem', color: '#2C2825' }}>
-              Find your <i style={{ color: '#8B6F5E' }}>piece</i>
+            <span className="sb-label-title" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: '1.05rem', color: '#10131F' }}>
+              Find your <span style={{ color: '#2F5DFF' }}>piece</span>
             </span>
-            <span style={{ fontFamily: "'Jost', sans-serif", fontSize: '0.6rem', fontWeight: 400, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#9A9188' }}>
+            <span className="sb-label-caption" style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.68rem', fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#6B7280' }}>
               Search
             </span>
           </div>
 
           {/* Divider */}
-          <div className="mb-4" style={{ height: '1px', background: '#D4CCC0' }} />
+          <div className="sb-divider mb-4" style={{ height: '1px', background: 'rgba(47,93,255,0.14)' }} />
 
           {/* INPUT */}
           <div className="flex items-center gap-3">
@@ -157,7 +210,7 @@ const SearchBar = ({ setShowSearch }) => {
               autoFocus
               type="text"
               placeholder="Search products..."
-              className="sb-input w-full p-3 rounded-sm"
+              className="sb-input w-full p-3 rounded-xl"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
