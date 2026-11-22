@@ -3,39 +3,39 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import API_URL from "../../config/api";
 
-/* ── Glassy Toast (copied from provided design) ── */
+/* ── Glass Toast (black + red theme) ── */
 const ToastContainer = ({ toasts }) => (
   <div style={{
     position: "fixed", top: "24px", left: "50%", transform: "translateX(-50%)",
     zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "stretch",
-    gap: "10px", width: "min(320px, calc(100vw - 32px))", pointerEvents: "none",
+    gap: "10px", width: "min(340px, calc(100vw - 32px))", pointerEvents: "none",
   }}>
     <style>{`
-      @keyframes toastIn  { from{opacity:0;transform:translateY(-10px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
-      @keyframes toastOut { from{opacity:1;transform:translateY(0) scale(1)} to{opacity:0;transform:translateY(-8px) scale(0.96)} }
+      @keyframes toastIn  { from{opacity:0;transform:translateY(-10px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+      @keyframes toastOut { from{opacity:1;transform:translateY(0) scale(1)} to{opacity:0;transform:translateY(-8px) scale(0.97)} }
     `}</style>
 
     {toasts.map((t) => (
       <div key={t.id} style={{
         display: "flex", alignItems: "center", gap: "12px", padding: "13px 18px",
-        background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)",
-        backdropFilter: "blur(25px)", WebkitBackdropFilter: "blur(25px)",
-        borderRadius: "16px", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-        color: "#ffffff", fontSize: "14px", fontWeight: 500, pointerEvents: "auto",
+        background: "rgba(0,0,0,0.6)",
+        border: t.type === "error"
+          ? "1px solid rgba(255,45,63,0.6)"
+          : "1px solid rgba(255,255,255,0.22)",
+        backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+        borderRadius: "14px",
+        color: "#ffffff", fontSize: "14px", fontWeight: 600,
+        fontFamily: "'Manrope', 'Inter', system-ui, sans-serif",
+        pointerEvents: "auto",
         animation: t.leaving
           ? "toastOut 0.3s ease forwards"
-          : "toastIn 0.35s cubic-bezier(0.2,1.3,0.4,1) forwards",
+          : "toastIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards",
       }}>
         <span style={{
           width: 20,
           height: 20,
           borderRadius: "50%",
-          background: t.type === "error"
-            ? "rgba(239,68,68,0.15)"
-            : "rgba(249,115,22,0.15)",
-          border: t.type === "error"
-            ? "1.5px solid rgba(239,68,68,0.5)"
-            : "1.5px solid rgba(249,115,22,0.5)",
+          background: t.type === "error" ? "#ff2d3f" : "#ffffff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -48,7 +48,7 @@ const ToastContainer = ({ toasts }) => (
                 y1="2"
                 x2="10"
                 y2="10"
-                stroke="rgba(239,68,68,0.95)"
+                stroke="#ffffff"
                 strokeWidth="1.8"
                 strokeLinecap="round"
               />
@@ -57,7 +57,7 @@ const ToastContainer = ({ toasts }) => (
                 y1="2"
                 x2="2"
                 y2="10"
-                stroke="rgba(239,68,68,0.95)"
+                stroke="#ffffff"
                 strokeWidth="1.8"
                 strokeLinecap="round"
               />
@@ -66,7 +66,7 @@ const ToastContainer = ({ toasts }) => (
             <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
               <polyline
                 points="2,6 5,9 10,3"
-                stroke="rgba(249,115,22,0.95)"
+                stroke="#000000"
                 strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -236,81 +236,314 @@ const AdminUsers = () => {
       <ToastContainer toasts={toasts} />
 
       <div
-        className="min-h-screen flex justify-center items-start p-3 sm:p-6 md:p-8 rounded-3xl pb-20"
-        style={{ background: "#0b1120" }}
+        className="ad-root min-h-screen flex justify-center items-start p-3 sm:p-5 md:p-8 pb-20"
       >
 
-        {/* Card */}
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+          .ad-root {
+            --ad-red:        #ff2d3f;
+            --ad-line:       rgba(255, 45, 63, 0.22);
+            --ad-line-hover: rgba(255, 45, 63, 0.6);
+            --ad-white:      #ffffff;
+            --ad-white-soft: rgba(255, 255, 255, 0.7);
+
+            position: relative;
+            overflow: hidden;
+            background: #000000;
+            color: var(--ad-white);
+            font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+          }
+
+          /* ── Entrance ── */
+          .ad-rise {
+            opacity: 0;
+            animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          }
+
+          @keyframes ad-rise {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+
+          /* ── Heading ── */
+          .ad-overline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: var(--ad-red);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+          }
+
+          .ad-overline::before {
+            content: '';
+            width: 28px;
+            height: 2px;
+            background: var(--ad-red);
+          }
+
+          .ad-title {
+            color: var(--ad-white);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+            font-size: clamp(2.2rem, 4vw, 3rem);
+          }
+
+          .ad-title-bar {
+            margin-top: 1rem;
+            height: 2px;
+            width: 84px;
+            border-radius: 2px;
+            background: var(--ad-red);
+            transform-origin: left center;
+            animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+          }
+
+          @keyframes ad-draw {
+            from { transform: scaleX(0); }
+            to   { transform: scaleX(1); }
+          }
+
+          /* ── Panel ── */
+          .ad-panel {
+            position: relative;
+            background: transparent;
+            border: 1px solid var(--ad-line);
+            border-radius: 16px;
+            transition: border-color 0.3s ease;
+          }
+
+          .ad-panel:hover {
+            border-color: var(--ad-line-hover);
+          }
+
+          .ad-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: var(--ad-white);
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+          }
+
+          .ad-panel-title::before {
+            content: '';
+            width: 3px;
+            height: 1.1em;
+            border-radius: 2px;
+            background: var(--ad-red);
+          }
+
+          /* ── Count pill ── */
+          .ad-pill {
+            color: #ffffff;
+            background: var(--ad-red);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+          }
+
+          /* ── Table ── */
+          .ad-thead {
+            color: var(--ad-white-soft);
+            border-bottom: 1px solid var(--ad-line);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+          }
+
+          .ad-row {
+            position: relative;
+            background: transparent;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: background 0.25s ease;
+          }
+
+          .ad-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 18%;
+            bottom: 18%;
+            width: 2px;
+            border-radius: 2px;
+            background: var(--ad-red);
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+          }
+
+          .ad-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+          }
+
+          .ad-row:hover::before { transform: scaleY(1); }
+
+          .ad-row:last-child { border-bottom: none; }
+
+          .ad-avatar {
+            color: var(--ad-red);
+            background: rgba(255, 45, 63, 0.1);
+            border: 1px solid var(--ad-line);
+            font-weight: 800;
+            font-size: 0.85rem;
+          }
+
+          .ad-cell-name {
+            color: var(--ad-white);
+            font-size: 0.98rem;
+            font-weight: 700;
+          }
+
+          .ad-cell-email {
+            color: var(--ad-white-soft);
+            font-size: 0.92rem;
+            font-weight: 500;
+            word-break: break-all;
+          }
+
+          .ad-empty {
+            color: var(--ad-white-soft);
+            font-size: 0.95rem;
+            font-weight: 500;
+          }
+
+          /* ── Status badges ── */
+          .ad-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+          }
+
+          .ad-badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+          }
+
+          .ad-badge--active {
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.45);
+          }
+
+          .ad-badge--blocked {
+            color: #ffffff;
+            background: rgba(255, 45, 63, 0.22);
+            border: 1px solid rgba(255, 45, 63, 0.6);
+          }
+
+          /* ── Action buttons ── */
+          .ad-btn {
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 0.5rem 1.1rem;
+            border-radius: 10px;
+            background: transparent;
+            transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+          }
+
+          .ad-btn--block {
+            color: #ff2d3f;
+            border: 1px solid rgba(255, 45, 63, 0.6);
+          }
+
+          .ad-btn--block:hover:not(:disabled) {
+            background: #ff2d3f;
+            color: #ffffff;
+            border-color: #ff2d3f;
+          }
+
+          .ad-btn--unblock {
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+          }
+
+          .ad-btn--unblock:hover:not(:disabled) {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+          }
+
+          .ad-btn:focus-visible {
+            outline: 2px solid #ffffff;
+            outline-offset: 2px;
+          }
+
+          /* ── Reduced motion ── */
+          @media (prefers-reduced-motion: reduce) {
+            .ad-rise,
+            .ad-title-bar {
+              animation: none !important;
+              opacity: 1 !important;
+              transform: none !important;
+            }
+
+            .ad-row,
+            .ad-row::before,
+            .ad-btn {
+              transition: none !important;
+            }
+          }
+        `}</style>
+
+        {/* Content */}
         <div
-          className="w-full max-w-6xl relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8"
-          style={{
-            background: "linear-gradient(145deg,#0f1623 0%,#131a28 100%)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            boxShadow: "0 24px 64px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset",
-          }}
+          className="w-full max-w-7xl relative p-2 sm:p-4 md:p-6"
         >
 
-          {/* Glows */}
+          {/* Heading */}
+          <div className="mb-8 sm:mb-10 relative ad-rise">
+
+            <p className="ad-overline">
+              Management
+            </p>
+
+            <h1 className="ad-title">
+              All Users
+            </h1>
+
+            <div className="ad-title-bar" />
+
+          </div>
+
+          {/* Users panel */}
           <div
-            className="absolute -top-40 -left-40 w-96 h-96 rounded-full blur-3xl pointer-events-none"
-            style={{ background: "rgba(249,115,22,0.08)" }}
-          />
+            className="ad-panel ad-rise rounded-xl p-5 sm:p-6 relative"
+            style={{ animationDelay: "0.15s" }}
+          >
 
-          <div
-            className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full blur-3xl pointer-events-none"
-            style={{ background: "rgba(99,102,241,0.08)" }}
-          />
+            <div className="flex items-center justify-between mb-5">
 
-          <div className="relative z-10">
+              <h2 className="ad-panel-title">
+                User Accounts
+              </h2>
 
-            {/* Heading */}
-            <div className="mb-8">
+              <span className="ad-pill px-3 py-1 rounded-full">
+                {users.length} {users.length === 1 ? "user" : "users"}
+              </span>
 
-              <p
-                className="text-xs font-semibold uppercase mb-1"
-                style={{
-                  color: "#f97316",
-                  letterSpacing: "0.18em"
-                }}
-              >
-                Management
-              </p>
-
-              <div className="flex items-center justify-between">
-
-                <h1
-                  className="text-2xl sm:text-3xl font-bold"
-                  style={{
-                    color: "#f1f5f9",
-                    letterSpacing: "-0.02em"
-                  }}
-                >
-                  All Users
-                </h1>
-
-                <span
-                  className="text-xs font-semibold px-3 py-1.5 rounded-full"
-                  style={{
-                    background: "rgba(249,115,22,0.12)",
-                    color: "#f97316",
-                    border: "1px solid rgba(249,115,22,0.2)"
-                  }}
-                >
-                  {users.length} {users.length === 1 ? "user" : "users"}
-                </span>
-
-              </div>
             </div>
 
             {/* Table header */}
             <div
-              className="hidden sm:grid grid-cols-[2fr_2fr_1fr_140px] px-4 py-2.5 rounded-lg mb-3 text-xs font-semibold uppercase"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                color: "#64748b",
-                letterSpacing: "0.08em"
-              }}
+              className="ad-thead hidden sm:grid grid-cols-[2fr_2fr_1fr_140px] px-4 py-3 mb-1"
             >
               <span>Name</span>
               <span>Email</span>
@@ -319,7 +552,7 @@ const AdminUsers = () => {
             </div>
 
             {/* Rows */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
 
               {users.map(user => {
                 const isProcessing =
@@ -328,64 +561,30 @@ const AdminUsers = () => {
                 return (
                   <div
                     key={user.id}
-                    className="grid grid-cols-1 sm:grid-cols-[2fr_2fr_1fr_140px] gap-3 sm:gap-0 items-center px-4 py-4 rounded-xl transition-all duration-200"
-                    style={{
-                      background: "rgba(255,255,255,0.02)",
-                      border: "1px solid rgba(255,255,255,0.05)"
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.045)";
-                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)";
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.02)";
-                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
-                    }}
+                    className="ad-row grid grid-cols-1 sm:grid-cols-[2fr_2fr_1fr_140px] gap-3 sm:gap-0 items-center px-4 py-4"
                   >
 
                     {/* Mobile */}
-                    <div className="sm:hidden flex items-center justify-between">
+                    <div className="sm:hidden flex items-center justify-between gap-3">
 
-                      <div>
+                      <div className="min-w-0">
 
-                        <p
-                          className="font-semibold text-sm"
-                          style={{ color: "#f1f5f9" }}
-                        >
+                        <p className="ad-cell-name">
                           {user.name}
                         </p>
 
-                        <p
-                          className="text-xs mt-0.5"
-                          style={{ color: "#64748b" }}
-                        >
+                        <p className="ad-cell-email mt-0.5">
                           {user.email}
                         </p>
 
                         <span
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full mt-2"
-                          style={
+                          className={`ad-badge mt-2 ${
                             user.isBlocked
-                              ? {
-                                  background: "rgba(239,68,68,0.12)",
-                                  color: "#f87171",
-                                  border: "1px solid rgba(239,68,68,0.2)"
-                                }
-                              : {
-                                  background: "rgba(52,211,153,0.12)",
-                                  color: "#34d399",
-                                  border: "1px solid rgba(52,211,153,0.2)"
-                                }
-                          }
+                              ? "ad-badge--blocked"
+                              : "ad-badge--active"
+                          }`}
                         >
-                          <span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{
-                              background: user.isBlocked
-                                ? "#f87171"
-                                : "#34d399"
-                            }}
-                          />
+                          <span className="ad-badge-dot" />
 
                           {user.isBlocked ? "Blocked" : "Active"}
                         </span>
@@ -395,19 +594,12 @@ const AdminUsers = () => {
                       <button
                         onClick={() => toggleBlock(user)}
                         disabled={isProcessing || processingUserId !== null}
-                        className="text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer"
+                        className={`ad-btn shrink-0 ${
+                          user.isBlocked
+                            ? "ad-btn--unblock"
+                            : "ad-btn--block"
+                        }`}
                         style={{
-                          ...(user.isBlocked
-                            ? {
-                                background: "rgba(52,211,153,0.1)",
-                                color: "#34d399",
-                                border: "1px solid rgba(52,211,153,0.2)"
-                              }
-                            : {
-                                background: "rgba(239,68,68,0.1)",
-                                color: "#f87171",
-                                border: "1px solid rgba(239,68,68,0.2)"
-                              }),
                           opacity: isProcessing ? 0.55 : 1,
                           cursor: isProcessing || processingUserId !== null
                             ? "not-allowed"
@@ -427,30 +619,19 @@ const AdminUsers = () => {
                     <div className="hidden sm:flex items-center gap-3">
 
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                        style={{
-                          background: "rgba(249,115,22,0.15)",
-                          color: "#f97316",
-                          border: "1px solid rgba(249,115,22,0.2)"
-                        }}
+                        className="ad-avatar w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
                       >
                         {user.name?.charAt(0).toUpperCase()}
                       </div>
 
-                      <span
-                        className="text-sm font-medium"
-                        style={{ color: "#e2e8f0" }}
-                      >
+                      <span className="ad-cell-name">
                         {user.name}
                       </span>
 
                     </div>
 
                     {/* Desktop: Email */}
-                    <p
-                      className="hidden sm:block text-sm"
-                      style={{ color: "#94a3b8" }}
-                    >
+                    <p className="hidden sm:block ad-cell-email">
                       {user.email}
                     </p>
 
@@ -458,29 +639,13 @@ const AdminUsers = () => {
                     <div className="hidden sm:block">
 
                       <span
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
-                        style={
+                        className={`ad-badge ${
                           user.isBlocked
-                            ? {
-                                background: "rgba(239,68,68,0.12)",
-                                color: "#f87171",
-                                border: "1px solid rgba(239,68,68,0.2)"
-                              }
-                            : {
-                                background: "rgba(52,211,153,0.12)",
-                                color: "#34d399",
-                                border: "1px solid rgba(52,211,153,0.2)"
-                              }
-                        }
+                            ? "ad-badge--blocked"
+                            : "ad-badge--active"
+                        }`}
                       >
-                        <span
-                          className="w-1.5 h-1.5 rounded-full"
-                          style={{
-                            background: user.isBlocked
-                              ? "#f87171"
-                              : "#34d399"
-                          }}
-                        />
+                        <span className="ad-badge-dot" />
 
                         {user.isBlocked ? "Blocked" : "Active"}
                       </span>
@@ -493,50 +658,16 @@ const AdminUsers = () => {
                       <button
                         onClick={() => toggleBlock(user)}
                         disabled={isProcessing || processingUserId !== null}
-                        className="text-xs font-semibold px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer"
+                        className={`ad-btn ${
+                          user.isBlocked
+                            ? "ad-btn--unblock"
+                            : "ad-btn--block"
+                        }`}
                         style={{
-                          ...(user.isBlocked
-                            ? {
-                                background: "rgba(52,211,153,0.1)",
-                                color: "#34d399",
-                                border: "1px solid rgba(52,211,153,0.2)"
-                              }
-                            : {
-                                background: "rgba(239,68,68,0.1)",
-                                color: "#f87171",
-                                border: "1px solid rgba(239,68,68,0.2)"
-                              }),
                           opacity: isProcessing ? 0.55 : 1,
                           cursor: isProcessing || processingUserId !== null
                             ? "not-allowed"
                             : "pointer"
-                        }}
-                        onMouseEnter={e => {
-                          if (!isProcessing && processingUserId === null) {
-                            e.currentTarget.style.background =
-                              user.isBlocked ? "#34d399" : "#ef4444";
-
-                            e.currentTarget.style.color = "#fff";
-                            e.currentTarget.style.borderColor = "transparent";
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          if (!isProcessing && processingUserId === null) {
-                            e.currentTarget.style.background =
-                              user.isBlocked
-                                ? "rgba(52,211,153,0.1)"
-                                : "rgba(239,68,68,0.1)";
-
-                            e.currentTarget.style.color =
-                              user.isBlocked
-                                ? "#34d399"
-                                : "#f87171";
-
-                            e.currentTarget.style.borderColor =
-                              user.isBlocked
-                                ? "rgba(52,211,153,0.2)"
-                                : "rgba(239,68,68,0.2)";
-                          }
                         }}
                       >
                         {isProcessing
@@ -553,10 +684,7 @@ const AdminUsers = () => {
               })}
 
               {users.length === 0 && (
-                <div
-                  className="text-center py-16 text-sm"
-                  style={{ color: "#475569" }}
-                >
+                <div className="ad-empty text-center py-16">
                   No users found.
                 </div>
               )}
@@ -564,6 +692,7 @@ const AdminUsers = () => {
             </div>
 
           </div>
+
         </div>
       </div>
     </>

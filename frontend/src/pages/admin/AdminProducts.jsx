@@ -11,122 +11,53 @@ import { useNavigate } from "react-router-dom";
 import API_URL from "../../config/api";
 
 
-/* ── Shared keyframes ── */
-
-const GlobalStyles = () => (
-  <style>{`
-    @keyframes toastIn  { from{opacity:0;transform:translateY(-12px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
-    @keyframes toastOut { from{opacity:1;transform:translateY(0) scale(1)} to{opacity:0;transform:translateY(-8px) scale(0.95)} }
-  `}</style>
-);
-
-
-/* ── Glassy Notification Toast ── */
+/* ── Glass Toast (black + red theme) ── */
 
 const ToastContainer = ({ toasts }) => (
-  <div
-    style={{
-      position: "fixed",
-      top: "100px",
-      left: 0,
-      right: 0,
-      marginLeft: "auto",
-      marginRight: "auto",
-      zIndex: 9999,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "stretch",
-      gap: "10px",
-      width: "320px",
-      maxWidth: "calc(100vw - 32px)",
-      pointerEvents: "none"
-    }}
-  >
+  <div style={{
+    position: "fixed", top: "100px", left: "50%", transform: "translateX(-50%)",
+    zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "stretch",
+    gap: "10px", width: "min(340px, calc(100vw - 32px))", pointerEvents: "none",
+  }}>
+    <style>{`
+      @keyframes toastIn  { from{opacity:0;transform:translateY(-10px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+      @keyframes toastOut { from{opacity:1;transform:translateY(0) scale(1)} to{opacity:0;transform:translateY(-8px) scale(0.97)} }
+    `}</style>
+
     {toasts.map((t) => (
-      <div
-        key={t.id}
-        style={{
+      <div key={t.id} style={{
+        display: "flex", alignItems: "center", gap: "12px", padding: "13px 18px",
+        background: "rgba(0,0,0,0.6)",
+        border: t.type === "error"
+          ? "1px solid rgba(255,45,63,0.6)"
+          : "1px solid rgba(255,255,255,0.22)",
+        backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+        borderRadius: "14px",
+        color: "#ffffff", fontSize: "14px", fontWeight: 600,
+        fontFamily: "'Manrope', 'Inter', system-ui, sans-serif",
+        pointerEvents: "auto",
+        animation: t.leaving
+          ? "toastOut 0.3s ease forwards"
+          : "toastIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards",
+      }}>
+        <span style={{
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          background: t.type === "error" ? "#ff2d3f" : "#ffffff",
           display: "flex",
           alignItems: "center",
-          gap: "12px",
-          padding: "13px 18px",
-          background: "rgba(255,255,255,0.05)",
-          border:
-            "1px solid rgba(255,255,255,0.15)",
-          backdropFilter: "blur(25px)",
-          WebkitBackdropFilter: "blur(25px)",
-          borderRadius: "16px",
-          boxShadow:
-            "0 8px 32px rgba(0,0,0,0.5)",
-          color: "#ffffff",
-          fontSize: "14px",
-          fontWeight: 500,
-          pointerEvents: "auto",
-          animation: t.leaving
-            ? "toastOut 0.3s ease forwards"
-            : "toastIn 0.35s cubic-bezier(0.2,1.3,0.4,1) forwards"
-        }}
-      >
-        <span
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: "50%",
-            flexShrink: 0,
-            background:
-              t.type === "error"
-                ? "rgba(239,68,68,0.15)"
-                : "rgba(249,115,22,0.15)",
-            border:
-              t.type === "error"
-                ? "1.5px solid rgba(239,68,68,0.5)"
-                : "1.5px solid rgba(249,115,22,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
+          justifyContent: "center",
+          flexShrink: 0
+        }}>
           {t.type === "error" ? (
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 12 12"
-              fill="none"
-            >
-              <line
-                x1="2"
-                y1="2"
-                x2="10"
-                y2="10"
-                stroke="rgba(239,68,68,0.95)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-
-              <line
-                x1="10"
-                y1="2"
-                x2="2"
-                y2="10"
-                stroke="rgba(239,68,68,0.95)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <line x1="2" y1="2" x2="10" y2="10" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" />
+              <line x1="10" y1="2" x2="2" y2="10" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
           ) : (
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 12 12"
-              fill="none"
-            >
-              <polyline
-                points="2,6 5,9 10,3"
-                stroke="rgba(249,115,22,0.95)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <polyline points="2,6 5,9 10,3" stroke="#000000" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
         </span>
@@ -138,7 +69,7 @@ const ToastContainer = ({ toasts }) => (
 );
 
 
-/* ── Glassy Confirm Toast — appears below navbar, centered ── */
+/* ── Glass Confirm Toast (black + red theme) ── */
 
 const ConfirmToast = ({
   onConfirm,
@@ -149,36 +80,33 @@ const ConfirmToast = ({
     style={{
       position: "fixed",
       top: "100px",
-      left: 0,
-      right: 0,
-      marginLeft: "auto",
-      marginRight: "auto",
+      left: "50%",
+      transform: "translateX(-50%)",
       zIndex: 10000,
-      width: "340px",
-      maxWidth: "calc(100vw - 32px)",
+      width: "min(360px, calc(100vw - 32px))",
       pointerEvents: "auto",
-      animation:
-        "toastIn 0.35s cubic-bezier(0.2,1.3,0.4,1) forwards"
+      animation: "toastIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards",
+      fontFamily: "'Manrope', 'Inter', system-ui, sans-serif"
     }}
   >
     <div
       style={{
-        padding: "20px 22px",
-        background: "rgba(10, 14, 26, 0.98)",
-        border:
-          "1px solid rgba(255,255,255,0.2)",
-        backdropFilter: "blur(40px)",
-        WebkitBackdropFilter: "blur(40px)",
+        padding: "22px 24px",
+        background: "rgba(0,0,0,0.72)",
+        border: "1px solid rgba(255,45,63,0.6)",
+        backdropFilter: "blur(32px) saturate(140%)",
+        WebkitBackdropFilter: "blur(32px) saturate(140%)",
         borderRadius: "18px",
         boxShadow:
-          "0 24px 60px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.08) inset"
+          "0 24px 60px rgba(0,0,0,0.85), 0 0 40px rgba(255,45,63,0.12), 0 1px 0 rgba(255,255,255,0.08) inset"
       }}
     >
       <p
         style={{
-          fontSize: 15,
-          fontWeight: 700,
-          color: "#f8fafc",
+          fontSize: 16,
+          fontWeight: 800,
+          color: "#ffffff",
+          letterSpacing: "-0.01em",
           margin: "0 0 6px 0"
         }}
       >
@@ -187,9 +115,10 @@ const ConfirmToast = ({
 
       <p
         style={{
-          fontSize: 13,
-          color: "rgba(255,255,255,0.55)",
-          margin: "0 0 18px 0"
+          fontSize: 13.5,
+          fontWeight: 500,
+          color: "rgba(255,255,255,0.7)",
+          margin: "0 0 20px 0"
         }}
       >
         This action cannot be undone.
@@ -205,39 +134,10 @@ const ConfirmToast = ({
         <button
           onClick={onCancel}
           disabled={loading}
+          className="ap-btn ap-btn--ghost"
           style={{
-            padding: "8px 20px",
-            borderRadius: 10,
-            fontSize: 13,
-            fontWeight: 500,
-            background:
-              "rgba(255,255,255,0.07)",
-            border:
-              "1px solid rgba(255,255,255,0.18)",
-            color: "#cbd5e1",
-            cursor: loading
-              ? "not-allowed"
-              : "pointer",
-            transition: "all 0.15s",
-            opacity: loading ? 0.5 : 1
-          }}
-          onMouseEnter={(e) => {
-            if (loading) return;
-
-            e.currentTarget.style.background =
-              "rgba(255,255,255,0.13)";
-
-            e.currentTarget.style.color =
-              "#fff";
-          }}
-          onMouseLeave={(e) => {
-            if (loading) return;
-
-            e.currentTarget.style.background =
-              "rgba(255,255,255,0.07)";
-
-            e.currentTarget.style.color =
-              "#cbd5e1";
+            opacity: loading ? 0.5 : 1,
+            cursor: loading ? "not-allowed" : "pointer"
           }}
         >
           Cancel
@@ -246,50 +146,13 @@ const ConfirmToast = ({
         <button
           onClick={onConfirm}
           disabled={loading}
+          className="ap-btn ap-btn--danger"
           style={{
-            padding: "8px 20px",
-            borderRadius: 10,
-            fontSize: 13,
-            fontWeight: 600,
-            background:
-              "rgba(239,68,68,0.22)",
-            border:
-              "1px solid rgba(239,68,68,0.5)",
-            color: "#fca5a5",
-            cursor: loading
-              ? "not-allowed"
-              : "pointer",
-            transition: "all 0.15s",
-            opacity: loading ? 0.6 : 1
-          }}
-          onMouseEnter={(e) => {
-            if (loading) return;
-
-            e.currentTarget.style.background =
-              "#ef4444";
-
-            e.currentTarget.style.color =
-              "#fff";
-
-            e.currentTarget.style.borderColor =
-              "transparent";
-          }}
-          onMouseLeave={(e) => {
-            if (loading) return;
-
-            e.currentTarget.style.background =
-              "rgba(239,68,68,0.22)";
-
-            e.currentTarget.style.color =
-              "#fca5a5";
-
-            e.currentTarget.style.borderColor =
-              "rgba(239,68,68,0.5)";
+            opacity: loading ? 0.6 : 1,
+            cursor: loading ? "not-allowed" : "pointer"
           }}
         >
-          {loading
-            ? "Deleting..."
-            : "Delete"}
+          {loading ? "Deleting..." : "Delete"}
         </button>
       </div>
     </div>
@@ -308,32 +171,22 @@ const ProductStock = ({
       ? sizes
           .map((item) => {
 
-            if (
-              typeof item ===
-              "string"
-            ) {
+            if (typeof item === "string") {
               return {
                 size: item,
                 stock: 0
               };
             }
 
-            if (
-              item &&
-              typeof item ===
-                "object"
-            ) {
+            if (item && typeof item === "object") {
               return {
                 size:
-                  typeof item.size ===
-                  "string"
+                  typeof item.size === "string"
                     ? item.size
                     : "",
 
                 stock:
-                  Number.isInteger(
-                    item.stock
-                  )
+                  Number.isInteger(item.stock)
                     ? item.stock
                     : 0
               };
@@ -342,50 +195,19 @@ const ProductStock = ({
             return null;
 
           })
-          .filter(
-            (item) =>
-              item &&
-              item.size
-          )
+          .filter((item) => item && item.size)
       : [];
 
   const totalStock =
     normalizedSizes.reduce(
-      (total, item) =>
-        total + item.stock,
+      (total, item) => total + item.stock,
       0
     );
 
-  if (
-    normalizedSizes.length ===
-    0
-  ) {
+  if (normalizedSizes.length === 0) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          flexWrap: "wrap"
-        }}
-      >
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            padding:
-              "4px 8px",
-            borderRadius:
-              "7px",
-            background:
-              "rgba(100,116,139,0.1)",
-            border:
-              "1px solid rgba(100,116,139,0.2)",
-            color: "#64748b",
-            fontSize: "11px",
-            fontWeight: 600
-          }}
-        >
+      <div className="ap-stock-wrap">
+        <span className="ap-size ap-size--none">
           No sizes
         </span>
       </div>
@@ -393,103 +215,35 @@ const ProductStock = ({
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "7px",
-        minWidth: 0
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "5px"
-        }}
-      >
-        {normalizedSizes.map(
-          (item, index) => (
-            <span
-              key={`${item.size}-${index}`}
-              style={{
-                display:
-                  "inline-flex",
-                alignItems:
-                  "center",
-                gap: "5px",
-                padding:
-                  "4px 7px",
-                borderRadius:
-                  "7px",
-                background:
-                  item.stock > 0
-                    ? "rgba(34,197,94,0.08)"
-                    : "rgba(239,68,68,0.08)",
-                border:
-                  item.stock > 0
-                    ? "1px solid rgba(34,197,94,0.18)"
-                    : "1px solid rgba(239,68,68,0.18)",
-                color:
-                  item.stock > 0
-                    ? "#86efac"
-                    : "#fca5a5",
-                fontSize:
-                  "11px",
-                fontWeight: 600,
-                whiteSpace:
-                  "nowrap"
-              }}
-            >
-              <span>
-                {item.size}
-              </span>
+    <div className="ap-stock-col">
+      <div className="ap-stock-wrap">
+        {normalizedSizes.map((item, index) => (
+          <span
+            key={`${item.size}-${index}`}
+            className={`ap-size ${
+              item.stock > 0 ? "ap-size--in" : "ap-size--out"
+            }`}
+          >
+            <span>{item.size}</span>
 
-              <span
-                style={{
-                  opacity: 0.9
-                }}
-              >
-                {item.stock}
-              </span>
+            <span className="ap-size-count">
+              {item.stock}
             </span>
-          )
-        )}
+          </span>
+        ))}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "6px"
-        }}
-      >
+      <div className="ap-total">
         <span
-          style={{
-            width: "6px",
-            height: "6px",
-            borderRadius:
-              "50%",
-            background:
-              totalStock > 0
-                ? "#22c55e"
-                : "#ef4444",
-            boxShadow:
-              totalStock > 0
-                ? "0 0 8px rgba(34,197,94,0.5)"
-                : "0 0 8px rgba(239,68,68,0.5)"
-          }}
+          className={`ap-total-dot ${
+            totalStock > 0 ? "ap-total-dot--in" : "ap-total-dot--out"
+          }`}
         />
 
         <span
-          style={{
-            color:
-              totalStock > 0
-                ? "#94a3b8"
-                : "#f87171",
-            fontSize: "11px",
-            fontWeight: 600
-          }}
+          className={`ap-total-text ${
+            totalStock > 0 ? "" : "ap-total-text--out"
+          }`}
         >
           {totalStock > 0
             ? `Total: ${totalStock}`
@@ -505,17 +259,13 @@ const ProductStock = ({
 
 const AdminProducts = () => {
 
-  const [products, setProducts] =
-    useState([]);
+  const [products, setProducts] = useState([]);
 
-  const [toasts, setToasts] =
-    useState([]);
+  const [toasts, setToasts] = useState([]);
 
-  const [confirm, setConfirm] =
-    useState(null);
+  const [confirm, setConfirm] = useState(null);
 
-  const [deleting, setDeleting] =
-    useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const navigate = useNavigate();
 
@@ -551,10 +301,7 @@ const AdminProducts = () => {
         setTimeout(() => {
 
           setToasts((prev) =>
-            prev.filter(
-              (t) =>
-                t.id !== id
-            )
+            prev.filter((t) => t.id !== id)
           );
 
         }, 320);
@@ -577,21 +324,16 @@ const AdminProducts = () => {
           await axios.get(
             `${API_URL}/products`,
             {
-              withCredentials:
-                true
+              withCredentials: true
             }
           );
 
         const productData =
-          Array.isArray(
-            res.data?.products
-          )
+          Array.isArray(res.data?.products)
             ? res.data.products
             : [];
 
-        setProducts(
-          productData
-        );
+        setProducts(productData);
 
       } catch (error) {
 
@@ -601,8 +343,7 @@ const AdminProducts = () => {
         );
 
         showToast(
-          error.response?.data
-            ?.message ||
+          error.response?.data?.message ||
             "Failed to load products",
           "error"
         );
@@ -625,31 +366,23 @@ const AdminProducts = () => {
 
   const addProduct = () => {
 
-    navigate(
-      "/admin/add"
-    );
+    navigate("/admin/add");
 
   };
 
 
   /* ── EDIT PRODUCT ── */
 
-  const editProduct = (
-    id
-  ) => {
+  const editProduct = (id) => {
 
-    navigate(
-      `/admin/edit-product/${id}`
-    );
+    navigate(`/admin/edit-product/${id}`);
 
   };
 
 
   /* ── DELETE PRODUCT ── */
 
-  const deleteProduct = (
-    id
-  ) => {
+  const deleteProduct = (id) => {
 
     if (deleting) return;
 
@@ -670,8 +403,7 @@ const AdminProducts = () => {
         return;
       }
 
-      const productId =
-        confirm;
+      const productId = confirm;
 
       setDeleting(true);
 
@@ -682,8 +414,7 @@ const AdminProducts = () => {
             productId
           )}`,
           {
-            withCredentials:
-              true
+            withCredentials: true
           }
         );
 
@@ -691,19 +422,13 @@ const AdminProducts = () => {
         setProducts((prev) =>
           prev.filter(
             (product) =>
-              String(
-                product.id
-              ) !==
-              String(
-                productId
-              )
+              String(product.id) !==
+              String(productId)
           )
         );
 
 
-        setConfirm(
-          null
-        );
+        setConfirm(null);
 
 
         showToast(
@@ -719,43 +444,70 @@ const AdminProducts = () => {
         );
 
         showToast(
-          error.response?.data
-            ?.message ||
+          error.response?.data?.message ||
             "Delete failed",
           "error"
         );
 
       } finally {
 
-        setDeleting(
-          false
-        );
+        setDeleting(false);
 
       }
 
     };
 
 
+  /* ── Icons (design only) ── */
+
+  const EditIcon = ({ size = 14 }) => (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+
+  const TrashIcon = ({ size = 14 }) => (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  );
+
+
   return (
     <>
-      <GlobalStyles />
-
-      <ToastContainer
-        toasts={toasts}
-      />
+      <ToastContainer toasts={toasts} />
 
       {confirm !== null && (
         <ConfirmToast
-          onConfirm={
-            handleConfirmDelete
-          }
+          onConfirm={handleConfirmDelete}
           onCancel={() => {
 
             if (!deleting) {
 
-              setConfirm(
-                null
-              );
+              setConfirm(null);
 
             }
 
@@ -766,175 +518,470 @@ const AdminProducts = () => {
 
 
       <div
-        className="min-h-screen flex justify-center items-start p-3 sm:p-6 md:p-8 rounded-3xl pb-20"
-        style={{
-          background:
-            "#0b1120"
-        }}
+        className="ad-root min-h-screen flex justify-center items-start p-3 sm:p-5 md:p-8 pb-20"
       >
 
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+          .ad-root {
+            --ad-red:        #ff2d3f;
+            --ad-line:       rgba(255, 45, 63, 0.22);
+            --ad-line-hover: rgba(255, 45, 63, 0.6);
+            --ad-white:      #ffffff;
+            --ad-white-soft: rgba(255, 255, 255, 0.7);
+
+            position: relative;
+            overflow: hidden;
+            background: #000000;
+            color: var(--ad-white);
+            font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+          }
+
+          /* ── Entrance ── */
+          .ad-rise {
+            opacity: 0;
+            animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          }
+
+          @keyframes ad-rise {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+
+          /* ── Heading ── */
+          .ad-overline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: var(--ad-red);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+          }
+
+          .ad-overline::before {
+            content: '';
+            width: 28px;
+            height: 2px;
+            background: var(--ad-red);
+          }
+
+          .ad-title {
+            color: var(--ad-white);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+            font-size: clamp(2.2rem, 4vw, 3rem);
+          }
+
+          .ad-title-bar {
+            margin-top: 1rem;
+            height: 2px;
+            width: 84px;
+            border-radius: 2px;
+            background: var(--ad-red);
+            transform-origin: left center;
+            animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+          }
+
+          @keyframes ad-draw {
+            from { transform: scaleX(0); }
+            to   { transform: scaleX(1); }
+          }
+
+          /* ── Panel ── */
+          .ad-panel {
+            position: relative;
+            background: transparent;
+            border: 1px solid var(--ad-line);
+            border-radius: 16px;
+            transition: border-color 0.3s ease;
+          }
+
+          .ad-panel:hover {
+            border-color: var(--ad-line-hover);
+          }
+
+          .ad-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: var(--ad-white);
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+          }
+
+          .ad-panel-title::before {
+            content: '';
+            width: 3px;
+            height: 1.1em;
+            border-radius: 2px;
+            background: var(--ad-red);
+          }
+
+          /* ── Count pill ── */
+          .ad-pill {
+            color: #ffffff;
+            background: var(--ad-red);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+          }
+
+          /* ── Table ── */
+          .ad-thead {
+            color: var(--ad-white-soft);
+            border-bottom: 1px solid var(--ad-line);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+          }
+
+          .ad-row {
+            position: relative;
+            background: transparent;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: background 0.25s ease;
+          }
+
+          .ad-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 18%;
+            bottom: 18%;
+            width: 2px;
+            border-radius: 2px;
+            background: var(--ad-red);
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+          }
+
+          .ad-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+          }
+
+          .ad-row:hover::before { transform: scaleY(1); }
+
+          .ad-row:last-child { border-bottom: none; }
+
+          .ad-cell-name {
+            color: var(--ad-white);
+            font-size: 0.98rem;
+            font-weight: 700;
+          }
+
+          .ad-cell-price {
+            color: var(--ad-red);
+            font-size: 0.9rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+          }
+
+          .ad-cell-cat {
+            color: var(--ad-white-soft);
+            font-size: 0.92rem;
+            font-weight: 500;
+            text-transform: capitalize;
+          }
+
+          .ad-empty {
+            color: var(--ad-white-soft);
+            font-size: 0.95rem;
+            font-weight: 500;
+          }
+
+          /* ── Product image ── */
+          .ap-img {
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid var(--ad-line);
+            background: #000000;
+            transition: border-color 0.3s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+          }
+
+          .ad-row:hover .ap-img {
+            border-color: var(--ad-line-hover);
+            transform: scale(1.05);
+          }
+
+          /* ── Stock chips ── */
+          .ap-stock-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
+          }
+
+          .ap-stock-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+          }
+
+          .ap-size {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.25rem 0.55rem;
+            border-radius: 8px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            white-space: nowrap;
+          }
+
+          .ap-size-count { opacity: 0.9; }
+
+          .ap-size--in {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+          }
+
+          .ap-size--out {
+            color: #ff9aa4;
+            background: rgba(255, 45, 63, 0.12);
+            border: 1px solid rgba(255, 45, 63, 0.45);
+          }
+
+          .ap-size--none {
+            color: var(--ad-white-soft);
+            background: transparent;
+            border: 1px dashed rgba(255, 255, 255, 0.25);
+          }
+
+          .ap-total {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+          }
+
+          .ap-total-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+          }
+
+          .ap-total-dot--in {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.55);
+          }
+
+          .ap-total-dot--out {
+            background: var(--ad-red);
+            box-shadow: 0 0 8px rgba(255, 45, 63, 0.6);
+          }
+
+          .ap-total-text {
+            color: var(--ad-white-soft);
+            font-size: 0.78rem;
+            font-weight: 700;
+          }
+
+          .ap-total-text--out { color: var(--ad-red); }
+
+          /* ── Buttons ── */
+          .ap-btn {
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 0.5rem 1.2rem;
+            border-radius: 10px;
+            background: transparent;
+            transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+          }
+
+          .ap-btn--ghost {
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+          }
+
+          .ap-btn--ghost:hover:not(:disabled) {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+          }
+
+          .ap-btn--danger {
+            color: var(--ad-red);
+            border: 1px solid rgba(255, 45, 63, 0.6);
+          }
+
+          .ap-btn--danger:hover:not(:disabled) {
+            background: var(--ad-red);
+            color: #ffffff;
+            border-color: var(--ad-red);
+            box-shadow: 0 0 22px rgba(255, 45, 63, 0.4);
+          }
+
+          .ap-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #ffffff;
+            background: var(--ad-red);
+            border: 1px solid var(--ad-red);
+            border-radius: 10px;
+            padding: 0.5rem 1.1rem;
+            cursor: pointer;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease;
+          }
+
+          .ap-add:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 24px rgba(255, 45, 63, 0.5);
+          }
+
+          .ap-add:active { transform: translateY(0); }
+
+          .ap-icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: transparent;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+          }
+
+          .ap-icon-btn:hover:not(:disabled) { transform: translateY(-1px); }
+
+          .ap-icon-btn--edit {
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+          }
+
+          .ap-icon-btn--edit:hover:not(:disabled) {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+          }
+
+          .ap-icon-btn--delete {
+            color: var(--ad-red);
+            border: 1px solid rgba(255, 45, 63, 0.6);
+          }
+
+          .ap-icon-btn--delete:hover:not(:disabled) {
+            background: var(--ad-red);
+            color: #ffffff;
+            border-color: var(--ad-red);
+          }
+
+          .ap-btn:focus-visible,
+          .ap-add:focus-visible,
+          .ap-icon-btn:focus-visible {
+            outline: 2px solid #ffffff;
+            outline-offset: 2px;
+          }
+
+          /* ── Empty state icon ── */
+          .ap-empty-icon {
+            color: var(--ad-red);
+            background: rgba(255, 45, 63, 0.1);
+            border: 1px solid var(--ad-line);
+          }
+
+          /* ── Reduced motion ── */
+          @media (prefers-reduced-motion: reduce) {
+            .ad-rise,
+            .ad-title-bar {
+              animation: none !important;
+              opacity: 1 !important;
+              transform: none !important;
+            }
+
+            .ad-row,
+            .ad-row::before,
+            .ap-img,
+            .ap-btn,
+            .ap-add,
+            .ap-icon-btn {
+              transition: none !important;
+            }
+          }
+        `}</style>
+
+        {/* Content */}
         <div
-          className="w-full max-w-6xl relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8"
-          style={{
-            background:
-              "linear-gradient(145deg,#0f1623 0%,#131a28 100%)",
-            border:
-              "1px solid rgba(255,255,255,0.07)",
-            boxShadow:
-              "0 24px 64px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset"
-          }}
+          className="w-full max-w-7xl relative p-2 sm:p-4 md:p-6"
         >
 
-          {/* Glows */}
+          {/* Heading */}
+          <div className="mb-8 sm:mb-10 relative ad-rise">
 
+            <p className="ad-overline">
+              Inventory
+            </p>
+
+            <h1 className="ad-title">
+              All Products
+            </h1>
+
+            <div className="ad-title-bar" />
+
+          </div>
+
+          {/* Products panel */}
           <div
-            className="absolute -top-40 -left-40 w-96 h-96 rounded-full blur-3xl pointer-events-none"
-            style={{
-              background:
-                "rgba(249,115,22,0.08)"
-            }}
-          />
+            className="ad-panel ad-rise rounded-xl p-5 sm:p-6 relative"
+            style={{ animationDelay: "0.15s" }}
+          >
 
-          <div
-            className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full blur-3xl pointer-events-none"
-            style={{
-              background:
-                "rgba(99,102,241,0.08)"
-            }}
-          />
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
 
+              <h2 className="ad-panel-title">
+                Product Catalogue
+              </h2>
 
-          <div className="relative z-10">
+              <div className="flex items-center gap-2 sm:gap-3">
 
+                <span className="ad-pill px-3 py-1 rounded-full">
+                  {products.length}{" "}
+                  {products.length === 1 ? "product" : "products"}
+                </span>
 
-            {/* Heading */}
-
-            <div className="mb-8">
-
-              <p
-                className="text-xs font-semibold uppercase mb-1"
-                style={{
-                  color:
-                    "#f97316",
-                  letterSpacing:
-                    "0.18em"
-                }}
-              >
-                Inventory
-              </p>
-
-
-              <div className="flex flex-wrap items-center justify-between gap-3">
-
-                <h1
-                  className="text-2xl sm:text-3xl font-bold"
-                  style={{
-                    color:
-                      "#f1f5f9",
-                    letterSpacing:
-                      "-0.02em"
-                  }}
+                <button
+                  onClick={addProduct}
+                  className="ap-add"
                 >
-                  All Products
-                </h1>
 
-
-                <div className="flex items-center gap-2 sm:gap-3">
-
-                  <span
-                    className="text-xs font-semibold px-3 py-1.5 rounded-full"
-                    style={{
-                      background:
-                        "rgba(249,115,22,0.12)",
-                      color:
-                        "#f97316",
-                      border:
-                        "1px solid rgba(249,115,22,0.2)"
-                    }}
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
                   >
-                    {products.length}{" "}
-                    {products.length ===
-                    1
-                      ? "product"
-                      : "products"}
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+
+                  <span className="hidden sm:inline">
+                    Add Product
                   </span>
 
+                  <span className="sm:hidden">
+                    Add
+                  </span>
 
-                  <button
-                    onClick={
-                      addProduct
-                    }
-                    className="flex items-center gap-1.5 text-sm font-semibold px-3 sm:px-4 py-2 rounded-xl cursor-pointer"
-                    style={{
-                      background:
-                        "linear-gradient(135deg,#f97316,#ea580c)",
-                      color:
-                        "#fff",
-                      border:
-                        "none",
-                      boxShadow:
-                        "0 4px 14px rgba(249,115,22,0.35)"
-                    }}
-                    onMouseEnter={(
-                      e
-                    ) => {
-
-                      e.currentTarget.style.boxShadow =
-                        "0 6px 20px rgba(249,115,22,0.5)";
-
-                      e.currentTarget.style.transform =
-                        "translateY(-1px)";
-
-                    }}
-                    onMouseLeave={(
-                      e
-                    ) => {
-
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 14px rgba(249,115,22,0.35)";
-
-                      e.currentTarget.style.transform =
-                        "translateY(0)";
-
-                    }}
-                  >
-
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    >
-                      <line
-                        x1="12"
-                        y1="5"
-                        x2="12"
-                        y2="19"
-                      />
-
-                      <line
-                        x1="5"
-                        y1="12"
-                        x2="19"
-                        y2="12"
-                      />
-                    </svg>
-
-
-                    <span className="hidden sm:inline">
-                      Add Product
-                    </span>
-
-                    <span className="sm:hidden">
-                      Add
-                    </span>
-
-                  </button>
-
-                </div>
+                </button>
 
               </div>
 
@@ -942,565 +989,152 @@ const AdminProducts = () => {
 
 
             {/* Table header — desktop */}
-
             <div
-              className="hidden sm:grid grid-cols-[72px_2fr_1fr_1.35fr_100px] px-4 py-2.5 rounded-lg mb-3 text-xs font-semibold uppercase"
-              style={{
-                background:
-                  "rgba(255,255,255,0.04)",
-                border:
-                  "1px solid rgba(255,255,255,0.06)",
-                color:
-                  "#64748b",
-                letterSpacing:
-                  "0.08em"
-              }}
+              className="ad-thead hidden sm:grid grid-cols-[72px_2fr_1fr_1.35fr_100px] px-4 py-3 mb-1"
             >
-
-              <span>
-                Image
-              </span>
-
-              <span>
-                Name
-              </span>
-
-              <span>
-                Category
-              </span>
-
-              <span>
-                Stock
-              </span>
-
-              <span className="text-center">
-                Action
-              </span>
-
+              <span>Image</span>
+              <span>Name</span>
+              <span>Category</span>
+              <span>Stock</span>
+              <span className="text-center">Action</span>
             </div>
 
 
             {/* Products list */}
+            <div className="flex flex-col">
 
-            <div className="flex flex-col gap-2">
+              {products.map((product) => (
 
-              {products.map(
-                (product) => (
+                <div
+                  key={product.id}
+                  className="ad-row"
+                >
 
-                  <div
-                    key={
-                      product.id
-                    }
-                    className="rounded-xl transition-all duration-200"
-                    style={{
-                      background:
-                        "rgba(255,255,255,0.02)",
-                      border:
-                        "1px solid rgba(255,255,255,0.05)"
-                    }}
-                    onMouseEnter={(
-                      e
-                    ) => {
+                  {/* MOBILE layout */}
+                  <div className="flex sm:hidden items-center gap-3 px-4 py-4">
 
-                      e.currentTarget.style.background =
-                        "rgba(255,255,255,0.045)";
+                    <img
+                      src={product.image}
+                      className="ap-img w-14 h-14 shrink-0"
+                      alt=""
+                    />
 
-                      e.currentTarget.style.borderColor =
-                        "rgba(255,255,255,0.09)";
+                    <div className="flex-1 min-w-0">
 
-                    }}
-                    onMouseLeave={(
-                      e
-                    ) => {
+                      <p className="ad-cell-name truncate">
+                        {product.name}
+                      </p>
 
-                      e.currentTarget.style.background =
-                        "rgba(255,255,255,0.02)";
+                      <p className="ad-cell-cat mt-0.5">
+                        {product.category}
+                      </p>
 
-                      e.currentTarget.style.borderColor =
-                        "rgba(255,255,255,0.05)";
+                      <p className="ad-cell-price mt-0.5">
+                        ₹{product.price}
+                      </p>
 
-                    }}
-                  >
-
-
-                    {/* MOBILE layout */}
-
-                    <div className="flex sm:hidden items-center gap-3 p-3">
-
-                      <img
-                        src={
-                          product.image
-                        }
-                        className="w-14 h-14 object-cover rounded-xl shrink-0"
-                        style={{
-                          border:
-                            "1px solid rgba(255,255,255,0.1)"
-                        }}
-                        alt=""
-                      />
-
-
-                      <div className="flex-1 min-w-0">
-
-                        <p
-                          className="font-semibold text-sm truncate"
-                          style={{
-                            color:
-                              "#f1f5f9"
-                          }}
-                        >
-                          {
-                            product.name
-                          }
-                        </p>
-
-
-                        <p
-                          className="text-xs mt-0.5 capitalize"
-                          style={{
-                            color:
-                              "#64748b"
-                          }}
-                        >
-                          {
-                            product.category
-                          }
-                        </p>
-
-
-                        <p
-                          className="text-sm font-semibold mt-0.5"
-                          style={{
-                            color:
-                              "#f97316"
-                          }}
-                        >
-                          ₹
-                          {
-                            product.price
-                          }
-                        </p>
-
-
-                        <div
-                          className="mt-2"
-                          style={{
-                            maxWidth:
-                              "100%"
-                          }}
-                        >
-                          <ProductStock
-                            sizes={
-                              product.sizes
-                            }
-                          />
-                        </div>
-
-                      </div>
-
-
-                      <div className="flex flex-col gap-1.5 shrink-0">
-
-                        <button
-                          onClick={() =>
-                            editProduct(
-                              product.id
-                            )
-                          }
-                          className="flex items-center justify-center w-8 h-8 rounded-lg cursor-pointer"
-                          style={{
-                            background:
-                              "rgba(56,189,248,0.1)",
-                            border:
-                              "1px solid rgba(56,189,248,0.2)",
-                            color:
-                              "#38bdf8"
-                          }}
-                          onMouseEnter={(
-                            e
-                          ) => {
-
-                            e.currentTarget.style.background =
-                              "#0ea5e9";
-
-                            e.currentTarget.style.color =
-                              "#fff";
-
-                          }}
-                          onMouseLeave={(
-                            e
-                          ) => {
-
-                            e.currentTarget.style.background =
-                              "rgba(56,189,248,0.1)";
-
-                            e.currentTarget.style.color =
-                              "#38bdf8";
-
-                          }}
-                        >
-
-                          <svg
-                            width="13"
-                            height="13"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-
-                          </svg>
-
-                        </button>
-
-
-                        <button
-                          onClick={() =>
-                            deleteProduct(
-                              product.id
-                            )
-                          }
-                          disabled={
-                            deleting
-                          }
-                          className="flex items-center justify-center w-8 h-8 rounded-lg cursor-pointer"
-                          style={{
-                            background:
-                              "rgba(239,68,68,0.1)",
-                            border:
-                              "1px solid rgba(239,68,68,0.2)",
-                            color:
-                              "#f87171",
-                            opacity:
-                              deleting
-                                ? 0.5
-                                : 1,
-                            cursor:
-                              deleting
-                                ? "not-allowed"
-                                : "pointer"
-                          }}
-                          onMouseEnter={(
-                            e
-                          ) => {
-
-                            if (
-                              deleting
-                            )
-                              return;
-
-                            e.currentTarget.style.background =
-                              "#ef4444";
-
-                            e.currentTarget.style.color =
-                              "#fff";
-
-                          }}
-                          onMouseLeave={(
-                            e
-                          ) => {
-
-                            if (
-                              deleting
-                            )
-                              return;
-
-                            e.currentTarget.style.background =
-                              "rgba(239,68,68,0.1)";
-
-                            e.currentTarget.style.color =
-                              "#f87171";
-
-                          }}
-                        >
-
-                          <svg
-                            width="13"
-                            height="13"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-
-                            <polyline points="3 6 5 6 21 6" />
-
-                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-
-                            <path d="M10 11v6" />
-
-                            <path d="M14 11v6" />
-
-                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-
-                          </svg>
-
-                        </button>
-
+                      <div
+                        className="mt-2"
+                        style={{ maxWidth: "100%" }}
+                      >
+                        <ProductStock sizes={product.sizes} />
                       </div>
 
                     </div>
 
+                    <div className="flex flex-col gap-2 shrink-0">
 
-                    {/* DESKTOP layout */}
-
-                    <div className="hidden sm:grid grid-cols-[72px_2fr_1fr_1.35fr_100px] items-center gap-0 px-4 py-3.5">
-
-                      <img
-                        src={
-                          product.image
-                        }
-                        className="w-12 h-12 object-cover rounded-xl"
-                        style={{
-                          border:
-                            "1px solid rgba(255,255,255,0.1)"
-                        }}
-                        alt=""
-                      />
-
-
-                      <div className="pr-4 min-w-0">
-
-                        <p
-                          className="text-sm font-medium truncate"
-                          style={{
-                            color:
-                              "#e2e8f0"
-                          }}
-                        >
-                          {
-                            product.name
-                          }
-                        </p>
-
-
-                        <p
-                          className="text-xs mt-1"
-                          style={{
-                            color:
-                              "#64748b"
-                          }}
-                        >
-                          ₹
-                          {
-                            product.price
-                          }
-                        </p>
-
-                      </div>
-
-
-                      <p
-                        className="text-sm capitalize"
-                        style={{
-                          color:
-                            "#94a3b8"
-                        }}
+                      <button
+                        onClick={() => editProduct(product.id)}
+                        className="ap-icon-btn ap-icon-btn--edit"
+                        title="Edit"
                       >
-                        {
-                          product.category
-                        }
-                      </p>
+                        <EditIcon size={13} />
+                      </button>
 
-
-                      <ProductStock
-                        sizes={
-                          product.sizes
-                        }
-                      />
-
-
-                      <div className="flex justify-center gap-2">
-
-                        <button
-                          onClick={() =>
-                            editProduct(
-                              product.id
-                            )
-                          }
-                          className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 cursor-pointer"
-                          style={{
-                            background:
-                              "rgba(56,189,248,0.1)",
-                            border:
-                              "1px solid rgba(56,189,248,0.2)",
-                            color:
-                              "#38bdf8"
-                          }}
-                          onMouseEnter={(
-                            e
-                          ) => {
-
-                            e.currentTarget.style.background =
-                              "#0ea5e9";
-
-                            e.currentTarget.style.color =
-                              "#fff";
-
-                            e.currentTarget.style.borderColor =
-                              "transparent";
-
-                          }}
-                          onMouseLeave={(
-                            e
-                          ) => {
-
-                            e.currentTarget.style.background =
-                              "rgba(56,189,248,0.1)";
-
-                            e.currentTarget.style.color =
-                              "#38bdf8";
-
-                            e.currentTarget.style.borderColor =
-                              "rgba(56,189,248,0.2)";
-
-                          }}
-                          title="Edit"
-                        >
-
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-
-                          </svg>
-
-                        </button>
-
-
-                        <button
-                          onClick={() =>
-                            deleteProduct(
-                              product.id
-                            )
-                          }
-                          disabled={
-                            deleting
-                          }
-                          className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 cursor-pointer"
-                          style={{
-                            background:
-                              "rgba(239,68,68,0.1)",
-                            border:
-                              "1px solid rgba(239,68,68,0.2)",
-                            color:
-                              "#f87171",
-                            opacity:
-                              deleting
-                                ? 0.5
-                                : 1,
-                            cursor:
-                              deleting
-                                ? "not-allowed"
-                                : "pointer"
-                          }}
-                          onMouseEnter={(
-                            e
-                          ) => {
-
-                            if (
-                              deleting
-                            )
-                              return;
-
-                            e.currentTarget.style.background =
-                              "#ef4444";
-
-                            e.currentTarget.style.color =
-                              "#fff";
-
-                            e.currentTarget.style.borderColor =
-                              "transparent";
-
-                          }}
-                          onMouseLeave={(
-                            e
-                          ) => {
-
-                            if (
-                              deleting
-                            )
-                              return;
-
-                            e.currentTarget.style.background =
-                              "rgba(239,68,68,0.1)";
-
-                            e.currentTarget.style.color =
-                              "#f87171";
-
-                            e.currentTarget.style.borderColor =
-                              "rgba(239,68,68,0.2)";
-
-                          }}
-                          title="Delete"
-                        >
-
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-
-                            <polyline points="3 6 5 6 21 6" />
-
-                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-
-                            <path d="M10 11v6" />
-
-                            <path d="M14 11v6" />
-
-                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-
-                          </svg>
-
-                        </button>
-
-                      </div>
+                      <button
+                        onClick={() => deleteProduct(product.id)}
+                        disabled={deleting}
+                        className="ap-icon-btn ap-icon-btn--delete"
+                        style={{
+                          opacity: deleting ? 0.5 : 1,
+                          cursor: deleting ? "not-allowed" : "pointer"
+                        }}
+                        title="Delete"
+                      >
+                        <TrashIcon size={13} />
+                      </button>
 
                     </div>
 
                   </div>
 
-                )
-              )}
+
+                  {/* DESKTOP layout */}
+                  <div className="hidden sm:grid grid-cols-[72px_2fr_1fr_1.35fr_100px] items-center gap-0 px-4 py-4">
+
+                    <img
+                      src={product.image}
+                      className="ap-img w-12 h-12"
+                      alt=""
+                    />
+
+                    <div className="pr-4 min-w-0">
+
+                      <p className="ad-cell-name truncate">
+                        {product.name}
+                      </p>
+
+                      <p className="ad-cell-price mt-1">
+                        ₹{product.price}
+                      </p>
+
+                    </div>
+
+                    <p className="ad-cell-cat">
+                      {product.category}
+                    </p>
+
+                    <ProductStock sizes={product.sizes} />
+
+                    <div className="flex justify-center gap-2">
+
+                      <button
+                        onClick={() => editProduct(product.id)}
+                        className="ap-icon-btn ap-icon-btn--edit"
+                        title="Edit"
+                      >
+                        <EditIcon size={14} />
+                      </button>
+
+                      <button
+                        onClick={() => deleteProduct(product.id)}
+                        disabled={deleting}
+                        className="ap-icon-btn ap-icon-btn--delete"
+                        style={{
+                          opacity: deleting ? 0.5 : 1,
+                          cursor: deleting ? "not-allowed" : "pointer"
+                        }}
+                        title="Delete"
+                      >
+                        <TrashIcon size={14} />
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              ))}
 
 
-              {products.length ===
-                0 && (
+              {products.length === 0 && (
 
-                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
 
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                    style={{
-                      background:
-                        "rgba(255,255,255,0.04)",
-                      border:
-                        "1px solid rgba(255,255,255,0.08)"
-                    }}
+                    className="ap-empty-icon w-14 h-14 rounded-xl flex items-center justify-center"
                   >
 
                     <svg
@@ -1508,32 +1142,16 @@ const AdminProducts = () => {
                       height="24"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="rgba(255,255,255,0.25)"
-                      strokeWidth="1.5"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
                     >
-
-                      <rect
-                        x="2"
-                        y="3"
-                        width="20"
-                        height="14"
-                        rx="2"
-                      />
-
+                      <rect x="2" y="3" width="20" height="14" rx="2" />
                       <path d="M8 21h8M12 17v4" />
-
                     </svg>
 
                   </div>
 
-
-                  <p
-                    className="text-sm"
-                    style={{
-                      color:
-                        "#475569"
-                    }}
-                  >
+                  <p className="ad-empty">
                     No products found
                   </p>
 
@@ -1546,7 +1164,6 @@ const AdminProducts = () => {
           </div>
 
         </div>
-
       </div>
     </>
   );

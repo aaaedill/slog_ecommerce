@@ -7,15 +7,26 @@ import rateLimit from "express-rate-limit";
 
 import connectDB from "./config/db.js";
 
+import {
+  setCSRFToken,
+  csrfProtection
+} from "./middleware/csrfMiddleware.js";
+
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import adminUserRoutes from "./routes/adminUserRoutes.js";
 import adminOrderRoutes from "./routes/adminOrderRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 
+import { fileURLToPath } from "url";
+
+
+
 dotenv.config();
+
 
 
 /*
@@ -24,7 +35,9 @@ dotenv.config();
 |--------------------------------------------------------------------------
 */
 
-const app = express();
+const app =
+  express();
+
 
 
 /*
@@ -39,6 +52,7 @@ const rawPort =
   ).trim();
 
 
+
 const PORT =
   Number.isInteger(
     Number(rawPort)
@@ -49,11 +63,13 @@ const PORT =
     : 5000;
 
 
+
 const CLIENT_URL =
   String(
     process.env.CLIENT_URL ||
       "http://localhost:5173"
   ).trim();
+
 
 
 /*
@@ -75,7 +91,8 @@ const apiLimiter =
     windowMs:
       15 * 60 * 1000,
 
-    limit: 200,
+    limit:
+      200,
 
     standardHeaders:
       "draft-8",
@@ -85,7 +102,8 @@ const apiLimiter =
 
     message: {
 
-      success: false,
+      success:
+        false,
 
       message:
         "Too many requests. Please try again later."
@@ -93,6 +111,7 @@ const apiLimiter =
     }
 
   });
+
 
 
 /*
@@ -104,6 +123,7 @@ const apiLimiter =
 app.use(
   helmet()
 );
+
 
 
 /*
@@ -133,6 +153,7 @@ app.use(
 );
 
 
+
 /*
 |--------------------------------------------------------------------------
 | REQUEST BODY PARSING
@@ -157,6 +178,7 @@ app.use(
 );
 
 
+
 app.use(
   express.urlencoded({
 
@@ -170,6 +192,7 @@ app.use(
 );
 
 
+
 /*
 |--------------------------------------------------------------------------
 | COOKIE PARSER
@@ -177,12 +200,15 @@ app.use(
 |
 | Authentication uses an HTTP-only JWT cookie.
 |
+| CSRF protection also uses a separate readable CSRF token cookie.
+|
 |--------------------------------------------------------------------------
 */
 
 app.use(
   cookieParser()
 );
+
 
 
 /*
@@ -199,6 +225,7 @@ app.use(
   "/api",
   apiLimiter
 );
+
 
 
 /*
@@ -223,6 +250,7 @@ app.get(
 
   }
 );
+
 
 
 /*
@@ -252,9 +280,11 @@ app.get(
       );
 
 
+
     const databaseConnected =
       databaseConfigured &&
       connectDB.isConnected === true;
+
 
 
     return res
@@ -293,6 +323,30 @@ app.get(
 );
 
 
+
+/*
+|--------------------------------------------------------------------------
+| CSRF TOKEN
+|--------------------------------------------------------------------------
+|
+| The frontend calls this endpoint before making
+| cookie-authenticated state-changing requests.
+|
+| This endpoint creates the readable XSRF-TOKEN cookie
+| and returns the same token in the response.
+|
+| The token itself is NOT the authentication token.
+|
+|--------------------------------------------------------------------------
+*/
+
+app.get(
+  "/api/auth/csrf",
+  setCSRFToken
+);
+
+
+
 /*
 |--------------------------------------------------------------------------
 | AUTH ROUTES
@@ -303,6 +357,7 @@ app.use(
   "/api/auth",
   authRoutes
 );
+
 
 
 /*
@@ -317,6 +372,7 @@ app.use(
 );
 
 
+
 /*
 |--------------------------------------------------------------------------
 | CART ROUTES
@@ -327,6 +383,31 @@ app.use(
   "/api/cart",
   cartRoutes
 );
+
+
+
+/*
+|--------------------------------------------------------------------------
+| WISHLIST ROUTES
+|--------------------------------------------------------------------------
+|
+| Wishlist operations are handled here.
+|
+| The wishlist routes require authentication and provide:
+|
+| 1. Retrieving the current user's wishlist
+| 2. Adding a product to the wishlist
+| 3. Removing a product from the wishlist
+| 4. Clearing the wishlist
+|
+|--------------------------------------------------------------------------
+*/
+
+app.use(
+  "/api/wishlist",
+  wishlistRoutes
+);
+
 
 
 /*
@@ -341,6 +422,7 @@ app.use(
 );
 
 
+
 /*
 |--------------------------------------------------------------------------
 | ADMIN USER ROUTES
@@ -353,6 +435,7 @@ app.use(
 );
 
 
+
 /*
 |--------------------------------------------------------------------------
 | ADMIN ORDER ROUTES
@@ -363,6 +446,7 @@ app.use(
   "/api/admin/orders",
   adminOrderRoutes
 );
+
 
 
 /*
@@ -386,6 +470,7 @@ app.use(
   "/api/uploads",
   uploadRoutes
 );
+
 
 
 /*
@@ -415,6 +500,7 @@ app.use(
 );
 
 
+
 /*
 |--------------------------------------------------------------------------
 | GLOBAL ERROR HANDLER
@@ -442,6 +528,7 @@ app.use(
     );
 
 
+
     const statusCode =
       Number.isInteger(
         error?.status
@@ -450,6 +537,7 @@ app.use(
       error.status < 600
         ? error.status
         : 500;
+
 
 
     return res
@@ -470,6 +558,7 @@ app.use(
 
   }
 );
+
 
 
 /*
@@ -500,13 +589,15 @@ const startServer =
       console.log("");
 
 
+
       /*
-       * Connect to MongoDB before starting
-       * the HTTP server.
-       */
+      * Connect to MongoDB before starting
+      * the HTTP server.
+      */
 
       const databaseConnected =
         await connectDB();
+
 
 
       if (
@@ -541,16 +632,16 @@ const startServer =
 
         console.error("");
 
-
         process.exit(1);
 
       }
 
 
+
       /*
-       * Start HTTP server only after
-       * successful database connection.
-       */
+      * Start HTTP server only after
+      * successful database connection.
+      */
 
       const server =
         app.listen(
@@ -580,6 +671,10 @@ const startServer =
             );
 
             console.log(
+              `CSRF: http://localhost:${PORT}/api/auth/csrf`
+            );
+
+            console.log(
               `Register: http://localhost:${PORT}/api/auth/register`
             );
 
@@ -593,6 +688,10 @@ const startServer =
 
             console.log(
               `Cart: http://localhost:${PORT}/api/cart`
+            );
+
+            console.log(
+              `Wishlist: http://localhost:${PORT}/api/wishlist`
             );
 
             console.log(
@@ -625,13 +724,14 @@ const startServer =
         );
 
 
+
       /*
-       * Graceful shutdown.
-       *
-       * When the process receives a shutdown signal,
-       * stop accepting new HTTP connections and then
-       * close the MongoDB connection.
-       */
+      * Graceful shutdown.
+      *
+      * When the process receives a shutdown signal,
+      * stop accepting new HTTP connections and then
+      * close the MongoDB connection.
+      */
 
       const gracefulShutdown =
         async (
@@ -645,12 +745,14 @@ const startServer =
           );
 
 
+
           server.close(
             async () => {
 
               try {
 
                 await connectDB.disconnect();
+
 
 
                 console.log(
@@ -664,6 +766,7 @@ const startServer =
                 console.log(
                   "Graceful shutdown completed."
                 );
+
 
 
                 process.exit(0);
@@ -685,28 +788,36 @@ const startServer =
         };
 
 
+
       /*
-       * Handle normal termination signals.
-       */
+      * Handle normal termination signals.
+      */
 
       process.once(
         "SIGINT",
         () => {
+
           gracefulShutdown(
             "SIGINT"
           );
+
         }
       );
+
 
 
       process.once(
         "SIGTERM",
         () => {
+
           gracefulShutdown(
             "SIGTERM"
           );
+
         }
       );
+
+
 
     } catch (error) {
 
@@ -739,6 +850,7 @@ const startServer =
     }
 
   };
+
 
 
 /*

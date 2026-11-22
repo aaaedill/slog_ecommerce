@@ -1,148 +1,141 @@
 import React from "react";
 import hero_img from "../assets/hero_img.png";
-import { Link } from "react-router-dom";
 
-const HeroNew = () => {
+/**
+ * HeroNew
+ *
+ * Optional prop `mobileSrc`: a portrait-cropped version of the hero image
+ * (e.g. 1080x1350). Not needed for the current image - SLOG and the model
+ * are both centred, so the standard crop already keeps them fully visible.
+ *
+ *   import hero_mobile from "../assets/hero_mobile.png";
+ *   <HeroNew mobileSrc={hero_mobile} />
+ *
+ */
+const HeroNew = ({ mobileSrc }) => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap');
-
+        /*
+          Image facts (hero_img.png, 1672x941, 16:9):
+            - SLOG wordmark spans 29%–70% of the width, 15%–36% of the height
+            - The model is centred at ~50% and runs off the bottom edge
+          So the focal point is always x = 50%, and on narrow screens the
+          hero height is limited so the visible slice (about 50% of the
+          width) always contains the whole SLOG name with a margin.
+        */
         .hn-root {
-          --hn-blue:       #2F5DFF;
-          --hn-blue-light: #6E8BFF;
-          --hn-blue-deep:  #16307A;
-          --hn-ink:        #10131F;
-        }
+          --hn-nav: var(--nav-h, 76px);   /* matches the Navbar height */
+          --hn-x: 50%;
+          --hn-y: 12%;                     /* keeps SLOG in view if height is cropped */
+          --hn-radius: clamp(16px, 3vw, 40px);
 
-        .hn-root *, .hn-root *::before, .hn-root *::after {
-          box-sizing: border-box; margin: 0; padding: 0;
-        }
-
-        .hn-root {
           position: relative;
           width: 100%;
-          min-height: 78vh;
-          margin-top: 1rem;
-          border-radius: 1.5rem;
+
+          /* Fallback for browsers without svh */
+          height: calc(100vh - var(--hn-nav));
+
+          /* Full screen on desktop/laptop. On portrait screens (phones,
+             tablets) the 108vw cap makes the image scale to the hero's
+             height, so only the plain dark sides are trimmed. */
+          height: min(calc(100svh - var(--hn-nav)), 108vw);
+          max-height: 1500px;
+
           overflow: hidden;
-          font-family: 'Jost', sans-serif;
-          background: var(--hn-ink);
+          background: #0c0d08;           /* matches the photo's dark backdrop */
+          line-height: 0;
+
+          clip-path: inset(0 0 0 0 round 0);
+          animation: hn-frame 1.4s cubic-bezier(0.22, 0.8, 0.2, 1) backwards;
+        }
+
+        .hn-root picture {
+          display: block;
+          width: 100%;
+          height: 100%;
         }
 
         .hn-root img {
-          position: absolute;
-          inset: 0;
+          display: block;
           width: 100%;
           height: 100%;
           object-fit: cover;
-          object-position: center 20%;
+          object-position: var(--hn-x) var(--hn-y);
+
+          /* The image rests untouched after the intro, so full quality
+             is preserved. */
+          animation: hn-zoom 2s cubic-bezier(0.22, 0.8, 0.2, 1) backwards;
+          will-change: transform;
         }
 
-        .hn-root::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background:
-            linear-gradient(to bottom, rgba(16,19,31,0.55) 0%, rgba(16,19,31,0.15) 30%, rgba(16,19,31,0.15) 60%, rgba(16,19,31,0.75) 100%);
-          z-index: 1;
+        /* Frame opens up from a rounded card to full width */
+        @keyframes hn-frame {
+          from {
+            clip-path: inset(7% 7% 7% 7% round var(--hn-radius));
+          }
+          to {
+            clip-path: inset(0% 0% 0% 0% round 0px);
+          }
         }
 
-        .hn-nav {
-          position: relative;
-          z-index: 2;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 2rem 2.5rem 0;
+        /* Image settles in with a gentle zoom-out and brightness fade */
+        @keyframes hn-zoom {
+          from {
+            transform: scale(1.18);
+            filter: brightness(1.22);
+          }
+          to {
+            transform: scale(1);
+            filter: brightness(1);
+          }
         }
 
-        .hn-brand {
-          font-weight: 800;
-          font-size: 1.1rem;
-          letter-spacing: 0.02em;
-          color: var(--hn-blue-light);
-          text-transform: uppercase;
+        /* Tablets and below: navbar is shorter, frame corners smaller */
+        @media (max-width: 1023px) {
+          .hn-root {
+            --hn-nav: var(--nav-h, 64px);
+            --hn-radius: 24px;
+          }
         }
 
-        .hn-nav-cta {
-          color: var(--hn-blue-light);
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 0.95rem;
+        @media (max-width: 480px) {
+          .hn-root {
+            --hn-radius: 16px;
+          }
         }
 
-        .hn-content {
-          position: relative;
-          z-index: 2;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          min-height: 62vh;
-          padding: 2rem 1.5rem;
-          gap: 1.6rem;
+        /* Ultrawide screens: let the hero follow a 20:9 shape instead of
+           being cropped, so SLOG and the model's face stay in frame */
+        @media (min-width: 1600px) and (min-aspect-ratio: 20/9) {
+          .hn-root {
+            height: auto;
+            aspect-ratio: 20 / 9;
+            max-height: none;
+          }
         }
 
-        .hn-headline {
-          font-weight: 800;
-          font-size: clamp(2.8rem, 7vw, 6rem);
-          line-height: 0.98;
-          letter-spacing: -0.01em;
-          color: var(--hn-blue-light);
-          text-transform: none;
-        }
-
-        .hn-body {
-          font-size: 1rem;
-          font-weight: 500;
-          color: var(--hn-blue-light);
-          max-width: 40ch;
-        }
-
-        .hn-btn-primary {
-          font-family: 'Jost', sans-serif;
-          font-size: 0.95rem;
-          font-weight: 600;
-          letter-spacing: 0.02em;
-          color: var(--hn-blue-light);
-          background: transparent;
-          border: 1.5px solid var(--hn-blue-light);
-          text-decoration: none;
-          padding: 1rem 2.4rem;
-          border-radius: 100px;
-          display: inline-block;
-          transition: background 0.25s, color 0.25s;
-        }
-        .hn-btn-primary:hover {
-          background: var(--hn-blue-light);
-          color: var(--hn-ink);
-        }
-
-        @media (max-width: 768px) {
-          .hn-nav { padding: 1.5rem 1.5rem 0; }
-          .hn-headline { font-size: 12vw; }
+        @media (prefers-reduced-motion: reduce) {
+          .hn-root,
+          .hn-root img {
+            animation: none;
+          }
         }
       `}</style>
 
-      <section className="hn-root">
-        <img src={hero_img} alt="Hero" />
+      <section className="hn-root" aria-label="SLOG hero">
+        <picture>
+          {mobileSrc && (
+            <source media="(max-width: 767px)" srcSet={mobileSrc} />
+          )}
 
-        <nav className="hn-nav">
-          <div className="hn-brand">Menswear</div>
-          <Link to="/collection" className="hn-nav-cta">Shop Now</Link>
-        </nav>
-
-        <div className="hn-content">
-          <h1 className="hn-headline">
-            Define<br />Your Style
-          </h1>
-          <p className="hn-body">
-            Timeless craft meets the modern wardrobe.
-          </p>
-          <Link to="/collection" className="hn-btn-primary">Shop Now</Link>
-        </div>
+          <img
+            src={hero_img}
+            alt="SLOG — 2021 fashion collection"
+            decoding="async"
+            draggable="false"
+          />
+        </picture>
       </section>
     </>
   );

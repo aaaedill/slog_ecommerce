@@ -1,5 +1,16 @@
-import React from 'react'
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import React, {
+  useEffect,
+  useRef,
+  useState
+} from 'react'
+
+import {
+  Routes,
+  Route,
+  useLocation,
+  Navigate
+} from 'react-router-dom'
+
 
 import Home from './pages/Home'
 import Collection from './pages/Collection'
@@ -12,10 +23,13 @@ import PlaceOrder from './pages/PlaceOrder'
 import Orders from './pages/Orders'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
+import Wishlist from './pages/Wishlist'
+
 
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
+
 
 import AdminLayout from "./pages/admin/AdminLayout"
 import AdminDashboard from "./pages/admin/AdminDashboard"
@@ -27,9 +41,14 @@ import AdminUsers from './pages/admin/AdminUsers'
 
 import AdminRoute from "./components/AdminRoute"
 
+
 const App = () => {
 
   const location = useLocation()
+
+  const [showFooter, setShowFooter] = useState(false)
+
+  const footerTriggerRef = useRef(null)
 
   const isAdminRoute =
     location.pathname.startsWith("/admin")
@@ -38,80 +57,257 @@ const App = () => {
     location.pathname === "/login" ||
     location.pathname === "/register"
 
+  const isHomeRoute =
+    location.pathname === "/"
+
+
+  /*
+   * Reset the footer whenever the user
+   * navigates to another page.
+   */
+
+  useEffect(() => {
+
+    setShowFooter(false)
+
+  }, [location.pathname])
+
+
+  /*
+   * FOOTER REVEAL
+   *
+   * The footer is not mounted immediately.
+   *
+   * An invisible 80px area exists after
+   * the main page content.
+   *
+   * The footer appears after the user
+   * scrolls through this reveal area.
+   */
+
+  useEffect(() => {
+
+    if (
+      isAdminRoute ||
+      isAuthRoute
+    ) {
+      return
+    }
+
+    const trigger =
+      footerTriggerRef.current
+
+    if (!trigger) {
+      return
+    }
+
+    const checkFooterTrigger = () => {
+
+      if (showFooter) {
+        return
+      }
+
+      const rect =
+        trigger.getBoundingClientRect()
+
+      if (
+        rect.bottom <=
+        window.innerHeight
+      ) {
+
+        setShowFooter(true)
+
+      }
+
+    }
+
+    window.addEventListener(
+      "scroll",
+      checkFooterTrigger,
+      { passive: true }
+    )
+
+    checkFooterTrigger()
+
+    return () => {
+
+      window.removeEventListener(
+        "scroll",
+        checkFooterTrigger
+      )
+
+    }
+
+  }, [
+    location.pathname,
+    isAdminRoute,
+    isAuthRoute,
+    showFooter
+  ])
+
+
   return (
 
-    <div className="flex flex-col min-h-screen bg-[var(--bg-primary)]">
+    <div
+      className="
+        flex
+        flex-col
+        min-h-screen
+        bg-[var(--bg-primary)]
+      "
+    >
 
       {/* SCROLL TO TOP */}
+
       <ScrollToTop />
 
-      {/* ✅ NAVBAR OUTSIDE PADDING (FIXED) */}
-      {!isAdminRoute && <Navbar />}
+
+      {/* NAVBAR */}
+
+      {!isAdminRoute && (
+        <Navbar />
+      )}
+
+
+      {/* ==========================================
+          FIXED NAVBAR SPACING
+
+          Desktop: 76px
+          Mobile: 64px
+
+          Reserve space below the fixed navbar
+          so customer page content starts below it.
+
+          Admin pages remain independent.
+          ========================================== */}
+
+      {!isAdminRoute && (
+
+        <div
+          aria-hidden="true"
+          className="
+            w-full
+            shrink-0
+            h-[64px]
+            md:h-[76px]
+          "
+        />
+
+      )}
+
 
       {/* MAIN CONTENT */}
-      <div className="flex-grow">
 
-        <div className={!isAdminRoute
-          ? 'px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'
-          : ''
-        }>
+      <div
+        className="
+          flex-grow
+        "
+      >
+
+        <div
+          className={
+            !isAdminRoute &&
+            !isHomeRoute
+              ? 'px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'
+              : ''
+          }
+        >
 
           <Routes>
 
-            {/* USER ROUTES */}
-            <Route path='/' element={<Home />} />
+            {/* ==========================================
+                USER ROUTES
+                ========================================== */}
 
             <Route
-              path='/collection'
-              element={<Collection />}
+              path="/"
+              element={
+                <Home />
+              }
             />
 
             <Route
-              path='/about'
-              element={<About />}
+              path="/collection"
+              element={
+                <Collection />
+              }
             />
 
             <Route
-              path='/contact'
-              element={<Contact />}
+              path="/about"
+              element={
+                <About />
+              }
+            />
+
+            <Route
+              path="/contact"
+              element={
+                <Contact />
+              }
             />
 
             <Route
               path="/product/:id"
-              element={<Product />}
+              element={
+                <Product />
+              }
             />
 
             <Route
-              path='/cart'
-              element={<Cart />}
+              path="/cart"
+              element={
+                <Cart />
+              }
             />
 
             <Route
-              path='/login'
-              element={<Login />}
+              path="/wishlist"
+              element={
+                <Wishlist />
+              }
             />
 
             <Route
-              path='/register'
-              element={<Register />}
+              path="/login"
+              element={
+                <Login />
+              }
             />
 
             <Route
-              path='/place-order'
-              element={<PlaceOrder />}
+              path="/register"
+              element={
+                <Register />
+              }
             />
 
             <Route
-              path='/orders'
-              element={<Orders />}
+              path="/place-order"
+              element={
+                <PlaceOrder />
+              }
             />
 
             <Route
-              path='/profile'
-              element={<Profile />}
+              path="/orders"
+              element={
+                <Orders />
+              }
             />
 
-            {/* ADMIN ROUTES */}
+            <Route
+              path="/profile"
+              element={
+                <Profile />
+              }
+            />
+
+
+            {/* ==========================================
+                ADMIN ROUTES
+                ========================================== */}
+
             <Route
               path="/admin"
               element={
@@ -123,40 +319,61 @@ const App = () => {
 
               <Route
                 index
-                element={<AdminDashboard />}
+                element={
+                  <AdminDashboard />
+                }
               />
 
               <Route
                 path="products"
-                element={<AdminProducts />}
+                element={
+                  <AdminProducts />
+                }
               />
 
               <Route
                 path="add"
-                element={<AddProduct />}
+                element={
+                  <AddProduct />
+                }
               />
 
               <Route
                 path="edit-product/:id"
-                element={<EditProduct />}
+                element={
+                  <EditProduct />
+                }
               />
 
               <Route
                 path="orders"
-                element={<AdminOrders />}
+                element={
+                  <AdminOrders />
+                }
               />
 
               <Route
-                path='users'
-                element={<AdminUsers />}
+                path="users"
+                element={
+                  <AdminUsers />
+                }
               />
 
             </Route>
 
-            {/* FALLBACK */}
+
+            {/* ==========================================
+                FALLBACK
+                ========================================== */}
+
             <Route
               path="*"
-              element={<Navigate to="/" replace />}
+              element={
+                <Navigate
+                  to="/"
+                  replace
+                />
+              }
             />
 
           </Routes>
@@ -165,12 +382,42 @@ const App = () => {
 
       </div>
 
+
+      {/* ==========================================
+          FOOTER REVEAL ZONE
+          ========================================== */}
+
+      {!isAdminRoute &&
+        !isAuthRoute && (
+
+          <div
+            ref={footerTriggerRef}
+            className="
+              h-[80px]
+              w-full
+              shrink-0
+              bg-[var(--bg-primary)]
+            "
+            aria-hidden="true"
+          />
+
+        )}
+
+
       {/* FOOTER */}
-      {!isAdminRoute && !isAuthRoute && <Footer />}
+
+      {!isAdminRoute &&
+        !isAuthRoute &&
+        showFooter && (
+
+          <Footer />
+
+        )}
 
     </div>
 
   )
+
 }
 
 export default App

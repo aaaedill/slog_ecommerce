@@ -1,21 +1,64 @@
+/*
+|--------------------------------------------------------------------------
+| AUTH CONTROLLER
+|--------------------------------------------------------------------------
+|
+| This controller handles:
+|
+| 1. Customer registration
+| 2. OTP generation and delivery
+| 3. OTP verification
+| 4. OTP resend
+| 5. Customer login
+| 6. Customer logout
+| 7. Current authenticated user
+|
+|--------------------------------------------------------------------------
+|
+| Registration flow:
+|
+| Name
+| Email OR Indian phone number
+| Password
+|       ↓
+| Unverified account
+|       ↓
+| OTP
+|       ↓
+| OTP verification
+|       ↓
+| Verified account
+|       ↓
+| Login allowed
+|
+|--------------------------------------------------------------------------
+*/
+
 import bcrypt from "bcryptjs";
 
 import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
 
+import {
+  OTP_EXPIRY_MINUTES,
+  OTP_MAX_ATTEMPTS,
+  createOTPData,
+  sendEmailOTP,
+  sendSMSOTP,
+  verifyOTP
+} from "../services/otpService.js";
+
 
 /*
 |--------------------------------------------------------------------------
-| Authentication Configuration
+| Constants
 |--------------------------------------------------------------------------
 */
 
-const DEFAULT_COOKIE_NAME =
-  "ecommerce_token";
+const DEFAULT_COOKIE_NAME = "ecommerce_token";
 
-const DEFAULT_JWT_EXPIRES_IN =
-  "7d";
+const DEFAULT_JWT_EXPIRES_IN = "7d";
 
 const PASSWORD_MIN_LENGTH = 8;
 
@@ -25,50 +68,44 @@ const NAME_MAX_LENGTH = 100;
 
 const EMAIL_MAX_LENGTH = 254;
 
+const PHONE_LENGTH = 10;
+
+const OTP_RESEND_COOLDOWN_SECONDS = 60;
+
 
 /*
 |--------------------------------------------------------------------------
-| Email Validation
+| Regular Expressions
 |--------------------------------------------------------------------------
 */
 
 const emailRegex =
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-
-/*
-|--------------------------------------------------------------------------
-| Password Validation
-|--------------------------------------------------------------------------
-|
-| Requires:
-|
-| - At least 8 characters
-| - At least one lowercase letter
-| - At least one number
-|
-|--------------------------------------------------------------------------
-*/
-
 const passwordRegex =
   /^(?=.*[a-z])(?=.*\d).{8,}$/;
 
+const indianPhoneRegex =
+  /^[6-9]\d{9}$/;
+
 
 /*
 |--------------------------------------------------------------------------
-| Create JWT
+| Helper: Create JWT
+|--------------------------------------------------------------------------
+|
+| The JWT contains only the user ID.
+|
+| No password, email, phone number, or other sensitive information
+| is placed inside the token.
+|
 |--------------------------------------------------------------------------
 */
 
-const createToken = (
-  userId
-) => {
+const createToken = (userId) => {
 
   const jwtSecret =
-    String(
-      process.env.JWT_SECRET || ""
-    ).trim();
-
+    process.env.JWT_SECRET;
 
   if (!jwtSecret) {
 
@@ -77,7 +114,6 @@ const createToken = (
     );
 
   }
-
 
   return jwt.sign(
     {
@@ -90,38 +126,23 @@ const createToken = (
         DEFAULT_JWT_EXPIRES_IN
     }
   );
+
 };
 
 
 /*
 |--------------------------------------------------------------------------
-| Cookie Options
-|--------------------------------------------------------------------------
-|
-| Development:
-| - httpOnly
-| - secure: false
-| - sameSite: lax
-|
-| Production:
-| - httpOnly
-| - secure: true
-| - sameSite: none
-|
-| Production uses SameSite=None because the frontend and backend
-| may be hosted on different domains.
-|
+| Helper: Cookie Options
 |--------------------------------------------------------------------------
 */
 
 const getCookieOptions = () => {
 
   const isProduction =
-    process.env.NODE_ENV ===
-    "production";
-
+    process.env.NODE_ENV === "production";
 
   return {
+
     httpOnly: true,
 
     secure: isProduction,
@@ -138,57 +159,488 @@ const getCookieOptions = () => {
       1000,
 
     path: "/"
+
   };
+
 };
 
 
 /*
 |--------------------------------------------------------------------------
-| Get Cookie Name
+| Helper: Cookie Name
 |--------------------------------------------------------------------------
 */
 
 const getCookieName = () => {
 
   return (
-    String(
-      process.env.COOKIE_NAME ||
-        DEFAULT_COOKIE_NAME
-    ).trim() ||
+    process.env.COOKIE_NAME ||
     DEFAULT_COOKIE_NAME
   );
+
 };
 
 
 /*
 |--------------------------------------------------------------------------
-| Build Safe User Response
+| Helper: Format User
 |--------------------------------------------------------------------------
 |
-| Never return:
-|
-| - password
-| - password hash
-| - internal authentication data
+| Never send password, OTP hash, OTP attempts, OTP expiry,
+| or other internal authentication fields to the frontend.
 |
 |--------------------------------------------------------------------------
 */
 
-const formatUser = (
+const formatUser = (user) => {
+
+  return {
+
+    id:
+      String(user._id),
+
+    name:
+      user.name,
+
+    email:
+      user.email || null,
+
+    phone:
+      user.phone || null,
+
+    role:
+      user.role,
+
+    isBlocked:
+      user.isBlocked,
+
+    isVerified:
+      user.isVerified,
+
+    verificationMethod:
+      user.verificationMethod || null
+
+  };
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| Helper: Normalize Indian Phone Number
+|--------------------------------------------------------------------------
+|
+| Accepted input examples:
+|
+| 9876543210
+| +919876543210
+| 919876543210
+|
+| Internally the database stores:
+|
+| 9876543210
+|
+|--------------------------------------------------------------------------
+*/
+
+const normalizeIndianPhone = (value) => {
+
+  if (
+    value === undefined ||
+    value === null
+  ) {
+
+    return null;
+
+  }
+
+  let phone =
+    String(value)
+      .trim()
+      .replace(/\D/g, "");
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Remove Indian country code
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    phone.startsWith("91") &&
+    phone.length === 12
+  ) {
+
+    phone =
+      phone.slice(2);
+
+  }
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Validate Indian mobile number
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    phone.length !== PHONE_LENGTH ||
+    !indianPhoneRegex.test(phone)
+  ) {
+
+    return null;
+
+  }
+
+  return phone;
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| Helper: Detect Email OR Phone
+|--------------------------------------------------------------------------
+|
+| The registration form has ONE combined field.
+|
+| Example:
+|
+| emailOrPhone = "customer@gmail.com"
+|
+| OR
+|
+| emailOrPhone = "9876543210"
+|
+|--------------------------------------------------------------------------
+*/
+
+const parseEmailOrPhone = (value) => {
+
+  if (
+    value === undefined ||
+    value === null
+  ) {
+
+    return {
+
+      type: null,
+
+      value: null
+
+    };
+
+  }
+
+  const input =
+    String(value).trim();
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Empty input
+  |--------------------------------------------------------------------------
+  */
+
+  if (!input) {
+
+    return {
+
+      type: null,
+
+      value: null
+
+    };
+
+  }
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Email
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    input.includes("@") &&
+    input.length <= EMAIL_MAX_LENGTH &&
+    emailRegex.test(input)
+  ) {
+
+    return {
+
+      type: "email",
+
+      value:
+        input.toLowerCase()
+
+    };
+
+  }
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Indian Phone
+  |--------------------------------------------------------------------------
+  */
+
+  const phone =
+    normalizeIndianPhone(input);
+
+  if (phone) {
+
+    return {
+
+      type: "phone",
+
+      value: phone
+
+    };
+
+  }
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Invalid
+  |--------------------------------------------------------------------------
+  */
+
+  return {
+
+    type: null,
+
+    value: null
+
+  };
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| Helper: Get Verification Target
+|--------------------------------------------------------------------------
+*/
+
+const getVerificationTarget = (user) => {
+
+  if (
+    user.verificationMethod === "email" &&
+    user.email
+  ) {
+
+    return {
+
+      type: "email",
+
+      value: user.email
+
+    };
+
+  }
+
+
+  if (
+    user.verificationMethod === "phone" &&
+    user.phone
+  ) {
+
+    return {
+
+      type: "phone",
+
+      value: user.phone
+
+    };
+
+  }
+
+
+  return {
+
+    type: null,
+
+    value: null
+
+  };
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| Helper: Check OTP Resend Cooldown
+|--------------------------------------------------------------------------
+*/
+
+const getRemainingResendSeconds = (
+  otpLastSentAt
+) => {
+
+  if (!otpLastSentAt) {
+
+    return 0;
+
+  }
+
+  const lastSentTime =
+    new Date(
+      otpLastSentAt
+    ).getTime();
+
+  const now =
+    Date.now();
+
+  const elapsedSeconds =
+    Math.floor(
+      (now - lastSentTime) /
+      1000
+    );
+
+  const remaining =
+    OTP_RESEND_COOLDOWN_SECONDS -
+    elapsedSeconds;
+
+  return Math.max(
+    remaining,
+    0
+  );
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| Helper: Send Verification OTP
+|--------------------------------------------------------------------------
+|
+| Generates and stores the OTP hash and then sends the plain OTP
+| to the customer's email or phone.
+|
+|--------------------------------------------------------------------------
+*/
+
+const sendVerificationOTP = async (
   user
 ) => {
 
+  const target =
+    getVerificationTarget(user);
+
+
+  if (
+    !target.type ||
+    !target.value
+  ) {
+
+    throw new Error(
+      "No valid verification method is configured for this account."
+    );
+
+  }
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Generate OTP
+  |--------------------------------------------------------------------------
+  */
+
+  const {
+    otp,
+    otpHash,
+    otpExpiresAt
+  } =
+    await createOTPData();
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Send OTP
+  |--------------------------------------------------------------------------
+  |
+  | We send the OTP before saving the new hash.
+  |
+  | This prevents a failed provider request from replacing a previously
+  | working OTP.
+  |
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    target.type === "email"
+  ) {
+
+    await sendEmailOTP({
+
+      email:
+        target.value,
+
+      name:
+        user.name,
+
+      otp
+
+    });
+
+  }
+
+
+  if (
+    target.type === "phone"
+  ) {
+
+    await sendSMSOTP({
+
+      phone:
+        target.value,
+
+      otp
+
+    });
+
+  }
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Save OTP Security Data
+  |--------------------------------------------------------------------------
+  */
+
+  user.otpHash =
+    otpHash;
+
+  user.otpExpiresAt =
+    otpExpiresAt;
+
+  user.otpAttempts =
+    0;
+
+  user.otpLastSentAt =
+    new Date();
+
+  await user.save();
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Return Only Safe Information
+  |--------------------------------------------------------------------------
+  */
+
   return {
-    id: String(user._id),
 
-    name: user.name,
+    type:
+      target.type,
 
-    email: user.email,
+    expiresInMinutes:
+      OTP_EXPIRY_MINUTES
 
-    role: user.role,
-
-    isBlocked: user.isBlocked
   };
+
 };
 
 
@@ -196,9 +648,29 @@ const formatUser = (
 |--------------------------------------------------------------------------
 | REGISTER
 |--------------------------------------------------------------------------
+|
+| Creates a new unverified customer account.
+|
+| Expected request body:
+|
+| {
+|   "name": "John Doe",
+|   "emailOrPhone": "john@example.com",
+|   "password": "password123"
+| }
+|
+| OR:
+|
+| {
+|   "name": "John Doe",
+|   "emailOrPhone": "9876543210",
+|   "password": "password123"
+| }
+|
+|--------------------------------------------------------------------------
 */
 
-export const register = async (
+const register = async (
   req,
   res
 ) => {
@@ -207,68 +679,63 @@ export const register = async (
 
     const {
       name,
-      email,
+      emailOrPhone,
       password
-    } = req.body || {};
+    } =
+      req.body;
 
 
     /*
-     * Normalize input.
-     */
-
-    const cleanName =
-      String(
-        name || ""
-      ).trim();
-
-
-    const cleanEmail =
-      String(
-        email || ""
-      )
-        .trim()
-        .toLowerCase();
-
-
-    const cleanPassword =
-      String(
-        password || ""
-      );
-
-
-    /*
-     * Required field validation.
-     */
+    |--------------------------------------------------------------------------
+    | Basic Required Validation
+    |--------------------------------------------------------------------------
+    */
 
     if (
-      !cleanName ||
-      !cleanEmail ||
-      !cleanPassword
+      typeof name !== "string" ||
+      typeof emailOrPhone !== "string" ||
+      typeof password !== "string"
     ) {
 
       return res.status(400).json({
+
         success: false,
 
         message:
-          "Please fill all fields"
+          "Name, email or phone number, and password are required."
+
       });
 
     }
 
 
     /*
-     * Name validation.
-     */
+    |--------------------------------------------------------------------------
+    | Clean Name
+    |--------------------------------------------------------------------------
+    */
 
-    if (
-      cleanName.length < 2
-    ) {
+    const cleanName =
+      name
+        .trim()
+        .replace(/\s+/g, " ");
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Name
+    |--------------------------------------------------------------------------
+    */
+
+    if (!cleanName) {
 
       return res.status(400).json({
+
         success: false,
 
         message:
-          "Name must be at least 2 characters"
+          "Name is required."
+
       });
 
     }
@@ -280,232 +747,561 @@ export const register = async (
     ) {
 
       return res.status(400).json({
+
         success: false,
 
         message:
-          `Name cannot exceed ${NAME_MAX_LENGTH} characters`
+          `Name cannot exceed ${NAME_MAX_LENGTH} characters.`
+
       });
 
     }
 
 
     /*
-     * Email validation.
-     */
+    |--------------------------------------------------------------------------
+    | Parse Email OR Phone
+    |--------------------------------------------------------------------------
+    */
 
-    if (
-      cleanEmail.length >
-      EMAIL_MAX_LENGTH
-    ) {
-
-      return res.status(400).json({
-        success: false,
-
-        message:
-          "Email address is too long"
-      });
-
-    }
+    const parsed =
+      parseEmailOrPhone(
+        emailOrPhone
+      );
 
 
     if (
-      !emailRegex.test(
-        cleanEmail
-      )
+      !parsed.type ||
+      !parsed.value
     ) {
 
       return res.status(400).json({
+
         success: false,
 
         message:
-          "Please enter a valid email address"
+          "Please enter a valid email address or Indian mobile number."
+
       });
 
     }
 
 
     /*
-     * Password validation.
-     */
+    |--------------------------------------------------------------------------
+    | Validate Password Length
+    |--------------------------------------------------------------------------
+    */
 
     if (
-      cleanPassword.length <
+      password.length <
       PASSWORD_MIN_LENGTH
     ) {
 
       return res.status(400).json({
+
         success: false,
 
         message:
-          "Password must be at least 8 characters and include lowercase letter and number"
+          `Password must be at least ${PASSWORD_MIN_LENGTH} characters long.`
+
       });
 
     }
 
 
     if (
-      cleanPassword.length >
+      password.length >
       PASSWORD_MAX_LENGTH
     ) {
 
       return res.status(400).json({
+
         success: false,
 
         message:
-          `Password cannot exceed ${PASSWORD_MAX_LENGTH} characters`
-      });
+          `Password cannot exceed ${PASSWORD_MAX_LENGTH} characters.`
 
-    }
-
-
-    if (
-      !passwordRegex.test(
-        cleanPassword
-      )
-    ) {
-
-      return res.status(400).json({
-        success: false,
-
-        message:
-          "Password must be at least 8 characters and include lowercase letter and number"
       });
 
     }
 
 
     /*
-     * Check whether the email already exists.
-     */
+    |--------------------------------------------------------------------------
+    | Validate Password Strength
+    |--------------------------------------------------------------------------
+    |
+    | Password must contain:
+    |
+    | - At least one lowercase letter
+    | - At least one number
+    | - At least 8 characters
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      !passwordRegex.test(password)
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Password must contain at least one lowercase letter and one number."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Check Existing Account
+    |--------------------------------------------------------------------------
+    */
 
     const existingUser =
-      await User.findOne({
-        email: cleanEmail
-      });
+      parsed.type === "email"
+
+        ? await User.findOne({
+
+            email:
+              parsed.value
+
+          })
+
+        : await User.findOne({
+
+            phone:
+              parsed.value
+
+          });
 
 
     if (existingUser) {
 
-      return res.status(409).json({
-        success: false,
+
+      /*
+      |--------------------------------------------------------------------------
+      | Already Verified
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        existingUser.isVerified
+      ) {
+
+        return res.status(409).json({
+
+          success: false,
+
+          message:
+            parsed.type === "email"
+
+              ? "An account with this email already exists."
+
+              : "An account with this phone number already exists."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Existing Unverified Account
+      |--------------------------------------------------------------------------
+      |
+      | We allow the customer to continue verification instead of creating
+      | multiple accounts with the same email/phone.
+      |
+      | IMPORTANT:
+      |
+      | We intentionally DO NOT change existingUser.role here.
+      |
+      | This preserves an existing admin role instead of accidentally
+      | converting an admin account into a normal user.
+      |
+      |--------------------------------------------------------------------------
+      */
+
+      const remainingSeconds =
+        getRemainingResendSeconds(
+          existingUser.otpLastSentAt
+        );
+
+
+      if (
+        remainingSeconds > 0
+      ) {
+
+        return res.status(409).json({
+
+          success: false,
+
+          message:
+            "An unverified account already exists. Please use the OTP that was sent to you.",
+
+          requiresVerification:
+            true,
+
+          userId:
+            String(
+              existingUser._id
+            ),
+
+          verificationMethod:
+            existingUser.verificationMethod,
+
+          resendAvailableIn:
+            remainingSeconds
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Update Existing Unverified Account
+      |--------------------------------------------------------------------------
+      */
+
+      const passwordHash =
+        await bcrypt.hash(
+          password,
+          12
+        );
+
+
+      existingUser.name =
+        cleanName;
+
+      existingUser.password =
+        passwordHash;
+
+      /*
+      |--------------------------------------------------------------------------
+      | IMPORTANT ROLE PROTECTION
+      |--------------------------------------------------------------------------
+      |
+      | DO NOT set:
+      |
+      | existingUser.role = "user";
+      |
+      | The existing account keeps its current role.
+      |
+      |--------------------------------------------------------------------------
+      */
+
+      existingUser.isBlocked =
+        false;
+
+      existingUser.isVerified =
+        false;
+
+      existingUser.verificationMethod =
+        parsed.type;
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Clear Old OTP
+      |--------------------------------------------------------------------------
+      */
+
+      existingUser.otpHash =
+        undefined;
+
+      existingUser.otpExpiresAt =
+        undefined;
+
+      existingUser.otpAttempts =
+        0;
+
+      existingUser.otpLastSentAt =
+        undefined;
+
+      await existingUser.save();
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Send New OTP
+      |--------------------------------------------------------------------------
+      */
+
+      try {
+
+        await sendVerificationOTP(
+          existingUser
+        );
+
+      } catch (otpError) {
+
+        console.error(
+
+          "OTP delivery failed during registration:",
+
+          otpError.message
+
+        );
+
+        return res.status(503).json({
+
+          success: false,
+
+          message:
+            "Your account was created, but we could not send the verification OTP. Please try again."
+
+        });
+
+      }
+
+
+      return res.status(201).json({
+
+        success: true,
 
         message:
-          "Email already taken"
+          parsed.type === "email"
+
+            ? "Verification OTP sent to your email address."
+
+            : "Verification OTP sent to your phone number.",
+
+        requiresVerification:
+          true,
+
+        userId:
+          String(
+            existingUser._id
+          ),
+
+        verificationMethod:
+          parsed.type
+
       });
 
     }
 
 
     /*
-     * Hash password.
-     *
-     * bcrypt cost factor 12 provides strong password hashing
-     * while remaining practical for a normal e-commerce backend.
-     */
+    |--------------------------------------------------------------------------
+    | Hash Password
+    |--------------------------------------------------------------------------
+    */
 
-    const hashedPassword =
+    const passwordHash =
       await bcrypt.hash(
-        cleanPassword,
+        password,
         12
       );
 
 
     /*
-     * IMPORTANT:
-     *
-     * Public registration can ONLY create a normal user.
-     *
-     * The client cannot choose:
-     *
-     * role: "admin"
-     *
-     * Admin accounts are created separately through createAdmin.js.
-     */
+    |--------------------------------------------------------------------------
+    | Build User Data
+    |--------------------------------------------------------------------------
+    |
+    | Only a genuinely NEW account receives the default "user" role.
+    |
+    |--------------------------------------------------------------------------
+    */
 
-    const user =
-      await User.create({
-        name: cleanName,
+    const userData = {
 
-        email: cleanEmail,
+      name:
+        cleanName,
 
-        password: hashedPassword,
+      password:
+        passwordHash,
 
-        role: "user",
+      role:
+        "user",
 
-        isBlocked: false
-      });
+      isBlocked:
+        false,
+
+      isVerified:
+        false,
+
+      verificationMethod:
+        parsed.type
+
+    };
 
 
     /*
-     * Return safe user information.
-     *
-     * No password or password hash is returned.
-     */
+    |--------------------------------------------------------------------------
+    | Add Email OR Phone
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      parsed.type === "email"
+    ) {
+
+      userData.email =
+        parsed.value;
+
+    }
+
+
+    if (
+      parsed.type === "phone"
+    ) {
+
+      userData.phone =
+        parsed.value;
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Create Account
+    |--------------------------------------------------------------------------
+    */
+
+    const user =
+      await User.create(
+        userData
+      );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Send Verification OTP
+    |--------------------------------------------------------------------------
+    */
+
+    try {
+
+      await sendVerificationOTP(
+        user
+      );
+
+    } catch (otpError) {
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | OTP Delivery Failed
+      |--------------------------------------------------------------------------
+      |
+      | We do NOT expose provider credentials or internal errors.
+      |
+      | The unverified account remains in the database so the user can
+      | request another OTP once the provider is available.
+      |
+      |--------------------------------------------------------------------------
+      */
+
+      console.error(
+
+        "OTP delivery failed during registration:",
+
+        otpError.message
+
+      );
+
+      return res.status(503).json({
+
+        success: false,
+
+        message:
+          "Your account was created, but we could not send the verification OTP. Please try again."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Registration Successful
+    |--------------------------------------------------------------------------
+    */
 
     return res.status(201).json({
 
       success: true,
 
       message:
-        "Account Created Successfully",
+        parsed.type === "email"
 
-      user:
-        formatUser(user)
+          ? "Verification OTP sent to your email address."
+
+          : "Verification OTP sent to your phone number.",
+
+      requiresVerification:
+        true,
+
+      userId:
+        String(
+          user._id
+        ),
+
+      verificationMethod:
+        parsed.type
+
     });
+
 
   } catch (error) {
 
-    console.error(
-      "Registration error:",
-      error
-    );
-
 
     /*
-     * Duplicate email.
-     */
+    |--------------------------------------------------------------------------
+    | Duplicate Key Error
+    |--------------------------------------------------------------------------
+    */
 
     if (
       error?.code === 11000
     ) {
 
       return res.status(409).json({
+
         success: false,
 
         message:
-          "Email already taken"
+          "An account with these details already exists."
+
       });
 
     }
 
 
     /*
-     * Mongoose validation error.
-     */
+    |--------------------------------------------------------------------------
+    | Mongoose Validation Error
+    |--------------------------------------------------------------------------
+    */
 
     if (
       error?.name ===
       "ValidationError"
     ) {
 
-      const validationErrors =
-        Object.values(
-          error.errors || {}
-        ).map(
-          (validationError) =>
-            validationError.message
-        );
-
-
       return res.status(400).json({
 
         success: false,
 
         message:
-          "Registration validation failed",
+          "Invalid registration details.",
 
         errors:
-          validationErrors
+          Object.values(
+            error.errors || {}
+          ).map(
+            (item) =>
+              item.message
+          )
 
       });
 
@@ -513,15 +1309,25 @@ export const register = async (
 
 
     /*
-     * Unexpected server error.
-     */
+    |--------------------------------------------------------------------------
+    | Unexpected Error
+    |--------------------------------------------------------------------------
+    */
+
+    console.error(
+
+      "Register error:",
+
+      error
+
+    );
 
     return res.status(500).json({
 
       success: false,
 
       message:
-        "Error creating account"
+        "Registration failed. Please try again later."
 
     });
 
@@ -532,11 +1338,638 @@ export const register = async (
 
 /*
 |--------------------------------------------------------------------------
-| LOGIN
+| VERIFY OTP
+|--------------------------------------------------------------------------
+|
+| Expected request body:
+|
+| {
+|   "userId": "...",
+|   "otp": "123456"
+| }
+|
 |--------------------------------------------------------------------------
 */
 
-export const login = async (
+const verifyRegistrationOTP =
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const {
+        userId,
+        otp
+      } =
+        req.body;
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Validate Request
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        typeof userId !== "string" ||
+        typeof otp !== "string"
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "User ID and OTP are required."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Validate OTP Format
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        !/^\d{6}$/.test(
+          otp.trim()
+        )
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "OTP must be a 6-digit number."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Find User
+      |--------------------------------------------------------------------------
+      |
+      | OTP fields use select:false in the User model, so we explicitly
+      | request them here.
+      |
+      |--------------------------------------------------------------------------
+      */
+
+      const user =
+        await User.findById(
+          userId
+        ).select(
+          "+otpHash +otpExpiresAt +otpAttempts +otpLastSentAt"
+        );
+
+
+      if (!user) {
+
+        return res.status(404).json({
+
+          success: false,
+
+          message:
+            "Account not found."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Already Verified
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        user.isVerified
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "This account is already verified."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Check OTP
+      |--------------------------------------------------------------------------
+      */
+
+      const result =
+        await verifyOTP({
+
+          otp:
+            otp.trim(),
+
+          otpHash:
+            user.otpHash,
+
+          otpExpiresAt:
+            user.otpExpiresAt,
+
+          otpAttempts:
+            user.otpAttempts || 0
+
+        });
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Invalid OTP
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        !result.success
+      ) {
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Increase Attempt Counter
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+          result.reason ===
+            "INVALID_OTP" ||
+
+          result.reason ===
+            "OTP_NOT_FOUND"
+        ) {
+
+          user.otpAttempts =
+            (user.otpAttempts || 0) + 1;
+
+          await user.save();
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Maximum Attempts
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+          result.reason ===
+          "MAX_ATTEMPTS"
+        ) {
+
+          return res.status(429).json({
+
+            success: false,
+
+            message:
+              "Too many incorrect OTP attempts. Please request a new OTP."
+
+          });
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Expired OTP
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+          result.reason ===
+          "OTP_EXPIRED"
+        ) {
+
+          return res.status(400).json({
+
+            success: false,
+
+            message:
+              "This OTP has expired. Please request a new OTP."
+
+          });
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Invalid OTP
+        |--------------------------------------------------------------------------
+        */
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "Invalid OTP."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Mark Account As Verified
+      |--------------------------------------------------------------------------
+      */
+
+      user.isVerified =
+        true;
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Clear OTP Data
+      |--------------------------------------------------------------------------
+      |
+      | Once verification succeeds, the OTP must no longer be usable.
+      |
+      |--------------------------------------------------------------------------
+      */
+
+      user.otpHash =
+        undefined;
+
+      user.otpExpiresAt =
+        undefined;
+
+      user.otpAttempts =
+        0;
+
+      user.otpLastSentAt =
+        undefined;
+
+
+      await user.save();
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Return Safe User
+      |--------------------------------------------------------------------------
+      */
+
+      return res.status(200).json({
+
+        success: true,
+
+        message:
+          "Account verified successfully. You can now log in.",
+
+        user:
+          formatUser(user)
+
+      });
+
+
+    } catch (error) {
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Invalid MongoDB ID
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        error?.name ===
+        "CastError"
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "Invalid user ID."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Unexpected Error
+      |--------------------------------------------------------------------------
+      */
+
+      console.error(
+
+        "Verify OTP error:",
+
+        error
+
+      );
+
+      return res.status(500).json({
+
+        success: false,
+
+        message:
+          "OTP verification failed. Please try again later."
+
+      });
+
+    }
+
+  };
+
+
+/*
+|--------------------------------------------------------------------------
+| RESEND OTP
+|--------------------------------------------------------------------------
+|
+| Expected request body:
+|
+| {
+|   "userId": "..."
+| }
+|
+|--------------------------------------------------------------------------
+*/
+
+const resendRegistrationOTP =
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const {
+        userId
+      } =
+        req.body;
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Validate User ID
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        typeof userId !== "string" ||
+        !userId.trim()
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "User ID is required."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Find User
+      |--------------------------------------------------------------------------
+      */
+
+      const user =
+        await User.findById(
+          userId
+        ).select(
+          "+otpHash +otpExpiresAt +otpAttempts +otpLastSentAt"
+        );
+
+
+      if (!user) {
+
+        return res.status(404).json({
+
+          success: false,
+
+          message:
+            "Account not found."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Already Verified
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        user.isVerified
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "This account is already verified."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Check Resend Cooldown
+      |--------------------------------------------------------------------------
+      */
+
+      const remainingSeconds =
+        getRemainingResendSeconds(
+          user.otpLastSentAt
+        );
+
+
+      if (
+        remainingSeconds > 0
+      ) {
+
+        return res.status(429).json({
+
+          success: false,
+
+          message:
+            `Please wait ${remainingSeconds} seconds before requesting another OTP.`,
+
+          resendAvailableIn:
+            remainingSeconds
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Send New OTP
+      |--------------------------------------------------------------------------
+      */
+
+      try {
+
+        await sendVerificationOTP(
+          user
+        );
+
+      } catch (otpError) {
+
+        console.error(
+
+          "OTP resend failed:",
+
+          otpError.message
+
+        );
+
+        return res.status(503).json({
+
+          success: false,
+
+          message:
+            "We could not send the OTP right now. Please try again later."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Success
+      |--------------------------------------------------------------------------
+      */
+
+      return res.status(200).json({
+
+        success: true,
+
+        message:
+          user.verificationMethod ===
+          "email"
+
+            ? "A new verification OTP has been sent to your email address."
+
+            : "A new verification OTP has been sent to your phone number.",
+
+        verificationMethod:
+          user.verificationMethod,
+
+        expiresInMinutes:
+          OTP_EXPIRY_MINUTES
+
+      });
+
+
+    } catch (error) {
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Invalid MongoDB ID
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        error?.name ===
+        "CastError"
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "Invalid user ID."
+
+        });
+
+      }
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Unexpected Error
+      |--------------------------------------------------------------------------
+      */
+
+      console.error(
+
+        "Resend OTP error:",
+
+        error
+
+      );
+
+      return res.status(500).json({
+
+        success: false,
+
+        message:
+          "Could not resend OTP. Please try again later."
+
+      });
+
+    }
+
+  };
+
+
+/*
+|--------------------------------------------------------------------------
+| LOGIN
+|--------------------------------------------------------------------------
+|
+| Only verified accounts can log in.
+|
+| Expected request body:
+|
+| {
+|   "emailOrPhone": "john@example.com",
+|   "password": "password123"
+| }
+|
+| OR:
+|
+| {
+|   "emailOrPhone": "9876543210",
+|   "password": "password123"
+| }
+|
+|--------------------------------------------------------------------------
+*/
+
+const login = async (
   req,
   res
 ) => {
@@ -544,156 +1977,228 @@ export const login = async (
   try {
 
     const {
-      email,
+      emailOrPhone,
       password
-    } = req.body || {};
+    } =
+      req.body;
 
 
     /*
-     * Normalize input.
-     */
+    |--------------------------------------------------------------------------
+    | Basic Validation
+    |--------------------------------------------------------------------------
+    */
 
-    const cleanEmail =
-      String(
-        email || ""
-      )
-        .trim()
-        .toLowerCase();
+    if (
+      typeof emailOrPhone !== "string" ||
+      typeof password !== "string"
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Email or phone number and password are required."
+
+      });
+
+    }
 
 
-    const cleanPassword =
-      String(
-        password || ""
+    /*
+    |--------------------------------------------------------------------------
+    | Parse Email OR Phone
+    |--------------------------------------------------------------------------
+    */
+
+    const parsed =
+      parseEmailOrPhone(
+        emailOrPhone
       );
 
 
-    /*
-     * Required field validation.
-     */
-
     if (
-      !cleanEmail ||
-      !cleanPassword
+      !parsed.type ||
+      !parsed.value
     ) {
 
       return res.status(400).json({
+
         success: false,
 
         message:
-          "Please fill all fields"
+          "Please enter a valid email address or Indian mobile number."
+
       });
 
     }
 
 
     /*
-     * Email validation.
-     */
+    |--------------------------------------------------------------------------
+    | Validate Password Length
+    |--------------------------------------------------------------------------
+    */
 
     if (
-      cleanEmail.length >
-        EMAIL_MAX_LENGTH ||
-      !emailRegex.test(
-        cleanEmail
-      )
+      password.length <
+      PASSWORD_MIN_LENGTH
     ) {
 
       return res.status(400).json({
+
         success: false,
 
         message:
-          "Please enter a valid email address"
+          "Invalid email/phone or password."
+
       });
 
     }
 
-
-    /*
-     * Password length validation.
-     *
-     * We intentionally do not require the registration
-     * password pattern here because existing users may have
-     * been created under an older password policy.
-     *
-     * bcrypt comparison remains the final authentication check.
-     */
 
     if (
-      cleanPassword.length <
-        PASSWORD_MIN_LENGTH ||
-      cleanPassword.length >
-        PASSWORD_MAX_LENGTH
+      password.length >
+      PASSWORD_MAX_LENGTH
     ) {
 
-      return res.status(401).json({
+      return res.status(400).json({
+
         success: false,
 
         message:
-          "Invalid email or password"
+          "Invalid email/phone or password."
+
       });
 
     }
 
 
     /*
-     * Find user.
-     *
-     * Password normally has select: false in User.js.
-     *
-     * We explicitly request it here because bcrypt.compare()
-     * needs the stored password hash.
-     */
+    |--------------------------------------------------------------------------
+    | Find User
+    |--------------------------------------------------------------------------
+    |
+    | Password and other protected fields are explicitly selected.
+    |
+    |--------------------------------------------------------------------------
+    */
 
     const user =
-      await User.findOne({
-        email: cleanEmail
-      }).select(
-        "+password"
-      );
+      parsed.type === "email"
+
+        ? await User.findOne({
+
+            email:
+              parsed.value
+
+          }).select(
+            "+password"
+          )
+
+        : await User.findOne({
+
+            phone:
+              parsed.value
+
+          }).select(
+            "+password"
+          );
 
 
     /*
-     * Do not reveal whether the email exists.
-     */
+    |--------------------------------------------------------------------------
+    | Generic Invalid Credentials Response
+    |--------------------------------------------------------------------------
+    |
+    | Do not reveal whether an email/phone actually exists.
+    |
+    |--------------------------------------------------------------------------
+    */
 
     if (!user) {
 
       return res.status(401).json({
+
         success: false,
 
         message:
-          "Invalid email or password"
+          "Invalid email/phone or password."
+
       });
 
     }
 
 
     /*
-     * Check blocked status.
-     */
+    |--------------------------------------------------------------------------
+    | Check Verification
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      !user.isVerified
+    ) {
+
+      return res.status(403).json({
+
+        success: false,
+
+        message:
+          "Please verify your account with the OTP before logging in.",
+
+        requiresVerification:
+          true,
+
+        userId:
+          String(
+            user._id
+          ),
+
+        verificationMethod:
+          user.verificationMethod
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Check Blocked Status
+    |--------------------------------------------------------------------------
+    */
 
     if (
       user.isBlocked
     ) {
 
       return res.status(403).json({
+
         success: false,
 
         message:
-          "Your account has been blocked by admin"
+          "Your account has been blocked. Please contact support."
+
       });
 
     }
 
 
     /*
-     * Compare entered password with bcrypt hash.
-     */
+    |--------------------------------------------------------------------------
+    | Compare Password
+    |--------------------------------------------------------------------------
+    */
 
     const passwordMatches =
       await bcrypt.compare(
-        cleanPassword,
+
+        password,
+
         user.password
+
       );
 
 
@@ -702,46 +2207,22 @@ export const login = async (
     ) {
 
       return res.status(401).json({
+
         success: false,
 
         message:
-          "Invalid email or password"
+          "Invalid email/phone or password."
+
       });
 
     }
 
 
     /*
-     * Make sure JWT configuration exists.
-     */
-
-    const jwtSecret =
-      String(
-        process.env.JWT_SECRET ||
-          ""
-      ).trim();
-
-
-    if (!jwtSecret) {
-
-      console.error(
-        "JWT_SECRET is not configured."
-      );
-
-
-      return res.status(500).json({
-        success: false,
-
-        message:
-          "Authentication configuration error"
-      });
-
-    }
-
-
-    /*
-     * Create JWT.
-     */
+    |--------------------------------------------------------------------------
+    | Create JWT
+    |--------------------------------------------------------------------------
+    */
 
     const token =
       createToken(
@@ -750,73 +2231,64 @@ export const login = async (
 
 
     /*
-     * Set secure HTTP-only authentication cookie.
-     *
-     * JavaScript in the browser cannot read this cookie.
-     */
+    |--------------------------------------------------------------------------
+    | Set Authentication Cookie
+    |--------------------------------------------------------------------------
+    */
 
     res.cookie(
+
       getCookieName(),
 
       token,
 
       getCookieOptions()
+
     );
 
 
     /*
-     * Return safe user information.
-     */
+    |--------------------------------------------------------------------------
+    | Login Successful
+    |--------------------------------------------------------------------------
+    */
 
     return res.status(200).json({
 
       success: true,
 
       message:
-        "Login successful",
+        "Login successful.",
 
       user:
         formatUser(user)
 
     });
 
+
   } catch (error) {
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Unexpected Error
+    |--------------------------------------------------------------------------
+    */
+
     console.error(
+
       "Login error:",
+
       error
+
     );
-
-
-    /*
-     * JWT configuration error.
-     */
-
-    if (
-      error?.message ===
-      "JWT_SECRET is not configured."
-    ) {
-
-      return res.status(500).json({
-        success: false,
-
-        message:
-          "Authentication configuration error"
-      });
-
-    }
-
-
-    /*
-     * Unexpected server error.
-     */
 
     return res.status(500).json({
 
       success: false,
 
       message:
-        "Login failed"
+        "Login failed. Please try again later."
 
     });
 
@@ -831,21 +2303,26 @@ export const login = async (
 |--------------------------------------------------------------------------
 */
 
-export const logout = async (
+const logout = async (
   req,
   res
 ) => {
 
   try {
 
+
     /*
-     * Use the exact same cookie name and
-     * compatible options used during login.
-     */
+    |--------------------------------------------------------------------------
+    | Clear Authentication Cookie
+    |--------------------------------------------------------------------------
+    */
 
     res.clearCookie(
+
       getCookieName(),
+
       {
+
         httpOnly: true,
 
         secure:
@@ -855,37 +2332,50 @@ export const logout = async (
         sameSite:
           process.env.NODE_ENV ===
           "production"
+
             ? "none"
+
             : "lax",
 
         path: "/"
+
       }
+
     );
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Success
+    |--------------------------------------------------------------------------
+    */
 
     return res.status(200).json({
 
       success: true,
 
       message:
-        "Logged out successfully"
+        "Logged out successfully."
 
     });
+
 
   } catch (error) {
 
     console.error(
-      "Logout error:",
-      error
-    );
 
+      "Logout error:",
+
+      error
+
+    );
 
     return res.status(500).json({
 
       success: false,
 
       message:
-        "Logout failed"
+        "Logout failed. Please try again later."
 
     });
 
@@ -896,63 +2386,96 @@ export const logout = async (
 
 /*
 |--------------------------------------------------------------------------
-| GET CURRENT LOGGED-IN USER
+| GET CURRENT USER
 |--------------------------------------------------------------------------
 |
-| The authentication middleware should already have verified
-| the JWT and attached the user to req.user.
+| The authMiddleware has already:
+|
+| - validated the JWT
+| - found the user
+| - checked that the user exists
+| - checked that the user is not blocked
 |
 |--------------------------------------------------------------------------
 */
 
-export const getMe = async (
+const getMe = async (
   req,
   res
 ) => {
 
   try {
 
+
     /*
-     * No authenticated user means the JWT middleware
-     * did not provide a valid session.
-     */
+    |--------------------------------------------------------------------------
+    | Authentication Middleware Check
+    |--------------------------------------------------------------------------
+    */
 
     if (!req.user) {
 
       return res.status(401).json({
+
         success: false,
 
         message:
-          "Please login first"
+          "Not authenticated."
+
       });
 
     }
 
 
     /*
-     * Check whether the account has been blocked.
-     *
-     * This is important because an admin can block a user
-     * after the user has already logged in.
-     */
+    |--------------------------------------------------------------------------
+    | Check Verification
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      !req.user.isVerified
+    ) {
+
+      return res.status(403).json({
+
+        success: false,
+
+        message:
+          "Account verification is required."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Check Blocked Status
+    |--------------------------------------------------------------------------
+    */
 
     if (
       req.user.isBlocked
     ) {
 
       return res.status(403).json({
+
         success: false,
 
         message:
-          "Your account has been blocked by admin"
+          "Your account has been blocked."
+
       });
 
     }
 
 
     /*
-     * Return safe user information.
-     */
+    |--------------------------------------------------------------------------
+    | Return Safe User
+    |--------------------------------------------------------------------------
+    */
 
     return res.status(200).json({
 
@@ -965,23 +2488,49 @@ export const getMe = async (
 
     });
 
+
   } catch (error) {
 
     console.error(
-      "Get current user error:",
-      error
-    );
 
+      "Get current user error:",
+
+      error
+
+    );
 
     return res.status(500).json({
 
       success: false,
 
       message:
-        "Failed to load profile"
+        "Could not retrieve your account."
 
     });
 
   }
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| EXPORTS
+|--------------------------------------------------------------------------
+*/
+
+export {
+
+  register,
+
+  verifyRegistrationOTP,
+
+  resendRegistrationOTP,
+
+  login,
+
+  logout,
+
+  getMe
 
 };

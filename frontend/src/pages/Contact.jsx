@@ -6,37 +6,47 @@ const Contact = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap');
 
-        .contact-root { font-family: 'Outfit', sans-serif; }
+        .contact-root { font-family: 'Jost', sans-serif; }
+
+        /* Tokens — shared with LatestCollection / About */
+        .contact-root {
+          --ct-olive:        #6B8E23;
+          --ct-olive-light:  #A9C46C;
+          --ct-olive-deep:   #4B5320;
+          --ct-ink:          #10131F;
+          --ct-ink-muted:    rgba(16,19,31,0.55);
+          --ct-glass-border: rgba(107,142,35,0.16);
+        }
 
         /* Contact image */
         .contact-img {
           width: 100%;
           border-radius: 1.2rem;
-          border: 1px solid rgba(47,93,255,0.14);
+          border: 1px solid var(--ct-glass-border);
           object-fit: cover;
-          transition: transform 0.6s cubic-bezier(0.76,0,0.24,1);
+          transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);
           display: block;
         }
         .contact-img:hover { transform: scale(1.02); }
 
         /* Section label */
         .contact-eyebrow {
-          font-family: 'Outfit', sans-serif;
-          font-size: 0.72rem;
+          font-family: 'Jost', sans-serif;
+          font-size: 0.7rem;
           font-weight: 500;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.16em;
           text-transform: uppercase;
-          color: #2F5DFF;
+          color: var(--ct-olive-deep);
         }
 
         /* Thin rule */
         .contact-rule {
           height: 1px;
-          width: 3rem;
-          background: linear-gradient(to right, #2F5DFF, transparent);
-          margin: 0.6rem 0 1.2rem;
+          width: 2.75rem;
+          background: linear-gradient(to right, var(--ct-olive), transparent);
+          margin: 0.9rem 0 1.3rem;
         }
 
         /* Section headings */
@@ -49,7 +59,7 @@ const Contact = () => {
 
         /* Info text */
         .contact-info-label {
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
           font-size: 0.68rem;
           font-weight: 500;
           letter-spacing: 0.14em;
@@ -59,7 +69,7 @@ const Contact = () => {
         }
 
         .contact-info-value {
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
           font-size: 0.95rem;
           font-weight: 400;
           color: var(--text-primary);
@@ -69,15 +79,20 @@ const Contact = () => {
         /* Info item row */
         .contact-info-item {
           padding: 1rem 0;
-          border-bottom: 1px solid rgba(47,93,255,0.14);
+          border-bottom: 1px solid var(--ct-glass-border);
+          transition: padding-left 0.3s ease, border-color 0.3s ease;
         }
-        .contact-info-item:first-child { border-top: 1px solid rgba(47,93,255,0.14); }
+        .contact-info-item:first-child { border-top: 1px solid var(--ct-glass-border); }
+        .contact-info-item:hover {
+          padding-left: 0.5rem;
+          border-color: rgba(107,142,35,0.32);
+        }
 
         /* Exclusives block */
         .contact-exclusive-wrap {
-          background: #10131F;
+          background: var(--ct-ink);
           border-radius: 1.2rem;
-          border: 1px solid rgba(110,139,255,0.18);
+          border: 1px solid rgba(169,196,108,0.20);
           padding: 2rem;
           position: relative;
           overflow: hidden;
@@ -90,7 +105,7 @@ const Contact = () => {
           right: -10%;
           width: 60%;
           height: 160%;
-          background: radial-gradient(ellipse, rgba(47,93,255,0.18) 0%, transparent 65%);
+          background: radial-gradient(ellipse, rgba(169,196,108,0.16) 0%, transparent 65%);
           pointer-events: none;
         }
 
@@ -99,47 +114,58 @@ const Contact = () => {
           color: #FFFFFF;
           letter-spacing: -0.01em;
           margin-bottom: 0.5rem;
+          position: relative;
         }
 
         .contact-exclusive-body {
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
           font-size: 0.92rem;
           font-weight: 400;
           color: rgba(255,255,255,0.72);
           line-height: 1.8;
           margin-bottom: 1.5rem;
+          position: relative;
         }
 
         /* CTA Button */
         .contact-btn {
-          display: inline-block;
-          font-family: 'Outfit', sans-serif;
-          font-size: 0.78rem;
-          font-weight: 600;
-          letter-spacing: 0.04em;
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.55rem;
+          font-family: 'Jost', sans-serif;
+          font-size: 0.75rem;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
           color: #FFFFFF;
-          background: #2F5DFF;
+          background: var(--ct-olive);
           border: none;
           border-radius: 100px;
           padding: 0.9rem 2rem;
           cursor: pointer;
-          box-shadow: 0 8px 24px rgba(47,93,255,0.28);
+          box-shadow: 0 8px 24px rgba(107,142,35,0.28);
           transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
           white-space: nowrap;
         }
         .contact-btn:hover {
-          background: #16307A;
+          background: var(--ct-olive-deep);
           transform: translateY(-2px);
-          box-shadow: 0 12px 32px rgba(47,93,255,0.34);
+          box-shadow: 0 12px 32px rgba(107,142,35,0.34);
         }
         .contact-btn a {
           color: inherit;
           text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.55rem;
         }
+        .contact-btn svg { transition: transform 0.25s ease; }
+        .contact-btn:hover svg { transform: translate(2px, -2px); }
 
         /* Title override */
         .contact-title-eyebrow {
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
           font-size: 0.75rem;
           font-weight: 400;
           letter-spacing: 0.04em;
@@ -147,7 +173,7 @@ const Contact = () => {
           margin-top: 0.5rem;
         }
 
-        /* Entrance animations */
+        /* Entrance animations — quiet, once, on load */
         @keyframes fadeUp {
           from { opacity: 0; filter: blur(8px); transform: translateY(18px); }
           to   { opacity: 1; filter: blur(0); transform: translateY(0); }
@@ -155,15 +181,18 @@ const Contact = () => {
         .a1 { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both 0.05s; }
         .a2 { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both 0.2s; }
 
+        @media (prefers-reduced-motion: reduce) {
+          .a1, .a2 { animation: none !important; opacity: 1 !important; filter: none !important; transform: none !important; }
+          .contact-img { transition: none !important; }
+        }
+
         /* ── DARK MODE ── */
-        html.dark-mode .contact-img {
-          border-color: rgba(96,130,255,0.22) !important;
+        html.dark-mode .contact-root {
+          --ct-olive-deep: #A9C46C;
+          --ct-glass-border: rgba(169,196,108,0.22);
         }
-        html.dark-mode .contact-info-item {
-          border-bottom-color: rgba(96,130,255,0.20) !important;
-        }
-        html.dark-mode .contact-info-item:first-child {
-          border-top-color: rgba(96,130,255,0.20) !important;
+        html.dark-mode .contact-exclusive-wrap {
+          background: #000000 !important;
         }
       `}</style>
 
@@ -181,7 +210,7 @@ const Contact = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-16 items-center a2">
 
           {/* IMAGE */}
-          <img src="/images/contact.jpg" className="contact-img" />
+          <img src="/images/contact.jpg" className="contact-img" alt="SLOG Fashion store" />
 
           {/* INFO */}
           <div>
@@ -210,16 +239,19 @@ const Contact = () => {
 
             {/* Exclusives block */}
             <div className="contact-exclusive-wrap">
-              <p className="contact-eyebrow mb-3" style={{ color: '#6E8BFF' }}>Exclusives</p>
+              <p className="contact-eyebrow mb-3" style={{ color: '#A9C46C' }}>Exclusives</p>
               <h2 className="contact-exclusive-title text-xl sm:text-2xl">
                 SLOG-FASHION Exclusives
               </h2>
               <p className="contact-exclusive-body">
                 Step into our signature collection of timeless fashion.
               </p>
-              <button className="contact-btn w-full sm:w-auto">
+              <button className="contact-btn w-full sm:w-auto justify-center">
                 <Link to='/collection'>
                   Explore Our Collection
+                  <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M2 10 L10 2 M10 2 H4 M10 2 V8" />
+                  </svg>
                 </Link>
               </button>
             </div>

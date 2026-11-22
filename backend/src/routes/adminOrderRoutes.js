@@ -4,6 +4,10 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
 
 import {
+  csrfProtection
+} from "../middleware/csrfMiddleware.js";
+
+import {
   getAllOrders,
   updateOrderStatus,
   cancelOrder
@@ -83,6 +87,7 @@ router.get(
 
 router.patch(
   "/:orderId/status",
+  csrfProtection,
   updateOrderStatus
 );
 
@@ -103,6 +108,7 @@ router.patch(
 
 router.delete(
   "/:orderId",
+  csrfProtection,
   cancelOrder
 );
 

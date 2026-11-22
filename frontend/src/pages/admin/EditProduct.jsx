@@ -16,164 +16,58 @@ import { ShopContext } from "../../context/ShopContext";
 import API_URL from "../../config/api";
 
 
-/* ── Shared keyframes ── */
-
-const GlobalStyles = () => (
-  <style>{`
-    @keyframes toastIn  {
-      from {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.95)
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1)
-      }
-    }
-
-    @keyframes toastOut {
-      from {
-        opacity: 1;
-        transform: translateY(0) scale(1)
-      }
-
-      to {
-        opacity: 0;
-        transform: translateY(-8px) scale(0.95)
-      }
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-    }
-
-    input::placeholder,
-    textarea::placeholder {
-      color: rgba(255,255,255,0.2);
-    }
-  `}</style>
-);
-
-
-/* ── Glassy Toast ── */
+/* ── Glass Toast (black + red theme) ── */
 
 const ToastContainer = ({ toasts }) => (
-  <div
-    style={{
-      position: "fixed",
-      top: "100px",
-      left: 0,
-      right: 0,
-      marginLeft: "auto",
-      marginRight: "auto",
-      zIndex: 9999,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "stretch",
-      gap: "10px",
-      width: "320px",
-      maxWidth: "calc(100vw - 32px)",
-      pointerEvents: "none",
-    }}
-  >
+  <div style={{
+    position: "fixed", top: "100px", left: "50%", transform: "translateX(-50%)",
+    zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "stretch",
+    gap: "10px", width: "min(340px, calc(100vw - 32px))", pointerEvents: "none",
+  }}>
+    <style>{`
+      @keyframes toastIn  { from{opacity:0;transform:translateY(-10px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+      @keyframes toastOut { from{opacity:1;transform:translateY(0) scale(1)} to{opacity:0;transform:translateY(-8px) scale(0.97)} }
+    `}</style>
+
     {toasts.map((t) => (
-      <div
-        key={t.id}
-        style={{
+      <div key={t.id} style={{
+        display: "flex", alignItems: "center", gap: "12px", padding: "13px 18px",
+        background: "rgba(0,0,0,0.6)",
+        border: t.type === "error"
+          ? "1px solid rgba(255,45,63,0.6)"
+          : "1px solid rgba(255,255,255,0.22)",
+        backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+        borderRadius: "14px",
+        color: "#ffffff", fontSize: "14px", fontWeight: 600,
+        fontFamily: "'Manrope', 'Inter', system-ui, sans-serif",
+        pointerEvents: "auto",
+        animation: t.leaving
+          ? "toastOut 0.3s ease forwards"
+          : "toastIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards",
+      }}>
+        <span style={{
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          background: t.type === "error" ? "#ff2d3f" : "#ffffff",
           display: "flex",
           alignItems: "center",
-          gap: "12px",
-          padding: "13px 18px",
-          background: "rgba(255,255,255,0.05)",
-          border: "1px solid rgba(255,255,255,0.15)",
-          backdropFilter: "blur(25px)",
-          WebkitBackdropFilter: "blur(25px)",
-          borderRadius: "16px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-          color: "#ffffff",
-          fontSize: "14px",
-          fontWeight: 500,
-          pointerEvents: "auto",
-          animation: t.leaving
-            ? "toastOut 0.3s ease forwards"
-            : "toastIn 0.35s cubic-bezier(0.2,1.3,0.4,1) forwards",
-        }}
-      >
-        <span
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: "50%",
-            flexShrink: 0,
-            background:
-              t.type === "error"
-                ? "rgba(239,68,68,0.15)"
-                : "rgba(249,115,22,0.15)",
-            border:
-              t.type === "error"
-                ? "1.5px solid rgba(239,68,68,0.5)"
-                : "1.5px solid rgba(249,115,22,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
+          justifyContent: "center",
+          flexShrink: 0
+        }}>
           {t.type === "error" ? (
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 12 12"
-              fill="none"
-            >
-              <line
-                x1="2"
-                y1="2"
-                x2="10"
-                y2="10"
-                stroke="rgba(239,68,68,0.95)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-
-              <line
-                x1="10"
-                y1="2"
-                x2="2"
-                y2="10"
-                stroke="rgba(239,68,68,0.95)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <line x1="2" y1="2" x2="10" y2="10" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" />
+              <line x1="10" y1="2" x2="2" y2="10" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
           ) : (
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 12 12"
-              fill="none"
-            >
-              <polyline
-                points="2,6 5,9 10,3"
-                stroke="rgba(249,115,22,0.95)"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <polyline points="2,6 5,9 10,3" stroke="#000000" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
         </span>
 
-        <span>
-          {t.message}
-        </span>
+        <span>{t.message}</span>
       </div>
     ))}
   </div>
@@ -1182,64 +1076,9 @@ const EditProduct = () => {
   };
 
 
-  /* ── Styles ── */
-
-  const inputStyle = {
-
-    width: "100%",
-
-    background:
-      "rgba(255,255,255,0.04)",
-
-    border:
-      "1px solid rgba(255,255,255,0.1)",
-
-    padding:
-      "11px 16px",
-
-    color:
-      "#f1f5f9",
-
-    borderRadius:
-      "12px",
-
-    outline:
-      "none",
-
-    fontSize:
-      "14px",
-
-    transition:
-      "border-color 0.2s",
-
-  };
-
-
-  const labelStyle = {
-
-    display: "block",
-
-    fontSize: "12px",
-
-    fontWeight: 600,
-
-    color: "#64748b",
-
-    letterSpacing: "0.1em",
-
-    textTransform: "uppercase",
-
-    marginBottom: "8px",
-
-  };
-
-
   return (
 
     <>
-
-      <GlobalStyles />
-
 
       <ToastContainer
         toasts={
@@ -1249,264 +1088,504 @@ const EditProduct = () => {
 
 
       <div
-
-        className="
-          min-h-screen
-          flex
-          justify-center
-          items-start
-          p-3
-          sm:p-6
-          md:p-8
-          rounded-3xl
-          pb-20
-        "
-
-        style={{
-          background:
-            "#0b1120"
-        }}
-
+        className="ad-root min-h-screen flex justify-center items-start p-3 sm:p-5 md:p-8 pb-20"
       >
 
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+          .ad-root {
+            --ad-red:        #ff2d3f;
+            --ad-line:       rgba(255, 45, 63, 0.22);
+            --ad-line-hover: rgba(255, 45, 63, 0.6);
+            --ad-white:      #ffffff;
+            --ad-white-soft: rgba(255, 255, 255, 0.7);
+
+            position: relative;
+            overflow: hidden;
+            background: #000000;
+            color: var(--ad-white);
+            font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+          }
+
+          @keyframes spin { to { transform: rotate(360deg); } }
+
+          /* ── Entrance ── */
+          .ad-rise {
+            opacity: 0;
+            animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          }
+
+          @keyframes ad-rise {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+
+          /* ── Heading ── */
+          .ad-overline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: var(--ad-red);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+          }
+
+          .ad-overline::before {
+            content: '';
+            width: 28px;
+            height: 2px;
+            background: var(--ad-red);
+          }
+
+          .ad-title {
+            color: var(--ad-white);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+            font-size: clamp(2.2rem, 4vw, 3rem);
+          }
+
+          .ad-title-bar {
+            margin-top: 1rem;
+            height: 2px;
+            width: 84px;
+            border-radius: 2px;
+            background: var(--ad-red);
+            transform-origin: left center;
+            animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+          }
+
+          @keyframes ad-draw {
+            from { transform: scaleX(0); }
+            to   { transform: scaleX(1); }
+          }
+
+          /* ── Panel ── */
+          .ad-panel {
+            position: relative;
+            background: transparent;
+            border: 1px solid var(--ad-line);
+            border-radius: 16px;
+            transition: border-color 0.3s ease;
+          }
+
+          .ad-panel:hover,
+          .ad-panel:focus-within {
+            border-color: var(--ad-line-hover);
+          }
+
+          .ad-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: var(--ad-white);
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+          }
+
+          .ad-panel-title::before {
+            content: '';
+            width: 3px;
+            height: 1.1em;
+            border-radius: 2px;
+            background: var(--ad-red);
+          }
+
+          /* ── Back button ── */
+          .ap-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.95rem 0.45rem 0.7rem;
+            border-radius: 10px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+          }
+
+          .ap-back svg { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+
+          .ap-back:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+          }
+
+          .ap-back:hover svg { transform: translateX(-3px); }
+
+          /* ── Form labels + fields ── */
+          .ap-label {
+            display: block;
+            margin-bottom: 0.6rem;
+            color: var(--ad-white-soft);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+          }
+
+          .ap-req { color: var(--ad-red); }
+
+          .ap-field {
+            width: 100%;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            outline: none;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+          }
+
+          .ap-field:hover { border-color: rgba(255, 255, 255, 0.4); }
+
+          .ap-field:focus {
+            border-color: var(--ad-red);
+            background: rgba(255, 45, 63, 0.04);
+            box-shadow: 0 0 0 3px rgba(255, 45, 63, 0.18);
+          }
+
+          .ap-field::placeholder { color: rgba(255, 255, 255, 0.35); }
+
+          .ap-field option { background: #000000; color: #ffffff; }
+
+          select.ap-field {
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 2.5rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ff2d3f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+          }
+
+          textarea.ap-field { resize: none; line-height: 1.6; }
+
+          input[type=number]::-webkit-inner-spin-button,
+          input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+          input[type=number] { -moz-appearance: textfield; }
+
+          /* ── Image upload ── */
+          .ap-upload {
+            position: relative;
+            display: block;
+            flex-shrink: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid var(--ad-line-hover);
+            transition: border-color 0.3s ease, transform 0.3s ease;
+          }
+
+          .ap-upload:hover {
+            border-color: var(--ad-red);
+            transform: translateY(-2px);
+          }
+
+          .ap-upload img { display: block; background: #000000; }
+
+          .ap-upload-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 0.78rem;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+          }
+
+          .ap-upload:hover .ap-upload-overlay { opacity: 1; }
+
+          /* ── Remove-image button ── */
+          .ap-remove {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.85rem;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--ad-red);
+            border: 1px solid rgba(255, 45, 63, 0.6);
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+          }
+
+          .ap-remove:hover {
+            background: var(--ad-red);
+            color: #ffffff;
+            border-color: var(--ad-red);
+          }
+
+          /* ── Size chips ── */
+          .ap-chip {
+            padding: 0.5rem 1.15rem;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+          }
+
+          .ap-chip--off {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+          }
+
+          .ap-chip--off:hover {
+            border-color: var(--ad-red);
+            color: var(--ad-red);
+            transform: translateY(-1px);
+          }
+
+          .ap-chip--on {
+            background: var(--ad-red);
+            color: #ffffff;
+            border: 1px solid var(--ad-red);
+            box-shadow: 0 0 20px rgba(255, 45, 63, 0.4);
+          }
+
+          /* ── Per-size stock card ── */
+          .ap-stock {
+            padding: 0.9rem;
+            border: 1px solid var(--ad-line);
+            border-radius: 14px;
+            background: transparent;
+            animation: ad-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+            transition: border-color 0.3s ease;
+          }
+
+          .ap-stock:hover,
+          .ap-stock:focus-within { border-color: var(--ad-line-hover); }
+
+          .ap-stock-badge {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            color: var(--ad-red);
+            background: rgba(255, 45, 63, 0.1);
+            border: 1px solid var(--ad-line);
+            font-size: 0.78rem;
+            font-weight: 800;
+          }
+
+          .ap-stock-name {
+            margin: 0;
+            color: #ffffff;
+            font-size: 0.92rem;
+            font-weight: 700;
+          }
+
+          .ap-stock-sub {
+            margin: 3px 0 0;
+            color: var(--ad-white-soft);
+            font-size: 0.76rem;
+            font-weight: 500;
+          }
+
+          /* ── Divider ── */
+          .ap-divider {
+            height: 1px;
+            background: var(--ad-line);
+            margin-bottom: 1.5rem;
+          }
+
+          /* ── Submit / Cancel ── */
+          .ap-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            padding: 0.8rem 2.2rem;
+            border-radius: 12px;
+            color: #ffffff;
+            background: var(--ad-red);
+            border: 1px solid var(--ad-red);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+          }
+
+          .ap-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(255, 45, 63, 0.55);
+          }
+
+          .ap-submit:active:not(:disabled) { transform: translateY(0); }
+
+          .ap-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+
+          .ap-cancel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.8rem 2.2rem;
+            border-radius: 12px;
+            color: #ffffff;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+          }
+
+          .ap-cancel:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+          }
+
+          .ap-back:focus-visible,
+          .ap-chip:focus-visible,
+          .ap-remove:focus-visible,
+          .ap-submit:focus-visible,
+          .ap-cancel:focus-visible,
+          .ap-upload:focus-within {
+            outline: 2px solid #ffffff;
+            outline-offset: 2px;
+          }
+
+          /* ── Reduced motion ── */
+          @media (prefers-reduced-motion: reduce) {
+            .ad-rise,
+            .ad-title-bar,
+            .ap-stock {
+              animation: none !important;
+              opacity: 1 !important;
+              transform: none !important;
+            }
+
+            .ap-back,
+            .ap-back svg,
+            .ap-field,
+            .ap-upload,
+            .ap-upload-overlay,
+            .ap-remove,
+            .ap-chip,
+            .ap-submit,
+            .ap-cancel {
+              transition: none !important;
+            }
+          }
+        `}</style>
+
+        {/* Content */}
         <div
-
-          className="
-            w-full
-            max-w-4xl
-            relative
-            overflow-hidden
-            rounded-2xl
-            sm:rounded-3xl
-            p-4
-            sm:p-6
-            md:p-8
-          "
-
-          style={{
-
-            background:
-              "linear-gradient(145deg,#0f1623 0%,#131a28 100%)",
-
-            border:
-              "1px solid rgba(255,255,255,0.07)",
-
-            boxShadow:
-              "0 24px 64px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset",
-
-          }}
-
+          className="w-full max-w-4xl relative p-2 sm:p-4 md:p-6"
         >
 
-          {/* Glows */}
+          {/* Back button */}
 
-          <div
+          <button
 
-            className="
-              absolute
-              -top-40
-              -left-40
-              w-96
-              h-96
-              rounded-full
-              blur-3xl
-              pointer-events-none
-            "
+            type="button"
 
-            style={{
-              background:
-                "rgba(249,115,22,0.08)"
-            }}
+            onClick={() =>
+              navigate(
+                "/admin/products"
+              )
+            }
 
-          />
+            className="ap-back mb-6 ad-rise"
 
-
-          <div
-
-            className="
-              absolute
-              -bottom-40
-              -right-40
-              w-96
-              h-96
-              rounded-full
-              blur-3xl
-              pointer-events-none
-            "
-
-            style={{
-              background:
-                "rgba(99,102,241,0.08)"
-            }}
-
-          />
-
-
-          <div
-            className="relative z-10"
           >
 
-            {/* Back button */}
+            <svg
 
-            <button
-
-              type="button"
-
-              onClick={() =>
-                navigate(
-                  "/admin/products"
-                )
-              }
-
-              className="
-                group
-                flex
-                items-center
-                gap-2
-                mb-6
-                cursor-pointer
-              "
-
-              style={{
-
-                padding:
-                  "7px 14px 7px 10px",
-
-                borderRadius:
-                  "10px",
-
-                background:
-                  "rgba(255,255,255,0.05)",
-
-                border:
-                  "1px solid rgba(255,255,255,0.1)",
-
-                color:
-                  "#94a3b8",
-
-                fontSize:
-                  "13px",
-
-                fontWeight:
-                  500,
-
-              }}
-
-              onMouseEnter={e => {
-
-                e.currentTarget.style.background =
-                  "rgba(249,115,22,0.1)";
-
-                e.currentTarget.style.borderColor =
-                  "rgba(249,115,22,0.25)";
-
-                e.currentTarget.style.color =
-                  "#f97316";
-
-              }}
-
-              onMouseLeave={e => {
-
-                e.currentTarget.style.background =
-                  "rgba(255,255,255,0.05)";
-
-                e.currentTarget.style.borderColor =
-                  "rgba(255,255,255,0.1)";
-
-                e.currentTarget.style.color =
-                  "#94a3b8";
-
-              }}
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
 
             >
 
-              <svg
+              <path d="M15 19l-7-7 7-7"/>
 
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-
-              >
-
-                <path d="M15 19l-7-7 7-7"/>
-
-              </svg>
+            </svg>
 
 
-              Back
+            Back
 
-            </button>
-
-
-            {/* Page heading */}
-
-            <div className="mb-8">
-
-              <p
-
-                className="
-                  text-xs
-                  font-semibold
-                  uppercase
-                  mb-1
-                "
-
-                style={{
-
-                  color:
-                    "#f97316",
-
-                  letterSpacing:
-                    "0.18em"
-
-                }}
-
-              >
-
-                Inventory
-
-              </p>
+          </button>
 
 
-              <h1
+          {/* Page heading */}
 
-                className="
-                  text-2xl
-                  sm:text-3xl
-                  font-bold
-                "
+          <div className="mb-8 sm:mb-10 relative ad-rise">
 
-                style={{
+            <p className="ad-overline">
+              Inventory
+            </p>
 
-                  color:
-                    "#f1f5f9",
+            <h1 className="ad-title">
+              Edit Product
+            </h1>
 
-                  letterSpacing:
-                    "-0.02em"
+            <div className="ad-title-bar" />
 
-                }}
+          </div>
 
-              >
 
-                Edit Product
+          {/* Form panel */}
 
-              </h1>
+          <div
+            className="ad-panel ad-rise rounded-xl p-5 sm:p-6 md:p-8 relative"
+            style={{ animationDelay: "0.15s" }}
+          >
 
-            </div>
+            <h2 className="ad-panel-title mb-7">
+              Product Details
+            </h2>
 
 
             {/* Image upload */}
 
             <div className="mb-8">
 
-              <span
-                style={labelStyle}
-              >
+              <span className="ap-label">
 
                 Product Image
 
@@ -1521,13 +1600,7 @@ const EditProduct = () => {
                 "
               >
 
-                <label
-                  className="
-                    group
-                    relative
-                    cursor-pointer
-                  "
-                >
+                <label className="ap-upload">
 
                   <img
 
@@ -1545,16 +1618,6 @@ const EditProduct = () => {
                       sm:h-28
                       object-cover
                     "
-
-                    style={{
-
-                      borderRadius:
-                        "14px",
-
-                      border:
-                        "1px solid rgba(255,255,255,0.12)"
-
-                    }}
 
                   />
 
@@ -1574,54 +1637,7 @@ const EditProduct = () => {
                   />
 
 
-                  <div
-
-                    style={{
-
-                      position:
-                        "absolute",
-
-                      inset: 0,
-
-                      borderRadius:
-                        "14px",
-
-                      background:
-                        "rgba(0,0,0,0.55)",
-
-                      opacity: 0,
-
-                      display:
-                        "flex",
-
-                      alignItems:
-                        "center",
-
-                      justifyContent:
-                        "center",
-
-                      color:
-                        "#fff",
-
-                      fontSize:
-                        "12px",
-
-                      fontWeight:
-                        600,
-
-                      transition:
-                        "opacity 0.2s",
-
-                      backdropFilter:
-                        "blur(4px)",
-
-                    }}
-
-                    className="
-                      group-hover:opacity-100
-                    "
-
-                  >
+                  <div className="ap-upload-overlay">
 
                     <div
                       className="
@@ -1678,50 +1694,7 @@ const EditProduct = () => {
                       removeImage
                     }
 
-                    className="
-                      flex
-                      items-center
-                      gap-1.5
-                      text-xs
-                      font-semibold
-                      px-3
-                      py-1.5
-                      rounded-lg
-                      cursor-pointer
-                    "
-
-                    style={{
-
-                      background:
-                        "rgba(239,68,68,0.1)",
-
-                      border:
-                        "1px solid rgba(239,68,68,0.2)",
-
-                      color:
-                        "#f87171"
-
-                    }}
-
-                    onMouseEnter={e => {
-
-                      e.currentTarget.style.background =
-                        "#ef4444";
-
-                      e.currentTarget.style.color =
-                        "#fff";
-
-                    }}
-
-                    onMouseLeave={e => {
-
-                      e.currentTarget.style.background =
-                        "rgba(239,68,68,0.1)";
-
-                      e.currentTarget.style.color =
-                        "#f87171";
-
-                    }}
+                    className="ap-remove"
 
                   >
 
@@ -1769,18 +1742,11 @@ const EditProduct = () => {
 
             <div className="mb-6">
 
-              <span
-                style={labelStyle}
-              >
+              <span className="ap-label">
 
                 Name{" "}
 
-                <span
-                  style={{
-                    color:
-                      "#f97316"
-                  }}
-                >
+                <span className="ap-req">
                   *
                 </span>
 
@@ -1789,25 +1755,13 @@ const EditProduct = () => {
 
               <input
 
+                className="ap-field"
+
                 value={
                   product.name
                 }
 
                 autoFocus
-
-                style={
-                  inputStyle
-                }
-
-                onFocus={e =>
-                  e.target.style.borderColor =
-                    "rgba(249,115,22,0.5)"
-                }
-
-                onBlur={e =>
-                  e.target.style.borderColor =
-                    "rgba(255,255,255,0.1)"
-                }
 
                 onChange={e =>
                   setProduct({
@@ -1826,9 +1780,7 @@ const EditProduct = () => {
 
             <div className="mb-6">
 
-              <span
-                style={labelStyle}
-              >
+              <span className="ap-label">
 
                 Description
 
@@ -1837,33 +1789,13 @@ const EditProduct = () => {
 
               <textarea
 
+                className="ap-field"
+
                 value={
                   product.description
                 }
 
                 rows={4}
-
-                style={{
-
-                  ...inputStyle,
-
-                  resize:
-                    "none",
-
-                  lineHeight:
-                    "1.6"
-
-                }}
-
-                onFocus={e =>
-                  e.target.style.borderColor =
-                    "rgba(249,115,22,0.5)"
-                }
-
-                onBlur={e =>
-                  e.target.style.borderColor =
-                    "rgba(255,255,255,0.1)"
-                }
 
                 onChange={e =>
                   setProduct({
@@ -1892,9 +1824,7 @@ const EditProduct = () => {
 
               <div>
 
-                <span
-                  style={labelStyle}
-                >
+                <span className="ap-label">
 
                   Category
 
@@ -1903,27 +1833,10 @@ const EditProduct = () => {
 
                 <select
 
+                  className="ap-field"
+
                   value={
                     product.category
-                  }
-
-                  style={{
-
-                    ...inputStyle,
-
-                    cursor:
-                      "pointer"
-
-                  }}
-
-                  onFocus={e =>
-                    e.target.style.borderColor =
-                      "rgba(249,115,22,0.5)"
-                  }
-
-                  onBlur={e =>
-                    e.target.style.borderColor =
-                      "rgba(255,255,255,0.1)"
                   }
 
                   onChange={e =>
@@ -1951,16 +1864,6 @@ const EditProduct = () => {
 
                       value={c}
 
-                      style={{
-
-                        background:
-                          "#1e2535",
-
-                        color:
-                          "#f1f5f9"
-
-                      }}
-
                     >
 
                       {
@@ -1983,18 +1886,11 @@ const EditProduct = () => {
 
               <div>
 
-                <span
-                  style={labelStyle}
-                >
+                <span className="ap-label">
 
                   Price (₹){" "}
 
-                  <span
-                    style={{
-                      color:
-                        "#f97316"
-                    }}
-                  >
+                  <span className="ap-req">
 
                     *
 
@@ -2005,6 +1901,8 @@ const EditProduct = () => {
 
                 <input
 
+                  className="ap-field"
+
                   type="number"
 
                   min="0"
@@ -2013,20 +1911,6 @@ const EditProduct = () => {
 
                   value={
                     product.price
-                  }
-
-                  style={
-                    inputStyle
-                  }
-
-                  onFocus={e =>
-                    e.target.style.borderColor =
-                      "rgba(249,115,22,0.5)"
-                  }
-
-                  onBlur={e =>
-                    e.target.style.borderColor =
-                      "rgba(255,255,255,0.1)"
                   }
 
                   onChange={e =>
@@ -2048,9 +1932,7 @@ const EditProduct = () => {
 
             <div className="mb-8">
 
-              <span
-                style={labelStyle}
-              >
+              <span className="ap-label">
 
                 Sizes & Stock
 
@@ -2098,102 +1980,11 @@ const EditProduct = () => {
                         )
                       }
 
-                      className="
-                        cursor-pointer
-                        transition-all
-                        duration-200
-                      "
-
-                      style={
-
+                      className={`ap-chip ${
                         selected
-
-                          ? {
-
-                              padding:
-                                "8px 18px",
-
-                              borderRadius:
-                                "10px",
-
-                              fontSize:
-                                "13px",
-
-                              fontWeight:
-                                700,
-
-                              background:
-                                "linear-gradient(135deg,#f97316,#ea580c)",
-
-                              border:
-                                "1px solid transparent",
-
-                              color:
-                                "#fff",
-
-                              boxShadow:
-                                "0 4px 12px rgba(249,115,22,0.35)",
-
-                            }
-
-                          : {
-
-                              padding:
-                                "8px 18px",
-
-                              borderRadius:
-                                "10px",
-
-                              fontSize:
-                                "13px",
-
-                              fontWeight:
-                                600,
-
-                              background:
-                                "rgba(255,255,255,0.04)",
-
-                              border:
-                                "1px solid rgba(255,255,255,0.12)",
-
-                              color:
-                                "#94a3b8",
-
-                            }
-
-                      }
-
-                      onMouseEnter={e => {
-
-                        if (
-                          !selected
-                        ) {
-
-                          e.currentTarget.style.borderColor =
-                            "rgba(249,115,22,0.4)";
-
-                          e.currentTarget.style.color =
-                            "#f97316";
-
-                        }
-
-                      }}
-
-                      onMouseLeave={e => {
-
-                        if (
-                          !selected
-                        ) {
-
-                          e.currentTarget.style.borderColor =
-                            "rgba(255,255,255,0.12)";
-
-                          e.currentTarget.style.color =
-                            "#94a3b8";
-
-                        }
-
-                      }}
+                          ? "ap-chip--on"
+                          : "ap-chip--off"
+                      }`}
 
                     >
 
@@ -2239,21 +2030,7 @@ const EditProduct = () => {
                             sizeItem.size
                           }
 
-                          style={{
-
-                            background:
-                              "rgba(255,255,255,0.03)",
-
-                            border:
-                              "1px solid rgba(255,255,255,0.08)",
-
-                            borderRadius:
-                              "14px",
-
-                            padding:
-                              "14px",
-
-                          }}
+                          className="ap-stock"
 
                         >
 
@@ -2271,25 +2048,7 @@ const EditProduct = () => {
 
                             <div>
 
-                              <p
-
-                                style={{
-
-                                  margin:
-                                    0,
-
-                                  color:
-                                    "#f1f5f9",
-
-                                  fontSize:
-                                    "13px",
-
-                                  fontWeight:
-                                    700
-
-                                }}
-
-                              >
+                              <p className="ap-stock-name">
 
                                 Size{" "}
 
@@ -2298,22 +2057,7 @@ const EditProduct = () => {
                               </p>
 
 
-                              <p
-
-                                style={{
-
-                                  margin:
-                                    "3px 0 0",
-
-                                  color:
-                                    "#64748b",
-
-                                  fontSize:
-                                    "11px"
-
-                                }}
-
-                              >
+                              <p className="ap-stock-sub">
 
                                 Available stock
 
@@ -2322,46 +2066,7 @@ const EditProduct = () => {
                             </div>
 
 
-                            <span
-
-                              style={{
-
-                                width:
-                                  "30px",
-
-                                height:
-                                  "30px",
-
-                                borderRadius:
-                                  "9px",
-
-                                display:
-                                  "flex",
-
-                                alignItems:
-                                  "center",
-
-                                justifyContent:
-                                  "center",
-
-                                background:
-                                  "rgba(249,115,22,0.1)",
-
-                                border:
-                                  "1px solid rgba(249,115,22,0.2)",
-
-                                color:
-                                  "#f97316",
-
-                                fontSize:
-                                  "12px",
-
-                                fontWeight:
-                                  700
-
-                              }}
-
-                            >
+                            <span className="ap-stock-badge">
 
                               {sizeItem.size}
 
@@ -2371,6 +2076,8 @@ const EditProduct = () => {
 
 
                           <input
+
+                            className="ap-field"
 
                             type="number"
 
@@ -2386,25 +2093,6 @@ const EditProduct = () => {
                             }
 
                             placeholder="e.g. 10"
-
-                            style={{
-
-                              ...inputStyle,
-
-                              padding:
-                                "10px 12px"
-
-                            }}
-
-                            onFocus={e =>
-                              e.target.style.borderColor =
-                                "rgba(249,115,22,0.5)"
-                            }
-
-                            onBlur={e =>
-                              e.target.style.borderColor =
-                                "rgba(255,255,255,0.1)"
-                            }
 
                             onChange={e =>
                               updateSizeStock(
@@ -2434,22 +2122,7 @@ const EditProduct = () => {
 
             {/* Divider */}
 
-            <div
-
-              style={{
-
-                height:
-                  "1px",
-
-                background:
-                  "rgba(255,255,255,0.06)",
-
-                marginBottom:
-                  "24px"
-
-              }}
-
-            />
+            <div className="ap-divider" />
 
 
             {/* Action buttons */}
@@ -2475,81 +2148,7 @@ const EditProduct = () => {
                   isSaving
                 }
 
-                className="
-                  flex
-                  items-center
-                  justify-center
-                  gap-2
-                  cursor-pointer
-                "
-
-                style={{
-
-                  padding:
-                    "12px 32px",
-
-                  borderRadius:
-                    "12px",
-
-                  fontSize:
-                    "14px",
-
-                  fontWeight:
-                    600,
-
-                  background:
-                    isSaving
-
-                      ? "rgba(249,115,22,0.4)"
-
-                      : "linear-gradient(135deg,#f97316,#ea580c)",
-
-                  color:
-                    "#fff",
-
-                  border:
-                    "none",
-
-                  boxShadow:
-                    isSaving
-
-                      ? "none"
-
-                      : "0 4px 16px rgba(249,115,22,0.4)",
-
-                  opacity:
-                    isSaving
-                      ? 0.7
-                      : 1,
-
-                  transition:
-                    "all 0.2s",
-
-                }}
-
-                onMouseEnter={e => {
-
-                  if (!isSaving) {
-
-                    e.currentTarget.style.boxShadow =
-                      "0 6px 22px rgba(249,115,22,0.55)";
-
-                    e.currentTarget.style.transform =
-                      "translateY(-1px)";
-
-                  }
-
-                }}
-
-                onMouseLeave={e => {
-
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 16px rgba(249,115,22,0.4)";
-
-                  e.currentTarget.style.transform =
-                    "translateY(0)";
-
-                }}
+                className="ap-submit"
 
               >
 
@@ -2559,8 +2158,8 @@ const EditProduct = () => {
 
                     <svg
 
-                      width="14"
-                      height="14"
+                      width="15"
+                      height="15"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -2589,8 +2188,8 @@ const EditProduct = () => {
 
                     <svg
 
-                      width="14"
-                      height="14"
+                      width="15"
+                      height="15"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -2628,61 +2227,7 @@ const EditProduct = () => {
                   )
                 }
 
-                className="
-                  flex
-                  items-center
-                  justify-center
-                  gap-2
-                  cursor-pointer
-                "
-
-                style={{
-
-                  padding:
-                    "12px 32px",
-
-                  borderRadius:
-                    "12px",
-
-                  fontSize:
-                    "14px",
-
-                  fontWeight:
-                    500,
-
-                  background:
-                    "rgba(255,255,255,0.05)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.1)",
-
-                  color:
-                    "#94a3b8",
-
-                  transition:
-                    "all 0.2s",
-
-                }}
-
-                onMouseEnter={e => {
-
-                  e.currentTarget.style.background =
-                    "rgba(255,255,255,0.1)";
-
-                  e.currentTarget.style.color =
-                    "#f1f5f9";
-
-                }}
-
-                onMouseLeave={e => {
-
-                  e.currentTarget.style.background =
-                    "rgba(255,255,255,0.05)";
-
-                  e.currentTarget.style.color =
-                    "#94a3b8";
-
-                }}
+                className="ap-cancel"
 
               >
 

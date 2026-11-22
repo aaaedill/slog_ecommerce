@@ -17,7 +17,8 @@ import User from "../models/User.js";
 | 4. Load the current user from MongoDB.
 | 5. Check whether the account still exists.
 | 6. Check whether the account has been blocked.
-| 7. Attach the current user to req.user.
+| 7. Check whether the account is verified.
+| 8. Attach the current user to req.user.
 |
 |--------------------------------------------------------------------------
 */
@@ -266,13 +267,20 @@ const authMiddleware = async (
     | Request rejected
     |
     |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    |
+    | isVerified must also be selected here because getMe() and other
+    | authenticated controllers need the current verification state.
+    |
+    |--------------------------------------------------------------------------
     */
 
     const user =
       await User.findById(
         userId
       ).select(
-        "_id name email role isBlocked"
+        "_id name email phone role isBlocked isVerified verificationMethod"
       );
 
 

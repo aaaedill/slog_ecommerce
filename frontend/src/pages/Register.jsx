@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import axios from "axios";
+
 import API_URL from "../config/api";
 
 import { toast } from "react-toastify";
@@ -8,55 +9,256 @@ import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
 
 
+
+
+
 const glassToastStyle = {
+
   background: "rgba(255,255,255,0.55)",
+
   backdropFilter: "blur(24px) saturate(1.8)",
+
   WebkitBackdropFilter: "blur(24px) saturate(1.8)",
-  border: "1px solid rgba(47,93,255,0.25)",
+
+  border: "1px solid rgba(107,142,35,0.25)",
+
   borderRadius: "16px",
-  color: "#16307A",
-  fontFamily: "Outfit, sans-serif",
+
+  color: "#4B5320",
+
+  fontFamily: "Jost, sans-serif",
+
   boxShadow:
-    "0 8px 32px rgba(47,93,255,0.16), 0 1px 0 rgba(255,255,255,0.8) inset"
+    "0 8px 32px rgba(107,142,35,0.16), 0 1px 0 rgba(255,255,255,0.8) inset"
+
 };
 
+
+
+
+
 const Register = () => {
+
   const navigate = useNavigate();
 
+
+
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Registration State
+  |--------------------------------------------------------------------------
+  */
+
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+
   const [password, setPassword] = useState("");
+
+
+
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | OTP State
+  |--------------------------------------------------------------------------
+  */
+
+  const [showOTP, setShowOTP] = useState(false);
+
+  const [otp, setOtp] = useState("");
+
+  const [userId, setUserId] = useState("");
+
+
+
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Loading State
+  |--------------------------------------------------------------------------
+  */
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const [isResending, setIsResending] = useState(false);
+
+
+
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Registration
+  |--------------------------------------------------------------------------
+  */
+
   const handleRegister = async (e) => {
+
     e.preventDefault();
+
+
+
+
 
     if (isSubmitting) return;
 
+
+
+
+
     const cleanName = name.trim();
-    const cleanEmail = email.trim().toLowerCase();
 
-    if (!cleanName || !cleanEmail || !password) {
-      toast.error("Please fill all fields", {
-        style: glassToastStyle
-      });
+    const cleanEmailOrPhone =
+      emailOrPhone.trim();
+
+    const cleanPassword = password;
+
+
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Basic Validation
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      !cleanName ||
+      !cleanEmailOrPhone ||
+      !cleanPassword
+    ) {
+
+      toast.error(
+        "Please fill all fields",
+        {
+          style: glassToastStyle
+        }
+      );
 
       return;
+
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(cleanEmail)) {
-      toast.error("Please enter a valid email address", {
-        style: glassToastStyle
-      });
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email Validation
+    |--------------------------------------------------------------------------
+    |
+    | The backend accepts either:
+    |
+    | - Email address
+    | - Indian mobile number
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Indian Mobile Validation
+    |--------------------------------------------------------------------------
+    |
+    | Accepts:
+    |
+    | 9876543210
+    | +919876543210
+    | 919876543210
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    const phoneRegex =
+      /^(?:\+91|91)?[6-9]\d{9}$/;
+
+
+
+
+
+    const isEmail =
+      emailRegex.test(
+        cleanEmailOrPhone.toLowerCase()
+      );
+
+
+
+
+
+    const normalizedPhoneInput =
+      cleanEmailOrPhone.replace(
+        /[\s-]/g,
+        ""
+      );
+
+
+
+
+
+    const isPhone =
+      phoneRegex.test(
+        normalizedPhoneInput
+      );
+
+
+
+
+
+    if (
+      !isEmail &&
+      !isPhone
+    ) {
+
+      toast.error(
+        "Please enter a valid email address or Indian mobile number",
+        {
+          style: glassToastStyle
+        }
+      );
 
       return;
+
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*\d).{8,}$/;
 
-    if (!passwordRegex.test(password)) {
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Password Validation
+    |--------------------------------------------------------------------------
+    */
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*\d).{8,}$/;
+
+
+
+
+
+    if (
+      !passwordRegex.test(
+        cleanPassword
+      )
+    ) {
+
       toast.error(
         "Password must be at least 8 characters and include lowercase letter and number",
         {
@@ -65,600 +267,1346 @@ const Register = () => {
       );
 
       return;
+
     }
+
+
+
+
 
     setIsSubmitting(true);
 
-    try {
-      const response = await axios.post(
-        `${API_URL}/auth/register`,
-        {
-          name: cleanName,
-          email: cleanEmail,
-          password
-        },
-        {
-          withCredentials: true
-        }
-      );
 
-      if (!response.data?.success) {
+
+
+
+    try {
+
+      /*
+      |--------------------------------------------------------------------------
+      | Register With Backend
+      |--------------------------------------------------------------------------
+      */
+
+      const response =
+        await axios.post(
+
+          `${API_URL}/auth/register`,
+
+          {
+            name: cleanName,
+
+            emailOrPhone:
+              cleanEmailOrPhone,
+
+            password:
+              cleanPassword
+          },
+
+          {
+            withCredentials: true
+          }
+
+        );
+
+
+
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Backend Error Response
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        !response.data?.success
+      ) {
+
         toast.error(
-          response.data?.message || "Error creating account",
+          response.data?.message ||
+            "Error creating account",
           {
             style: glassToastStyle
           }
         );
 
         return;
+
       }
 
-      toast.success("Account Created Successfully", {
-        style: glassToastStyle
-      });
 
-      navigate("/login");
-    } catch (error) {
-      console.error("Registration error:", error);
 
-      if (error.response?.status === 409) {
-        toast.error("Email already taken", {
-          style: glassToastStyle
-        });
-      } else {
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Get User ID
+      |--------------------------------------------------------------------------
+      |
+      | The OTP verification endpoint needs the newly
+      | created user's ID.
+      |
+      |--------------------------------------------------------------------------
+      */
+
+      const returnedUserId =
+        response.data?.userId ||
+        response.data?.user?._id ||
+        response.data?.user?.id;
+
+
+
+
+
+      if (!returnedUserId) {
+
         toast.error(
-          error.response?.data?.message ||
-            "Error creating account",
+          "Account was created, but OTP verification could not be started.",
           {
             style: glassToastStyle
           }
         );
+
+        return;
+
       }
+
+
+
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Store User ID
+      |--------------------------------------------------------------------------
+      */
+
+      setUserId(
+        String(returnedUserId)
+      );
+
+
+
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Show OTP Screen
+      |--------------------------------------------------------------------------
+      */
+
+      setShowOTP(true);
+
+
+
+
+
+      toast.success(
+        response.data?.message ||
+          "OTP sent successfully",
+        {
+          style: glassToastStyle
+        }
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Registration error:",
+        error
+      );
+
+
+
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Duplicate Account
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        error.response?.status ===
+        409
+      ) {
+
+        toast.error(
+          error.response?.data?.message ||
+            "Email or mobile number already taken",
+          {
+            style: glassToastStyle
+          }
+        );
+
+      } else {
+
+        toast.error(
+
+          error.response?.data?.message ||
+
+            "Error creating account",
+
+          {
+            style: glassToastStyle
+          }
+
+        );
+
+      }
+
     } finally {
+
       setIsSubmitting(false);
+
     }
+
   };
 
+
+
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Verify OTP
+  |--------------------------------------------------------------------------
+  */
+
+  const handleVerifyOTP = async (
+    e
+  ) => {
+
+    e.preventDefault();
+
+
+
+
+
+    if (isVerifying) return;
+
+
+
+
+
+    const cleanOTP =
+      otp.trim();
+
+
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | OTP Validation
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      !/^\d{6}$/.test(
+        cleanOTP
+      )
+    ) {
+
+      toast.error(
+        "Please enter the 6-digit OTP",
+        {
+          style: glassToastStyle
+        }
+      );
+
+      return;
+
+    }
+
+
+
+
+
+    if (!userId) {
+
+      toast.error(
+        "Verification session is invalid. Please register again.",
+        {
+          style: glassToastStyle
+        }
+      );
+
+      return;
+
+    }
+
+
+
+
+
+    setIsVerifying(true);
+
+
+
+
+
+    try {
+
+      /*
+      |--------------------------------------------------------------------------
+      | Verify OTP With Backend
+      |--------------------------------------------------------------------------
+      */
+
+      const response =
+        await axios.post(
+
+          `${API_URL}/auth/verify-otp`,
+
+          {
+            userId,
+
+            otp: cleanOTP
+          },
+
+          {
+            withCredentials: true
+          }
+
+        );
+
+
+
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Backend Error Response
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        !response.data?.success
+      ) {
+
+        toast.error(
+
+          response.data?.message ||
+
+            "Invalid OTP",
+
+          {
+            style: glassToastStyle
+          }
+
+        );
+
+        return;
+
+      }
+
+
+
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Verification Successful
+      |--------------------------------------------------------------------------
+      */
+
+      toast.success(
+
+        response.data?.message ||
+
+          "Account verified successfully",
+
+        {
+          style: glassToastStyle
+        }
+
+      );
+
+
+
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Go To Login
+      |--------------------------------------------------------------------------
+      */
+
+      navigate(
+        "/login"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "OTP verification error:",
+        error
+      );
+
+
+
+
+
+      toast.error(
+
+        error.response?.data?.message ||
+
+          "OTP verification failed",
+
+        {
+          style: glassToastStyle
+        }
+
+      );
+
+    } finally {
+
+      setIsVerifying(false);
+
+    }
+
+  };
+
+
+
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Resend OTP
+  |--------------------------------------------------------------------------
+  */
+
+  const handleResendOTP = async () => {
+
+    if (isResending) return;
+
+
+
+
+
+    if (!userId) {
+
+      toast.error(
+        "Verification session is invalid. Please register again.",
+        {
+          style: glassToastStyle
+        }
+      );
+
+      return;
+
+    }
+
+
+
+
+
+    setIsResending(true);
+
+
+
+
+
+    try {
+
+      /*
+      |--------------------------------------------------------------------------
+      | Resend OTP
+      |--------------------------------------------------------------------------
+      */
+
+      const response =
+        await axios.post(
+
+          `${API_URL}/auth/resend-otp`,
+
+          {
+            userId
+          },
+
+          {
+            withCredentials: true
+          }
+
+        );
+
+
+
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Backend Error Response
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        !response.data?.success
+      ) {
+
+        toast.error(
+
+          response.data?.message ||
+
+            "Unable to resend OTP",
+
+          {
+            style: glassToastStyle
+          }
+
+        );
+
+        return;
+
+      }
+
+
+
+
+
+      toast.success(
+
+        response.data?.message ||
+
+          "A new OTP has been sent",
+
+        {
+          style: glassToastStyle
+        }
+
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Resend OTP error:",
+        error
+      );
+
+
+
+
+
+      toast.error(
+
+        error.response?.data?.message ||
+
+          "Unable to resend OTP",
+
+        {
+          style: glassToastStyle
+        }
+
+      );
+
+    } finally {
+
+      setIsResending(false);
+
+    }
+
+  };
+
+
+
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Back To Registration
+  |--------------------------------------------------------------------------
+  */
+
+  const handleBackToRegistration = () => {
+
+    if (
+      isVerifying ||
+      isResending ||
+      isSubmitting
+    ) {
+      return;
+    }
+
+
+
+
+
+    setShowOTP(false);
+
+    setOtp("");
+
+    setUserId("");
+
+  };
+
+
+
+
+
   return (
+
     <>
+
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&display=swap');
 
-        .register-root {
-          --hn-blue: #2F5DFF;
-          --hn-blue-deep: #16307A;
-          --hn-ink: #10131F;
-          --hn-ink-muted: #6B7280;
-          --hn-ink-faint: #9CA3AF;
-          --hn-glass-bg: rgba(255,255,255,0.65);
-          --hn-glass-border: rgba(47,93,255,0.16);
-          --hn-glass-shine: rgba(255,255,255,0.85);
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap');
 
-          font-family: 'Outfit', sans-serif;
 
+
+        /* ────────────────────────────────────────────────
+           REGISTER PAGE
+           Continuous customer-facing page background.
+           No outer card or secondary page container.
+        ──────────────────────────────────────────────── */
+
+        .reg-page {
+
+          --reg-bg:           var(--bg-primary);
+          --reg-olive:        #6B8E23;
+          --reg-olive-light:  #A9C46C;
+          --reg-olive-deep:   #4B5320;
+          --reg-olive-faint:  rgba(107,142,35,0.08);
+          --reg-ink:          #10131F;
+          --reg-ink-muted:    rgba(16,19,31,0.55);
+          --reg-ink-faint:    rgba(16,19,31,0.30);
+          --reg-glass-bg:     rgba(255,255,255,0.55);
+          --reg-glass-bg2:    rgba(255,255,255,0.85);
+          --reg-glass-border: rgba(107,142,35,0.16);
+          --reg-glass-shine:  rgba(255,255,255,0.85);
+
+          font-family: 'Jost', sans-serif;
+          color: var(--reg-ink);
+
+          width: 100%;
           min-height: 100vh;
-
-          background:
-            radial-gradient(
-              ellipse 70% 60% at 65% 0%,
-              rgba(47,93,255,0.06) 0%,
-              transparent 70%
-            ),
-            radial-gradient(
-              ellipse 50% 80% at 15% 80%,
-              rgba(110,139,255,0.05) 0%,
-              transparent 60%
-            ),
-            #FFFFFF;
 
           display: flex;
           align-items: center;
           justify-content: center;
 
-          padding: 2rem 1rem;
-        }
+          /* Continuous main page background */
+          background: var(--reg-bg);
 
-        .register-card {
-          width: 100%;
-          max-width: 420px;
+          padding: 5rem 3rem 6rem;
 
-          background: var(--hn-glass-bg);
-
-          border: 1px solid var(--hn-glass-border);
-
-          border-radius: 1.1rem;
-
+          position: relative;
           overflow: hidden;
 
-          backdrop-filter: blur(24px) saturate(1.8);
-          -webkit-backdrop-filter: blur(24px) saturate(1.8);
+          box-sizing: border-box;
 
-          box-shadow:
-            0 1px 0 var(--hn-glass-shine) inset,
-            0 4px 24px rgba(47,93,255,0.06);
-
-          animation:
-            registerBlurIn
-            0.6s
-            cubic-bezier(0.16,1,0.3,1)
-            both;
         }
 
-        @keyframes registerBlurIn {
+        .reg-page *,
+        .reg-page *::before,
+        .reg-page *::after {
+          box-sizing: border-box;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           CONTENT WRAPPER
+           No card — just a max-width column of freely
+           floating elements.
+        ──────────────────────────────────────────────── */
+
+        .reg-wrap {
+          position: relative;
+          z-index: 2;
+          width: 100%;
+          max-width: 420px;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           HEADER
+        ──────────────────────────────────────────────── */
+
+        .reg-header {
+          margin-bottom: 2rem;
+        }
+
+        .reg-title {
+          font-weight: 600;
+          font-size: clamp(2rem, 3.6vw, 3rem);
+          line-height: 1.05;
+          letter-spacing: -0.02em;
+          color: var(--reg-ink);
+        }
+
+        .reg-title em {
+          font-style: normal;
+          font-weight: 600;
+          color: var(--reg-olive);
+        }
+
+        .reg-sub {
+          font-size: 0.85rem;
+          font-weight: 400;
+          color: var(--reg-ink-muted);
+          letter-spacing: 0.01em;
+          margin-top: 0.75rem;
+          line-height: 1.6;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           FORM — fields sit directly on the page, styled
+           like the filter-row glass pills on Collection
+        ──────────────────────────────────────────────── */
+
+        .reg-form {
+          padding-top: 1.8rem;
+          border-top: 1px solid var(--reg-glass-border);
+        }
+
+        .reg-field {
+          margin-bottom: 1.4rem;
+        }
+
+        .reg-label {
+          display: block;
+          font-size: 0.68rem;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--reg-ink-muted);
+          margin-bottom: 0.55rem;
+        }
+
+        .reg-hint {
+          margin-top: 0.5rem;
+          font-size: 0.7rem;
+          color: var(--reg-ink-faint);
+          letter-spacing: 0.01em;
+          line-height: 1.5;
+        }
+
+        .reg-input {
+          width: 100%;
+          font-family: 'Jost', sans-serif;
+          font-size: 0.9rem;
+          font-weight: 400;
+          color: var(--reg-ink);
+
+          background: var(--reg-glass-bg);
+          border: 1px solid var(--reg-glass-border);
+          border-radius: 100px;
+
+          padding: 0.78rem 1.2rem;
+          outline: none;
+
+          backdrop-filter: blur(20px) saturate(1.8);
+          -webkit-backdrop-filter: blur(20px) saturate(1.8);
+
+          box-shadow: 0 1px 0 var(--reg-glass-shine) inset;
+
+          transition:
+            background 0.22s ease,
+            border-color 0.22s ease,
+            box-shadow 0.22s ease,
+            transform 0.22s ease;
+        }
+
+        .reg-input::placeholder {
+          color: var(--reg-ink-faint);
+        }
+
+        .reg-input:hover {
+          background: var(--reg-glass-bg2);
+        }
+
+        .reg-input:focus {
+          background: var(--reg-glass-bg2);
+          border-color: var(--reg-olive);
+          transform: translateY(-1px);
+          box-shadow:
+            0 8px 20px rgba(107,142,35,0.14),
+            0 1px 0 var(--reg-glass-shine) inset;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           SUBMIT BUTTON — solid olive pill, same weight
+           as the active category chip
+        ──────────────────────────────────────────────── */
+
+        .reg-btn {
+          width: 100%;
+          font-family: 'Jost', sans-serif;
+          font-size: 0.75rem;
+          font-weight: 500;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #FFFFFF;
+
+          background: var(--reg-olive);
+          border: 1px solid var(--reg-olive);
+          border-radius: 100px;
+
+          padding: 0.85rem 1.5rem;
+          margin-top: 0.6rem;
+
+          cursor: pointer;
+
+          box-shadow:
+            0 8px 20px rgba(107,142,35,0.28),
+            0 1px 0 var(--reg-glass-shine) inset;
+
+          transition:
+            background 0.22s ease,
+            transform 0.22s ease,
+            box-shadow 0.22s ease,
+            opacity 0.22s ease;
+        }
+
+        .reg-btn:hover:not(:disabled) {
+          background: var(--reg-olive-deep);
+          border-color: var(--reg-olive-deep);
+          transform: translateY(-1px);
+        }
+
+        .reg-btn:disabled {
+          opacity: 0.65;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           SECURE NOTE
+        ──────────────────────────────────────────────── */
+
+        .reg-secure {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.4rem;
+          margin-top: 0.85rem;
+          color: var(--reg-ink-muted);
+          font-size: 0.7rem;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           TEXT / GHOST BUTTONS (resend, back)
+        ──────────────────────────────────────────────── */
+
+        .reg-ghost-btn {
+          border: none;
+          background: transparent;
+          font-family: 'Jost', sans-serif;
+          cursor: pointer;
+        }
+
+        .reg-ghost-btn.reg-ghost-primary {
+          color: var(--reg-olive);
+          font-size: 0.78rem;
+          font-weight: 500;
+        }
+
+        .reg-ghost-btn.reg-ghost-primary:hover:not(:disabled) {
+          color: var(--reg-olive-deep);
+        }
+
+        .reg-ghost-btn.reg-ghost-primary:disabled {
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
+
+        .reg-ghost-btn.reg-ghost-muted {
+          color: var(--reg-ink-muted);
+          font-size: 0.75rem;
+        }
+
+        .reg-ghost-btn.reg-ghost-muted:hover {
+          color: var(--reg-olive-deep);
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           DIVIDER + FOOTER LINK
+        ──────────────────────────────────────────────── */
+
+        .reg-divider {
+          height: 1px;
+          background: var(--reg-glass-border);
+          margin: 1.8rem 0;
+        }
+
+        .reg-footer {
+          text-align: center;
+          font-size: 0.85rem;
+          font-weight: 400;
+          color: var(--reg-ink-muted);
+        }
+
+        .reg-link {
+          color: var(--reg-olive);
+          font-weight: 500;
+          text-decoration: none;
+          border-bottom: 1px solid rgba(107,142,35,0.3);
+          padding-bottom: 1px;
+          transition:
+            color 0.2s,
+            border-color 0.2s;
+        }
+
+        .reg-link:hover {
+          color: var(--reg-olive-deep);
+          border-color: var(--reg-olive-deep);
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           ENTRANCE ANIMATION — same blur-in keyframe used
+           on Collection's header / filter-row / cards
+        ──────────────────────────────────────────────── */
+
+        @keyframes reg-blur-in {
+
           from {
             opacity: 0;
-            filter: blur(8px);
-            transform: translateY(16px);
+            filter: blur(10px);
+            transform: translateY(14px) scale(0.98);
           }
 
           to {
             opacity: 1;
             filter: blur(0);
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
+
         }
 
-        .register-topbar {
-          background: rgba(47,93,255,0.05);
-
-          border-bottom:
-            1px solid
-            var(--hn-glass-border);
-
-          padding: 1rem 2rem;
-
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+        .reg-header,
+        .reg-form {
+          animation:
+            reg-blur-in
+            0.6s
+            cubic-bezier(0.16, 1, 0.3, 1)
+            both;
         }
 
-        .register-body {
-          padding: 2.5rem 2rem;
+        .reg-form {
+          animation-delay: 0.08s;
         }
 
-        .register-input {
-          width: 100%;
+        @media (prefers-reduced-motion: reduce) {
 
-          background: rgba(47,93,255,0.05);
+          .reg-header,
+          .reg-form {
+            animation: none !important;
+            opacity: 1 !important;
+            filter: none !important;
+            transform: none !important;
+          }
 
-          border:
-            1.5px solid
-            var(--hn-glass-border);
-
-          border-radius: 0.7rem;
-
-          padding: 0.78rem 1rem;
-
-          font-family: 'Outfit', sans-serif;
-
-          font-size: 0.9rem;
-
-          font-weight: 400;
-
-          color: var(--hn-ink);
-
-          outline: none;
-
-          transition:
-            border-color 0.2s ease,
-            background 0.2s ease,
-            box-shadow 0.2s ease;
-
-          box-sizing: border-box;
         }
 
-        .register-input::placeholder {
-          color: var(--hn-ink-faint);
+
+
+        /* ────────────────────────────────────────────────
+           DARK MODE
+           Customer dark mode uses one continuous black
+           page canvas.
+        ──────────────────────────────────────────────── */
+
+        html.dark-mode .reg-page {
+
+          background: #000000 !important;
+          background-image: none !important;
+
+          --reg-olive-deep:   #A9C46C;
+          --reg-ink:          var(--text-primary);
+          --reg-ink-muted:    var(--text-secondary);
+          --reg-ink-faint:    var(--text-secondary);
+          --reg-glass-bg:     rgba(30,41,59,0.55);
+          --reg-glass-bg2:    rgba(30,41,59,0.85);
+          --reg-glass-border: rgba(169,196,108,0.20);
+          --reg-glass-shine:  rgba(255,255,255,0.05);
         }
 
-        .register-input:focus {
-          border-color: var(--hn-blue);
 
-          background: rgba(47,93,255,0.06);
 
-          box-shadow:
-            0 0 0 3px
-            rgba(47,93,255,0.14);
+        /* ────────────────────────────────────────────────
+           RESPONSIVE
+        ──────────────────────────────────────────────── */
+
+        @media (max-width: 768px) {
+
+          .reg-page {
+            padding: 3rem 1.5rem 4rem;
+          }
+
         }
 
-        .register-btn {
-          width: 100%;
+        @media (max-width: 480px) {
 
-          background: var(--hn-blue);
+          .reg-page {
+            padding: 2.5rem 0.9rem 3.5rem;
+          }
 
-          color: #FFFFFF;
+          .reg-title {
+            font-size: 1.7rem;
+          }
 
-          border: none;
-
-          border-radius: 100px;
-
-          padding: 1rem;
-
-          font-family: 'Outfit', sans-serif;
-
-          font-size: 0.85rem;
-
-          font-weight: 600;
-
-          letter-spacing: 0.04em;
-
-          cursor: pointer;
-
-          box-shadow:
-            0 8px 24px
-            rgba(47,93,255,0.28);
-
-          transition:
-            background 0.3s ease,
-            transform 0.3s ease,
-            box-shadow 0.3s ease;
         }
 
-        .register-btn:hover {
-          background: var(--hn-blue-deep);
-
-          transform: translateY(-2px);
-
-          box-shadow:
-            0 12px 32px
-            rgba(47,93,255,0.34);
-        }
-
-        .register-btn:disabled {
-          opacity: 0.7;
-
-          cursor: not-allowed;
-
-          transform: none;
-        }
-
-        .register-divider {
-          height: 1px;
-
-          background:
-            var(--hn-glass-border);
-
-          margin: 1.75rem 0;
-        }
-
-        .register-link {
-          color: var(--hn-blue);
-
-          font-weight: 500;
-
-          text-decoration: none;
-
-          border-bottom:
-            1px solid
-            rgba(47,93,255,0.3);
-
-          padding-bottom: 1px;
-
-          transition:
-            color 0.2s ease,
-            border-color 0.2s ease;
-        }
-
-        .register-link:hover {
-          color: var(--hn-blue-deep);
-
-          border-color: var(--hn-blue);
-        }
-
-        .field-label {
-          display: block;
-
-          font-size: 0.68rem;
-
-          font-weight: 500;
-
-          letter-spacing: 0.14em;
-
-          text-transform: uppercase;
-
-          color: var(--hn-ink-muted);
-
-          margin-bottom: 0.5rem;
-        }
-
-        /* ── DARK MODE ── */
-
-        html.dark-mode .register-root {
-          background-color: #000000 !important;
-
-          background-image:
-            radial-gradient(
-              ellipse 70% 60% at 65% 0%,
-              rgba(96,130,255,0.10) 0%,
-              transparent 70%
-            ),
-            radial-gradient(
-              ellipse 50% 80% at 15% 80%,
-              rgba(110,139,255,0.08) 0%,
-              transparent 60%
-            ) !important;
-
-          --hn-ink:
-            var(--text-primary);
-
-          --hn-ink-muted:
-            var(--text-secondary);
-
-          --hn-ink-faint:
-            var(--text-secondary);
-
-          --hn-glass-bg:
-            rgba(30,41,59,0.65);
-
-          --hn-glass-border:
-            rgba(96,130,255,0.22);
-
-          --hn-glass-shine:
-            rgba(255,255,255,0.05);
-        }
-
-        html.dark-mode .register-topbar {
-          background:
-            rgba(96,130,255,0.07) !important;
-        }
-
-        html.dark-mode .register-input {
-          background:
-            rgba(30,41,59,0.55) !important;
-        }
-
-        html.dark-mode .register-input:focus {
-          background:
-            rgba(96,130,255,0.10) !important;
-        }
-
-        html.dark-mode .register-btn {
-          box-shadow:
-            0 8px 28px
-            rgba(47,93,255,0.45) !important;
-        }
-
-        html.dark-mode .register-btn:hover {
-          box-shadow:
-            0 12px 36px
-            rgba(47,93,255,0.50) !important;
-        }
       `}</style>
 
-      <div className="register-root">
-        <div className="register-card">
 
-          {/* Top Bar */}
 
-          <div className="register-topbar">
 
-            <span
-              style={{
-                fontFamily: "'Outfit', sans-serif",
-                fontWeight: 600,
-                fontSize: "1.2rem",
-                color: "var(--hn-ink)",
-                letterSpacing: "-0.01em"
-              }}
-            >
-              Create{" "}
-              <span style={{ color: "#2F5DFF" }}>
-                Account
-              </span>
-            </span>
 
-            <span
-              style={{
-                fontSize: "0.68rem",
-                fontWeight: 500,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--hn-ink-muted)"
-              }}
-            >
-              Slog Fashion
-            </span>
+      <div className="reg-page">
+
+        <div className="reg-wrap">
+
+          {/* ==================================================
+              HEADER
+              ================================================== */}
+
+          <div className="reg-header">
+
+            <h2 className="reg-title">
+              {showOTP ? (
+                <>
+                  Verify <em>Account</em>
+                </>
+              ) : (
+                <>
+                  Create <em>Account</em>
+                </>
+              )}
+            </h2>
+
+            <p className="reg-sub">
+              {showOTP
+                ? "We've sent a verification code to your email or mobile number. Enter the 6-digit OTP to verify your account."
+                : "Join us — fill in your details to get started."}
+            </p>
 
           </div>
 
-          {/* Body */}
 
-          <form
-            onSubmit={handleRegister}
-            className="register-body"
-          >
 
-            {/* Welcome note */}
 
-            <div
-              style={{
-                marginBottom: "2rem",
-                paddingBottom: "1.5rem",
-                borderBottom:
-                  "1px solid var(--hn-glass-border)"
-              }}
+
+          {!showOTP ? (
+
+            /* ==================================================
+               REGISTRATION FORM — no card, fields directly
+               on the page
+               ================================================== */
+
+            <form
+              onSubmit={handleRegister}
+              className="reg-form"
             >
-              <p
-                style={{
-                  fontFamily:
-                    "'Outfit', sans-serif",
-                  fontWeight: 400,
-                  fontSize: "0.9rem",
-                  color:
-                    "var(--hn-ink-muted)",
-                  letterSpacing: "0.01em"
-                }}
-              >
-                Join us — fill in your details
-                to get started.
-              </p>
-            </div>
 
-            {/* Full Name */}
+              {/* Full Name */}
 
-            <div
-              style={{
-                marginBottom: "1.25rem"
-              }}
-            >
-              <label className="field-label">
-                Full Name
-              </label>
+              <div className="reg-field">
 
-              <input
-                placeholder="John Doe"
-                className="register-input"
-                value={name}
-                onChange={(e) =>
-                  setName(e.target.value)
-                }
-                autoComplete="name"
-              />
-            </div>
+                <label className="reg-label">
+                  Full Name
+                </label>
 
-            {/* Email */}
-
-            <div
-              style={{
-                marginBottom: "1.25rem"
-              }}
-            >
-              <label className="field-label">
-                Email Address
-              </label>
-
-              <input
-                type="email"
-                placeholder="you@example.com"
-                className="register-input"
-                value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
-                autoComplete="email"
-              />
-            </div>
-
-            {/* Password */}
-
-            <div
-              style={{
-                marginBottom: "2rem"
-              }}
-            >
-              <label className="field-label">
-                Password
-              </label>
-
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="register-input"
-                value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
-                autoComplete="new-password"
-              />
-
-              <p
-                style={{
-                  marginTop: "0.5rem",
-                  fontSize: "0.7rem",
-                  color:
-                    "var(--hn-ink-faint)",
-                  letterSpacing: "0.01em"
-                }}
-              >
-                Min. 8 characters with a
-                lowercase letter and number
-              </p>
-            </div>
-
-            {/* Submit */}
-
-            <button
-              type="submit"
-              className="register-btn"
-              disabled={isSubmitting}
-            >
-              {isSubmitting
-                ? "Creating Account..."
-                : "Create Account"}
-            </button>
-
-            {/* Secure note */}
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.4rem",
-                marginTop: "0.85rem",
-                color:
-                  "var(--hn-ink-muted)",
-                fontSize: "0.7rem"
-              }}
-            >
-              <svg
-                width="10"
-                height="12"
-                viewBox="0 0 10 12"
-                fill="none"
-              >
-                <rect
-                  x="0.6"
-                  y="4.6"
-                  width="8.8"
-                  height="6.8"
-                  rx="1.2"
-                  stroke="currentColor"
-                  strokeWidth="1.1"
+                <input
+                  placeholder="John Doe"
+                  className="reg-input"
+                  value={name}
+                  onChange={(e) =>
+                    setName(e.target.value)
+                  }
+                  autoComplete="name"
                 />
 
-                <path
-                  d="M2.5 4.5V3A2.5 2.5 0 0 1 7.5 3v1.5"
-                  stroke="currentColor"
-                  strokeWidth="1.1"
-                  strokeLinecap="round"
+              </div>
+
+
+
+              {/* Email Or Phone */}
+
+              <div className="reg-field">
+
+                <label className="reg-label">
+                  Email / Mobile Number
+                </label>
+
+                <input
+                  type="text"
+                  placeholder="you@example.com or 9876543210"
+                  className="reg-input"
+                  value={emailOrPhone}
+                  onChange={(e) =>
+                    setEmailOrPhone(
+                      e.target.value
+                    )
+                  }
+                  autoComplete="email"
+                  inputMode="email"
                 />
-              </svg>
 
-              <span>
-                Secure registration
-              </span>
-            </div>
+              </div>
 
-            {/* Divider */}
 
-            <div className="register-divider" />
 
-            {/* Login link */}
+              {/* Password */}
 
-            <p
-              style={{
-                textAlign: "center",
-                fontSize: "0.85rem",
-                color:
-                  "var(--hn-ink-muted)"
-              }}
-            >
-              Already have an account?{" "}
+              <div className="reg-field">
 
-              <Link
-                to="/login"
-                className="register-link"
+                <label className="reg-label">
+                  Password
+                </label>
+
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className="reg-input"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(
+                      e.target.value
+                    )
+                  }
+                  autoComplete="new-password"
+                />
+
+                <p className="reg-hint">
+                  Min. 8 characters with a lowercase letter and number
+                </p>
+
+              </div>
+
+
+
+              {/* Submit */}
+
+              <button
+                type="submit"
+                className="reg-btn"
+                disabled={isSubmitting}
               >
-                Sign In
-              </Link>
-            </p>
 
-          </form>
+                {isSubmitting
+                  ? "Sending OTP..."
+                  : "Create Account"}
+
+              </button>
+
+
+
+              {/* Secure Note */}
+
+              <div className="reg-secure">
+
+                <svg
+                  width="10"
+                  height="12"
+                  viewBox="0 0 10 12"
+                  fill="none"
+                >
+
+                  <rect
+                    x="0.6"
+                    y="4.6"
+                    width="8.8"
+                    height="6.8"
+                    rx="1.2"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                  />
+
+                  <path
+                    d="M2.5 4.5V3A2.5 2.5 0 0 1 7.5 3v1.5"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                    strokeLinecap="round"
+                  />
+
+                </svg>
+
+                <span>
+                  Secure registration
+                </span>
+
+              </div>
+
+
+
+              <div className="reg-divider" />
+
+
+
+              <p className="reg-footer">
+
+                Already have an account?{" "}
+
+                <Link
+                  to="/login"
+                  className="reg-link"
+                >
+                  Sign In
+                </Link>
+
+              </p>
+
+            </form>
+
+          ) : (
+
+            /* ==================================================
+               OTP FORM — no card, fields directly on the page
+               ================================================== */
+
+            <form
+              onSubmit={handleVerifyOTP}
+              className="reg-form"
+            >
+
+              {/* OTP */}
+
+              <div className="reg-field">
+
+                <label className="reg-label">
+                  Verification Code
+                </label>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="123456"
+                  className="reg-input"
+                  value={otp}
+                  onChange={(e) =>
+                    setOtp(
+                      e.target.value.replace(
+                        /\D/g,
+                        ""
+                      )
+                    )
+                  }
+                  autoComplete="one-time-code"
+                  autoFocus
+                />
+
+                <p className="reg-hint">
+                  The OTP is valid for 10 minutes.
+                </p>
+
+              </div>
+
+
+
+              {/* Verify Button */}
+
+              <button
+                type="submit"
+                className="reg-btn"
+                disabled={isVerifying}
+              >
+
+                {isVerifying
+                  ? "Verifying..."
+                  : "Verify Account"}
+
+              </button>
+
+
+
+              {/* Resend OTP */}
+
+              <div
+                style={{
+                  textAlign: "center",
+                  marginTop: "1rem"
+                }}
+              >
+
+                <button
+                  type="button"
+                  onClick={handleResendOTP}
+                  disabled={isResending}
+                  className="reg-ghost-btn reg-ghost-primary"
+                >
+
+                  {isResending
+                    ? "Sending..."
+                    : "Resend OTP"}
+
+                </button>
+
+              </div>
+
+
+
+              {/* Back */}
+
+              <div
+                style={{
+                  textAlign: "center",
+                  marginTop: "0.75rem"
+                }}
+              >
+
+                <button
+                  type="button"
+                  onClick={handleBackToRegistration}
+                  className="reg-ghost-btn reg-ghost-muted"
+                >
+                  ← Back to registration
+                </button>
+
+              </div>
+
+
+
+              <div className="reg-divider" />
+
+
+
+              <p className="reg-footer">
+
+                Already have an account?{" "}
+
+                <Link
+                  to="/login"
+                  className="reg-link"
+                >
+                  Sign In
+                </Link>
+
+              </p>
+
+            </form>
+
+          )}
+
         </div>
+
       </div>
+
     </>
+
   );
+
 };
+
+
+
+
 
 export default Register;

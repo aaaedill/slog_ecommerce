@@ -28,7 +28,7 @@ const SearchBar = ({ setShowSearch }) => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap');
 
         .sb-overlay {
           animation: sbFadeIn 0.2s ease both;
@@ -46,39 +46,43 @@ const SearchBar = ({ setShowSearch }) => {
           to   { opacity: 1; filter: blur(0); transform: translateY(0); }
         }
 
+        @media (prefers-reduced-motion: reduce) {
+          .sb-overlay, .sb-panel { animation: none !important; opacity: 1 !important; filter: none !important; transform: none !important; }
+        }
+
         .sb-input {
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
           font-weight: 400;
           font-size: 0.9rem;
           letter-spacing: 0.01em;
           background: rgba(255,255,255,0.7);
-          border: 1.5px solid rgba(47,93,255,0.16);
+          border: 1.5px solid rgba(107,142,35,0.18);
           color: #10131F;
           outline: none;
           transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
         .sb-input::placeholder { color: #9CA3AF; }
         .sb-input:focus {
-          border-color: #2F5DFF;
-          box-shadow: 0 0 0 3px rgba(47,93,255,0.14);
+          border-color: #6B8E23;
+          box-shadow: 0 0 0 3px rgba(107,142,35,0.14);
         }
 
         .sb-close-btn {
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
           color: #6B7280;
-          transition: color 0.2s ease;
+          transition: color 0.2s ease, transform 0.2s ease;
           background: none;
           border: none;
           cursor: pointer;
           line-height: 1;
         }
-        .sb-close-btn:hover { color: #2F5DFF; }
+        .sb-close-btn:hover { color: #4B5320; transform: rotate(90deg); }
 
         .sb-result-row {
           display: flex;
           gap: 1rem;
           align-items: center;
-          border: 1px solid rgba(47,93,255,0.14);
+          border: 1px solid rgba(107,142,35,0.16);
           padding: 0.6rem;
           border-radius: 0.85rem;
           margin-bottom: 0.5rem;
@@ -90,8 +94,8 @@ const SearchBar = ({ setShowSearch }) => {
           cursor: pointer;
         }
         .sb-result-row:hover {
-          background: rgba(47,93,255,0.06);
-          border-color: rgba(47,93,255,0.28);
+          background: rgba(107,142,35,0.07);
+          border-color: rgba(107,142,35,0.30);
           transform: translateY(-1px);
         }
 
@@ -101,7 +105,7 @@ const SearchBar = ({ setShowSearch }) => {
           object-fit: cover;
           border-radius: 0.5rem;
           flex-shrink: 0;
-          background: #F5F7FF;
+          background: #F5F7EE;
         }
 
         .sb-result-name {
@@ -112,15 +116,15 @@ const SearchBar = ({ setShowSearch }) => {
         }
 
         .sb-result-price {
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
           font-weight: 600;
           font-size: 0.8rem;
           letter-spacing: 0.01em;
-          color: #2F5DFF;
+          color: #6B8E23;
         }
 
         .sb-empty {
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
           font-weight: 500;
           font-size: 0.9rem;
           color: rgba(16,19,31,0.3);
@@ -130,12 +134,12 @@ const SearchBar = ({ setShowSearch }) => {
 
         .sb-results-scroll::-webkit-scrollbar { width: 4px; }
         .sb-results-scroll::-webkit-scrollbar-track { background: transparent; }
-        .sb-results-scroll::-webkit-scrollbar-thumb { background: rgba(47,93,255,0.2); border-radius: 2px; }
+        .sb-results-scroll::-webkit-scrollbar-thumb { background: rgba(107,142,35,0.24); border-radius: 2px; }
 
         /* ── DARK MODE ── */
         html.dark-mode .sb-panel {
           background: rgba(30,41,59,0.85) !important;
-          border-color: rgba(96,130,255,0.24) !important;
+          border-color: rgba(169,196,108,0.24) !important;
           box-shadow: 0 8px 40px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.05) inset !important;
         }
         html.dark-mode .sb-label-title {
@@ -145,30 +149,31 @@ const SearchBar = ({ setShowSearch }) => {
           color: var(--text-secondary) !important;
         }
         html.dark-mode .sb-divider {
-          background: rgba(96,130,255,0.18) !important;
+          background: rgba(169,196,108,0.18) !important;
         }
         html.dark-mode .sb-input {
           background: rgba(15,23,42,0.6) !important;
-          border-color: rgba(96,130,255,0.20) !important;
+          border-color: rgba(169,196,108,0.20) !important;
           color: var(--text-primary) !important;
         }
         html.dark-mode .sb-input::placeholder { color: #64748B !important; }
         html.dark-mode .sb-input:focus {
-          border-color: #6E8BFF !important;
-          box-shadow: 0 0 0 3px rgba(110,139,255,0.18) !important;
+          border-color: #A9C46C !important;
+          box-shadow: 0 0 0 3px rgba(169,196,108,0.18) !important;
         }
         html.dark-mode .sb-close-btn { color: var(--text-secondary) !important; }
-        html.dark-mode .sb-close-btn:hover { color: #6E8BFF !important; }
+        html.dark-mode .sb-close-btn:hover { color: #A9C46C !important; }
         html.dark-mode .sb-result-row {
           background: rgba(30,41,59,0.65) !important;
-          border-color: rgba(96,130,255,0.20) !important;
+          border-color: rgba(169,196,108,0.20) !important;
         }
         html.dark-mode .sb-result-row:hover {
-          background: rgba(96,130,255,0.10) !important;
-          border-color: rgba(96,130,255,0.35) !important;
+          background: rgba(169,196,108,0.10) !important;
+          border-color: rgba(169,196,108,0.35) !important;
         }
         html.dark-mode .sb-result-thumb { background: var(--bg-card) !important; }
         html.dark-mode .sb-result-name { color: var(--text-primary) !important; }
+        html.dark-mode .sb-result-price { color: #A9C46C !important; }
         html.dark-mode .sb-empty { color: var(--text-secondary) !important; }
       `}</style>
 
@@ -185,24 +190,24 @@ const SearchBar = ({ setShowSearch }) => {
           className="sb-panel w-[95%] sm:w-[600px] rounded-3xl p-5 border"
           style={{
             background: 'rgba(255,255,255,0.75)',
-            borderColor: 'rgba(47,93,255,0.18)',
+            borderColor: 'rgba(107,142,35,0.18)',
             backdropFilter: 'blur(24px) saturate(1.8)',
             WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-            boxShadow: '0 8px 40px rgba(47,93,255,0.16), 0 1px 0 rgba(255,255,255,0.85) inset'
+            boxShadow: '0 8px 40px rgba(107,142,35,0.16), 0 1px 0 rgba(255,255,255,0.85) inset'
           }}
         >
           {/* Top bar label */}
           <div className="flex items-center justify-between mb-4">
-            <span className="sb-label-title" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: '1.05rem', color: '#10131F' }}>
-              Find your <span style={{ color: '#2F5DFF' }}>piece</span>
+            <span className="sb-label-title" style={{ fontFamily: "'Jost', sans-serif", fontWeight: 600, fontSize: '1.05rem', color: '#10131F' }}>
+              Find your <span style={{ color: '#6B8E23' }}>piece</span>
             </span>
-            <span className="sb-label-caption" style={{ fontFamily: "'Outfit', sans-serif", fontSize: '0.68rem', fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#6B7280' }}>
+            <span className="sb-label-caption" style={{ fontFamily: "'Jost', sans-serif", fontSize: '0.68rem', fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#6B7280' }}>
               Search
             </span>
           </div>
 
           {/* Divider */}
-          <div className="sb-divider mb-4" style={{ height: '1px', background: 'rgba(47,93,255,0.14)' }} />
+          <div className="sb-divider mb-4" style={{ height: '1px', background: 'rgba(107,142,35,0.16)' }} />
 
           {/* INPUT */}
           <div className="flex items-center gap-3">

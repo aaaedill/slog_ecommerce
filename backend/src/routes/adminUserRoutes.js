@@ -4,6 +4,10 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
 
 import {
+  csrfProtection
+} from "../middleware/csrfMiddleware.js";
+
+import {
   getAllUsers,
   updateUser
 } from "../controllers/adminUserController.js";
@@ -86,6 +90,7 @@ router.get(
 
 router.patch(
   "/:id",
+  csrfProtection,
   updateUser
 );
 

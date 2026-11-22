@@ -6,51 +6,71 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 
 
+
 const glassToastStyle = {
   background: "rgba(255,255,255,0.55)",
   backdropFilter: "blur(24px) saturate(1.8)",
   WebkitBackdropFilter: "blur(24px) saturate(1.8)",
-  border: "1px solid rgba(47,93,255,0.25)",
+  border: "1px solid rgba(107,142,35,0.25)",
   borderRadius: "16px",
-  color: "#16307A",
-  fontFamily: "Outfit, sans-serif",
+  color: "#4B5320",
+  fontFamily: "Jost, sans-serif",
   boxShadow:
-    "0 8px 32px rgba(47,93,255,0.16), 0 1px 0 rgba(255,255,255,0.8) inset"
+    "0 8px 32px rgba(107,142,35,0.16), 0 1px 0 rgba(255,255,255,0.8) inset"
 };
 
+
+
 const Login = () => {
+
   const navigate = useNavigate();
   const location = useLocation();
 
   const { loginUser, addToCart } = useContext(ShopContext);
 
-  const [email, setEmail] = useState("");
+  const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+
+
   const handleLogin = async (e) => {
+
     e.preventDefault();
 
     if (loading) return;
 
-    const cleanEmail = email.trim().toLowerCase();
+
+
+    const cleanEmailOrPhone = emailOrPhone.trim();
     const cleanPassword = password.trim();
 
-    if (!cleanEmail || !cleanPassword) {
-      toast.error("Please fill all fields", {
-        style: glassToastStyle
-      });
+
+
+    if (!cleanEmailOrPhone || !cleanPassword) {
+
+      toast.error(
+        "Email or phone number and password are required.",
+        {
+          style: glassToastStyle
+        }
+      );
 
       return;
     }
 
+
+
     try {
+
       setLoading(true);
+
+
 
       const res = await axios.post(
         `${API_URL}/auth/login`,
         {
-          email: cleanEmail,
+          emailOrPhone: cleanEmailOrPhone,
           password: cleanPassword
         },
         {
@@ -58,9 +78,13 @@ const Login = () => {
         }
       );
 
+
+
       if (!res.data?.success || !res.data?.user) {
+
         toast.error(
-          res.data?.message || "Invalid email or password",
+          res.data?.message ||
+            "Invalid email or password",
           {
             style: glassToastStyle
           }
@@ -69,9 +93,14 @@ const Login = () => {
         return;
       }
 
+
+
       const dbUser = res.data.user;
 
+
+
       if (dbUser.isBlocked) {
+
         toast.error(
           "Your account has been blocked by admin",
           {
@@ -82,25 +111,47 @@ const Login = () => {
         return;
       }
 
+
+
       const userData = {
         ...dbUser,
-        id: String(dbUser.id || dbUser._id)
+        id: String(
+          dbUser.id ||
+          dbUser._id
+        )
       };
 
+
+
       // MAIN LOGIN
+
       const loginSuccess = loginUser(userData);
 
+
+
       if (!loginSuccess) {
-        toast.error("Login failed", {
-          style: glassToastStyle
-        });
+
+        toast.error(
+          "Login failed",
+          {
+            style: glassToastStyle
+          }
+        );
 
         return;
       }
 
+
+
       // ADMIN REDIRECT
+
       if (userData.role === "admin") {
-        localStorage.removeItem("pendingCart");
+
+        localStorage.removeItem(
+          "pendingCart"
+        );
+
+
 
         toast.success(
           "Welcome to SLOG-FASHION",
@@ -109,78 +160,132 @@ const Login = () => {
           }
         );
 
+
+
         navigate("/admin");
 
         return;
       }
 
+
+
       // HANDLE PENDING CART
-      const pendingCart = localStorage.getItem("pendingCart");
+
+      const pendingCart =
+        localStorage.getItem(
+          "pendingCart"
+        );
+
+
 
       if (pendingCart) {
+
         let parsedPendingCart = null;
 
+
+
         try {
-          parsedPendingCart = JSON.parse(pendingCart);
+
+          parsedPendingCart =
+            JSON.parse(
+              pendingCart
+            );
+
         } catch (err) {
+
           console.log(
             "Pending cart parse error:",
             err
           );
 
-          localStorage.removeItem("pendingCart");
+          localStorage.removeItem(
+            "pendingCart"
+          );
         }
+
+
 
         if (
           parsedPendingCart &&
-          parsedPendingCart.productId !== undefined &&
-          parsedPendingCart.productId !== null &&
-          parsedPendingCart.size !== undefined &&
-          parsedPendingCart.size !== null &&
-          String(parsedPendingCart.size).trim() !== ""
+          parsedPendingCart.productId !==
+            undefined &&
+          parsedPendingCart.productId !==
+            null &&
+          parsedPendingCart.size !==
+            undefined &&
+          parsedPendingCart.size !==
+            null &&
+          String(
+            parsedPendingCart.size
+          ).trim() !== ""
         ) {
+
           try {
-            const cartResult = await addToCart(
-              parsedPendingCart.productId,
-              parsedPendingCart.size,
-              userData
-            );
+
+            const cartResult =
+              await addToCart(
+                parsedPendingCart.productId,
+                parsedPendingCart.size,
+                userData
+              );
+
+
 
             if (cartResult?.success) {
-              localStorage.removeItem("pendingCart");
+
+              localStorage.removeItem(
+                "pendingCart"
+              );
+
+
 
               toast.success(
                 "Added to cart",
                 {
-                  style: glassToastStyle
+                  style:
+                    glassToastStyle
                 }
               );
+
             } else {
+
               toast.error(
                 cartResult?.message ||
                   "Failed to add product to cart",
                 {
-                  style: glassToastStyle
+                  style:
+                    glassToastStyle
                 }
               );
             }
+
           } catch (err) {
+
             console.log(
               "Pending cart error:",
               err
             );
 
+
+
             toast.error(
               "Failed to add product to cart",
               {
-                style: glassToastStyle
+                style:
+                  glassToastStyle
               }
             );
           }
+
         } else {
-          localStorage.removeItem("pendingCart");
+
+          localStorage.removeItem(
+            "pendingCart"
+          );
         }
       }
+
+
 
       toast.success(
         "Welcome to SLOG-FASHION",
@@ -189,23 +294,40 @@ const Login = () => {
         }
       );
 
-      // NORMAL REDIRECT
-      if (location.state) {
-        const { from } = location.state;
 
-        navigate(from || "/");
+
+      // NORMAL REDIRECT
+
+      if (location.state) {
+
+        const { from } =
+          location.state;
+
+
+
+        navigate(
+          from || "/"
+        );
+
       } else {
+
         navigate("/");
       }
+
     } catch (err) {
+
       console.log(
         "Login error:",
         err
       );
 
+
+
       const message =
         err.response?.data?.message ||
         "Login failed";
+
+
 
       toast.error(
         message,
@@ -213,335 +335,437 @@ const Login = () => {
           style: glassToastStyle
         }
       );
+
     } finally {
+
       setLoading(false);
     }
   };
 
+
+
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap');
 
-        .login-root {
-          --hn-blue:         #2F5DFF;
-          --hn-blue-light:   #6E8BFF;
-          --hn-blue-deep:    #16307A;
-          --hn-ink:          #10131F;
-          --hn-ink-muted:    rgba(16,19,31,0.55);
-          --hn-ink-faint:    rgba(16,19,31,0.30);
-          --hn-glass-bg:     rgba(255,255,255,0.60);
-          --hn-glass-bg2:    rgba(255,255,255,0.85);
-          --hn-glass-border: rgba(47,93,255,0.16);
-          --hn-glass-shine:  rgba(255,255,255,0.85);
+        /* ────────────────────────────────────────────────
+           LOGIN PAGE
+           Continuous customer-facing page background.
+           No outer card or secondary page container.
+        ──────────────────────────────────────────────── */
 
-          --col-dg-bg:        rgba(16,19,31,0.85);
-          --col-dg-bg2:       rgba(16,19,31,0.95);
-          --col-dg-border:    rgba(110,139,255,0.22);
-          --col-dg-shine:     rgba(110,139,255,0.14);
-          --col-dg-ink:       #C7D3FF;
-          --col-dg-ink-muted: rgba(199,211,255,0.72);
-          --col-dg-ink-faint: rgba(199,211,255,0.38);
+        .lgn-page {
+          --lgn-bg:           var(--bg-primary);
+          --lgn-olive:        #6B8E23;
+          --lgn-olive-light:  #A9C46C;
+          --lgn-olive-deep:   #4B5320;
+          --lgn-olive-faint:  rgba(107,142,35,0.08);
+          --lgn-ink:          #10131F;
+          --lgn-ink-muted:    rgba(16,19,31,0.55);
+          --lgn-ink-faint:    rgba(16,19,31,0.30);
+          --lgn-glass-bg:     rgba(255,255,255,0.55);
+          --lgn-glass-bg2:    rgba(255,255,255,0.85);
+          --lgn-glass-border: rgba(107,142,35,0.16);
+          --lgn-glass-shine:  rgba(255,255,255,0.85);
 
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
+          color: var(--lgn-ink);
+
+          width: 100%;
           min-height: 100vh;
+
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 2rem 1rem;
-          position: relative;
 
-          background:
-            radial-gradient(
-              ellipse 70% 60% at 65% 0%,
-              rgba(47,93,255,0.06) 0%,
-              transparent 70%
-            ),
-            radial-gradient(
-              ellipse 50% 80% at 15% 80%,
-              rgba(110,139,255,0.05) 0%,
-              transparent 60%
-            ),
-            #FFFFFF;
+          /* Continuous main page background */
+          background: var(--lgn-bg);
+
+          padding: 5rem 3rem 6rem;
+
+          position: relative;
+          overflow: hidden;
+
+          box-sizing: border-box;
         }
 
-        .login-card {
+        .lgn-page *,
+        .lgn-page *::before,
+        .lgn-page *::after {
+          box-sizing: border-box;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           CONTENT WRAPPER
+           No card — just a max-width column of freely
+           floating elements.
+        ──────────────────────────────────────────────── */
+
+        .lgn-wrap {
           position: relative;
-          z-index: 1;
+          z-index: 2;
           width: 100%;
           max-width: 420px;
-          background: var(--hn-glass-bg);
-          border: 1px solid var(--hn-glass-border);
-          border-radius: 1.1rem;
-          overflow: hidden;
-          backdrop-filter: blur(24px) saturate(1.8);
-          -webkit-backdrop-filter: blur(24px) saturate(1.8);
-          box-shadow: 0 1px 0 var(--hn-glass-shine) inset;
-          animation: loginUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
         }
 
-        @keyframes loginUp {
-          from {
-            opacity: 0;
-            filter: blur(8px);
-            transform: translateY(16px);
-          }
 
-          to {
-            opacity: 1;
-            filter: blur(0);
-            transform: translateY(0);
-          }
+
+        /* ────────────────────────────────────────────────
+           HEADER
+        ──────────────────────────────────────────────── */
+
+        .lgn-header {
+          margin-bottom: 2rem;
         }
 
-        .login-topbar {
-          background: rgba(47,93,255,0.05);
-          border-bottom: 1px solid var(--hn-glass-border);
-          padding: 1rem 1.75rem;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .login-topbar-title {
+        .lgn-title {
           font-weight: 600;
-          font-size: 1.2rem;
-          color: var(--hn-ink);
-          letter-spacing: -0.01em;
+          font-size: clamp(2rem, 3.6vw, 3rem);
+          line-height: 1.05;
+          letter-spacing: -0.02em;
+          color: var(--lgn-ink);
         }
 
-        .login-topbar-title em {
+        .lgn-title em {
           font-style: normal;
           font-weight: 600;
-          color: var(--hn-blue);
+          color: var(--lgn-olive);
         }
 
-        .login-topbar-brand {
-          font-size: 0.68rem;
-          font-weight: 500;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: var(--hn-ink-muted);
-        }
-
-        .login-body {
-          padding: 2rem 1.75rem 2.25rem;
-        }
-
-        .login-welcome {
-          font-size: 0.9rem;
+        .lgn-sub {
+          font-size: 0.85rem;
           font-weight: 400;
-          color: var(--hn-ink-muted);
+          color: var(--lgn-ink-muted);
           letter-spacing: 0.01em;
-          padding-bottom: 1.5rem;
-          margin-bottom: 1.75rem;
-          border-bottom: 1px solid var(--hn-glass-border);
+          margin-top: 0.75rem;
         }
 
-        .field-label {
+
+
+        /* ────────────────────────────────────────────────
+           FORM — fields sit directly on the page, styled
+           like the filter-row glass pills on Collection
+        ──────────────────────────────────────────────── */
+
+        .lgn-form {
+          padding-top: 1.8rem;
+          border-top: 1px solid var(--lgn-glass-border);
+        }
+
+        .lgn-field {
+          margin-bottom: 1.4rem;
+        }
+
+        .lgn-label {
           display: block;
           font-size: 0.68rem;
           font-weight: 500;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: var(--hn-ink-muted);
-          margin-bottom: 0.5rem;
+          color: var(--lgn-ink-muted);
+          margin-bottom: 0.55rem;
         }
 
-        .login-input {
+        .lgn-input {
           width: 100%;
-          background: rgba(47,93,255,0.05);
-          border: 1.5px solid var(--hn-glass-border);
-          border-radius: 0.7rem;
-          padding: 0.78rem 1rem;
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Jost', sans-serif;
           font-size: 0.9rem;
           font-weight: 400;
-          color: var(--hn-ink);
+          color: var(--lgn-ink);
+
+          background: var(--lgn-glass-bg);
+          border: 1px solid var(--lgn-glass-border);
+          border-radius: 100px;
+
+          padding: 0.78rem 1.2rem;
           outline: none;
+
+          backdrop-filter: blur(20px) saturate(1.8);
+          -webkit-backdrop-filter: blur(20px) saturate(1.8);
+
+          box-shadow: 0 1px 0 var(--lgn-glass-shine) inset;
+
           transition:
-            border-color 0.2s,
-            background 0.2s,
-            box-shadow 0.2s;
-          box-sizing: border-box;
+            background 0.22s ease,
+            border-color 0.22s ease,
+            box-shadow 0.22s ease,
+            transform 0.22s ease;
         }
 
-        .login-input::placeholder {
-          color: var(--hn-ink-faint);
+        .lgn-input::placeholder {
+          color: var(--lgn-ink-faint);
         }
 
-        .login-input:focus {
-          border-color: var(--hn-blue);
-          background: rgba(47,93,255,0.06);
+        .lgn-input:hover {
+          background: var(--lgn-glass-bg2);
+        }
+
+        .lgn-input:focus {
+          background: var(--lgn-glass-bg2);
+          border-color: var(--lgn-olive);
+          transform: translateY(-1px);
           box-shadow:
-            0 0 0 3px rgba(47,93,255,0.14);
+            0 8px 20px rgba(107,142,35,0.14),
+            0 1px 0 var(--lgn-glass-shine) inset;
         }
 
-        .login-btn {
+
+
+        /* ────────────────────────────────────────────────
+           SUBMIT BUTTON — solid olive pill, same weight
+           as the active category chip
+        ──────────────────────────────────────────────── */
+
+        .lgn-btn {
           width: 100%;
-          background: var(--col-dg-bg);
-          border: 1px solid var(--col-dg-border);
-          border-radius: 0.7rem;
-          padding: 1rem;
-          font-family: 'Outfit', sans-serif;
-          font-size: 0.82rem;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          color: var(--col-dg-ink);
+          font-family: 'Jost', sans-serif;
+          font-size: 0.75rem;
+          font-weight: 500;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #FFFFFF;
+
+          background: var(--lgn-olive);
+          border: 1px solid var(--lgn-olive);
+          border-radius: 100px;
+
+          padding: 0.85rem 1.5rem;
+          margin-top: 0.6rem;
+
           cursor: pointer;
-          backdrop-filter: blur(32px) saturate(1.8);
-          -webkit-backdrop-filter: blur(32px) saturate(1.8);
+
           box-shadow:
-            0 1px 0 var(--col-dg-shine) inset;
+            0 8px 20px rgba(107,142,35,0.28),
+            0 1px 0 var(--lgn-glass-shine) inset;
+
           transition:
-            background 0.25s,
-            color 0.22s,
-            transform 0.2s;
+            background 0.22s ease,
+            transform 0.22s ease,
+            box-shadow 0.22s ease,
+            opacity 0.22s ease;
         }
 
-        .login-btn:hover {
-          background: var(--col-dg-bg2);
-          color: #FFFFFF;
+        .lgn-btn:hover:not(:disabled) {
+          background: var(--lgn-olive-deep);
+          border-color: var(--lgn-olive-deep);
           transform: translateY(-1px);
         }
 
-        .login-btn:disabled {
-          opacity: 0.7;
+        .lgn-btn:disabled {
+          opacity: 0.65;
           cursor: not-allowed;
           transform: none;
         }
 
-        .login-divider {
+
+
+        /* ────────────────────────────────────────────────
+           DIVIDER + FOOTER LINK
+        ──────────────────────────────────────────────── */
+
+        .lgn-divider {
           height: 1px;
-          background: var(--hn-glass-border);
-          margin: 1.75rem 0;
+          background: var(--lgn-glass-border);
+          margin: 1.8rem 0;
         }
 
-        .login-link {
-          color: var(--hn-blue);
+        .lgn-footer {
+          text-align: center;
+          font-size: 0.85rem;
+          font-weight: 400;
+          color: var(--lgn-ink-muted);
+        }
+
+        .lgn-link {
+          color: var(--lgn-olive);
           font-weight: 500;
           text-decoration: none;
-          border-bottom: 1px solid rgba(47,93,255,0.3);
+          border-bottom: 1px solid rgba(107,142,35,0.3);
           padding-bottom: 1px;
           transition:
             color 0.2s,
             border-color 0.2s;
         }
 
-        .login-link:hover {
-          color: var(--hn-blue-deep);
-          border-color: var(--hn-blue);
+        .lgn-link:hover {
+          color: var(--lgn-olive-deep);
+          border-color: var(--lgn-olive-deep);
         }
 
-        /* ── DARK MODE ── */
 
-        html.dark-mode .login-root {
-          background-color: #000000 !important;
 
-          background-image:
-            radial-gradient(
-              ellipse 70% 60% at 65% 0%,
-              rgba(96,130,255,0.10) 0%,
-              transparent 70%
-            ),
-            radial-gradient(
-              ellipse 50% 80% at 15% 80%,
-              rgba(110,139,255,0.08) 0%,
-              transparent 60%
-            ) !important;
+        /* ────────────────────────────────────────────────
+           ENTRANCE ANIMATION — same blur-in keyframe used
+           on Collection's header / filter-row / cards
+        ──────────────────────────────────────────────── */
 
-          --hn-ink:          var(--text-primary);
-          --hn-ink-muted:    var(--text-secondary);
-          --hn-ink-faint:    var(--text-secondary);
-          --hn-glass-bg:     rgba(30,41,59,0.65);
-          --hn-glass-bg2:    rgba(30,41,59,0.90);
-          --hn-glass-border: rgba(96,130,255,0.22);
-          --hn-glass-shine:  rgba(255,255,255,0.05);
+        @keyframes lgn-blur-in {
+
+          from {
+            opacity: 0;
+            filter: blur(10px);
+            transform: translateY(14px) scale(0.98);
+          }
+
+          to {
+            opacity: 1;
+            filter: blur(0);
+            transform: translateY(0) scale(1);
+          }
+
         }
 
-        html.dark-mode .login-topbar {
-          background: rgba(96,130,255,0.07) !important;
+        .lgn-header,
+        .lgn-form {
+          animation:
+            lgn-blur-in
+            0.6s
+            cubic-bezier(0.16, 1, 0.3, 1)
+            both;
         }
 
-        html.dark-mode .login-input {
-          background: rgba(30,41,59,0.55) !important;
+        .lgn-form {
+          animation-delay: 0.08s;
         }
 
-        html.dark-mode .login-input:focus {
-          background: rgba(96,130,255,0.10) !important;
+        @media (prefers-reduced-motion: reduce) {
+
+          .lgn-header,
+          .lgn-form {
+            animation: none !important;
+            opacity: 1 !important;
+            filter: none !important;
+            transform: none !important;
+          }
+
         }
+
+
+
+        /* ────────────────────────────────────────────────
+           DARK MODE
+           Customer dark mode uses one continuous black
+           page canvas.
+        ──────────────────────────────────────────────── */
+
+        html.dark-mode .lgn-page {
+
+          background: #000000 !important;
+          background-image: none !important;
+
+          --lgn-olive-deep:   #A9C46C;
+          --lgn-ink:          var(--text-primary);
+          --lgn-ink-muted:    var(--text-secondary);
+          --lgn-ink-faint:    var(--text-secondary);
+          --lgn-glass-bg:     rgba(30,41,59,0.55);
+          --lgn-glass-bg2:    rgba(30,41,59,0.85);
+          --lgn-glass-border: rgba(169,196,108,0.20);
+          --lgn-glass-shine:  rgba(255,255,255,0.05);
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           RESPONSIVE
+        ──────────────────────────────────────────────── */
+
+        @media (max-width: 768px) {
+
+          .lgn-page {
+            padding: 3rem 1.5rem 4rem;
+          }
+
+        }
+
+        @media (max-width: 480px) {
+
+          .lgn-page {
+            padding: 2.5rem 0.9rem 3.5rem;
+          }
+
+          .lgn-title {
+            font-size: 1.7rem;
+          }
+
+        }
+
       `}</style>
 
-      <div className="login-root">
 
-        <div className="login-card">
 
-          {/* TOP BAR */}
+      <div className="lgn-page">
 
-          <div className="login-topbar">
+        <div className="lgn-wrap">
 
-            <span className="login-topbar-title">
+          {/* ==================================================
+              HEADER
+              ================================================== */}
+
+          <div className="lgn-header">
+
+            <h2 className="lgn-title">
               Sign <em>In</em>
-            </span>
+            </h2>
 
-            <span className="login-topbar-brand">
-              Slog Fashion
-            </span>
-
-          </div>
-
-          {/* FORM */}
-
-          <form
-            onSubmit={handleLogin}
-            className="login-body"
-          >
-
-            <p className="login-welcome">
+            <p className="lgn-sub">
               Welcome back — enter your details to continue.
             </p>
 
-            <div
-              style={{
-                marginBottom: "1.25rem"
-              }}
-            >
+          </div>
 
-              <label className="field-label">
-                Email Address
+
+
+          {/* ==================================================
+              FORM — no card, fields directly on the page
+              ================================================== */}
+
+          <form
+            onSubmit={handleLogin}
+            className="lgn-form"
+          >
+
+            <div className="lgn-field">
+
+              <label className="lgn-label">
+                Email or Phone Number
               </label>
 
               <input
-                type="email"
-                placeholder="you@example.com"
-                className="login-input"
-                value={email}
+                type="text"
+                placeholder="you@example.com or 9876543210"
+                className="lgn-input"
+                value={emailOrPhone}
                 onChange={(e) =>
-                  setEmail(e.target.value)
+                  setEmailOrPhone(
+                    e.target.value
+                  )
                 }
-                autoComplete="email"
+                autoComplete="username"
                 required
               />
 
             </div>
 
-            <div
-              style={{
-                marginBottom: "2rem"
-              }}
-            >
 
-              <label className="field-label">
+
+            <div className="lgn-field">
+
+              <label className="lgn-label">
                 Password
               </label>
 
               <input
                 type="password"
                 placeholder="••••••••"
-                className="login-input"
+                className="lgn-input"
                 value={password}
                 onChange={(e) =>
-                  setPassword(e.target.value)
+                  setPassword(
+                    e.target.value
+                  )
                 }
                 autoComplete="current-password"
                 required
@@ -549,9 +773,11 @@ const Login = () => {
 
             </div>
 
+
+
             <button
               type="submit"
-              className="login-btn"
+              className="lgn-btn"
               disabled={loading}
             >
 
@@ -561,22 +787,19 @@ const Login = () => {
 
             </button>
 
-            <div className="login-divider" />
 
-            <p
-              style={{
-                textAlign: "center",
-                fontSize: "0.85rem",
-                fontWeight: 400,
-                color: "var(--hn-ink-muted)"
-              }}
-            >
+
+            <div className="lgn-divider" />
+
+
+
+            <p className="lgn-footer">
 
               Don't have an account?{" "}
 
               <Link
                 to="/register"
-                className="login-link"
+                className="lgn-link"
               >
                 Create Account
               </Link>
@@ -591,5 +814,7 @@ const Login = () => {
     </>
   );
 };
+
+
 
 export default Login;

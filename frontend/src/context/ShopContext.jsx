@@ -22,6 +22,17 @@ const ShopContextProvider = ({ children }) => {
 
   const [orders, setOrders] = useState([]);
 
+  // =========================================================
+  // WISHLIST
+  // =========================================================
+
+  const [wishlist, setWishlist] = useState([]);
+
+  const [wishlistLoading, setWishlistLoading] =
+    useState(false);
+
+  const wishlistOperationVersion = useRef(0);
+
 
   // Used to prevent the cart-loading effect from
   // overwriting a cart update happening at the same time.
@@ -306,6 +317,8 @@ const ShopContextProvider = ({ children }) => {
 
     cartOperationVersion.current += 1;
 
+    wishlistOperationVersion.current += 1;
+
 
     try {
 
@@ -338,6 +351,12 @@ const ShopContextProvider = ({ children }) => {
 
 
     setOrders([]);
+
+
+    setWishlist([]);
+
+
+    setWishlistLoading(false);
 
 
     setAuthChecked(
@@ -654,6 +673,618 @@ const ShopContextProvider = ({ children }) => {
 
 
   // =========================================================
+  // LOAD WISHLIST
+  // =========================================================
+  //
+  // Each authenticated user has a wishlist stored in MongoDB.
+  //
+  // Wait until authentication has been checked before loading
+  // the wishlist, and use a request version to avoid an older
+  // request overwriting a newer wishlist operation.
+  // =========================================================
+
+  const fetchWishlist = useCallback(
+    async () => {
+
+      if (!user) {
+
+        setWishlist([]);
+
+        return {
+          success: false,
+          message: "Please login first."
+        };
+      }
+
+
+      const versionAtStart =
+        wishlistOperationVersion.current;
+
+
+      setWishlistLoading(true);
+
+
+      try {
+
+        const res =
+          await axios.get(
+            `${API_URL}/wishlist`,
+            {
+              withCredentials: true
+            }
+          );
+
+
+        if (
+          versionAtStart !==
+          wishlistOperationVersion.current
+        ) {
+
+          return {
+            success: false,
+            message: "A newer wishlist operation has started."
+          };
+        }
+
+
+        const wishlistProducts =
+          Array.isArray(
+            res.data?.products
+          )
+            ? res.data.products
+            : [];
+
+
+        setWishlist(
+          wishlistProducts
+        );
+
+
+        return {
+          success: true,
+          data: wishlistProducts
+        };
+
+      } catch (err) {
+
+        console.log(
+          "Fetch wishlist error:",
+          err
+        );
+
+
+        if (
+          versionAtStart ===
+          wishlistOperationVersion.current
+        ) {
+
+          if (
+            err.response?.status !== 401
+          ) {
+
+            setWishlist([]);
+          }
+        }
+
+
+        return {
+          success: false,
+          error: err,
+          message:
+            err.response?.data?.message ||
+            "Unable to load your wishlist."
+        };
+
+      } finally {
+
+        if (
+          versionAtStart ===
+          wishlistOperationVersion.current
+        ) {
+
+          setWishlistLoading(false);
+        }
+      }
+
+    },
+    [
+      user
+    ]
+  );
+
+
+  // =========================================================
+  // LOAD WISHLIST AFTER AUTHENTICATION
+  // =========================================================
+
+  useEffect(() => {
+
+    if (!authChecked) {
+      return;
+    }
+
+
+    if (!user) {
+
+      wishlistOperationVersion.current += 1;
+
+      setWishlist([]);
+
+      setWishlistLoading(false);
+
+      return;
+    }
+
+
+    fetchWishlist();
+
+  }, [
+    user,
+    authChecked,
+    fetchWishlist
+  ]);
+
+
+  // =========================================================
+  // GET CSRF TOKEN
+  // =========================================================
+  //
+  // The backend protects wishlist POST and DELETE requests.
+  //
+  // Fetch a CSRF token first, then send it through the header
+  // expected by the existing CSRF middleware.
+  //
+  // The backend endpoint returns the token in its JSON body
+  // and stores it in the readable XSRF-TOKEN cookie.
+  // =========================================================
+
+  const getCSRFToken = async () => {
+
+    const res =
+      await axios.get(
+        `${API_URL}/auth/csrf`,
+        {
+          withCredentials: true
+        }
+      );
+
+
+    const token =
+      res.data?.csrfToken ||
+      res.data?.token ||
+      res.data?.xsrfToken;
+
+
+    if (!token) {
+
+      throw new Error(
+        "Unable to retrieve the CSRF token."
+      );
+    }
+
+
+    return token;
+  };
+
+
+  // =========================================================
+  // ADD TO WISHLIST
+  // =========================================================
+
+  const addToWishlist = async (
+    id
+  ) => {
+
+    if (!user) {
+
+      return {
+        success: false,
+        message: "Please login first."
+      };
+    }
+
+
+    if (
+      id === undefined ||
+      id === null ||
+      String(id).trim() === ""
+    ) {
+
+      return {
+        success: false,
+        message: "Invalid product."
+      };
+    }
+
+
+    const productId =
+      String(id).trim();
+
+
+    const existingProduct =
+      wishlist.find(
+        (product) =>
+          String(
+            product.id ??
+            product._id
+          ) === productId
+      );
+
+
+    if (existingProduct) {
+
+      return {
+        success: true,
+        alreadyExists: true,
+        message: "This product is already in your wishlist."
+      };
+    }
+
+
+    wishlistOperationVersion.current += 1;
+
+    const operationVersion =
+      wishlistOperationVersion.current;
+
+
+    try {
+
+      const csrfToken =
+        await getCSRFToken();
+
+
+      const res =
+        await axios.post(
+          `${API_URL}/wishlist/${encodeURIComponent(
+            productId
+          )}`,
+          {},
+          {
+            withCredentials: true,
+
+            headers: {
+              "X-CSRF-Token": csrfToken
+            }
+          }
+        );
+
+
+      if (
+        operationVersion ===
+        wishlistOperationVersion.current
+      ) {
+
+        const wishlistProducts =
+          Array.isArray(
+            res.data?.products
+          )
+            ? res.data.products
+            : [];
+
+
+        setWishlist(
+          wishlistProducts
+        );
+      }
+
+
+      return {
+        success: true,
+        data: res.data?.products || [],
+        message:
+          res.data?.message ||
+          "Product added to your wishlist."
+      };
+
+    } catch (err) {
+
+      console.log(
+        "Add to wishlist error:",
+        err
+      );
+
+
+      if (
+        err.response?.status === 401
+      ) {
+
+        authOperationVersion.current += 1;
+
+        localStorage.removeItem("user");
+
+        setUser(null);
+
+        setCartItems({});
+
+        setOrders([]);
+
+        setWishlist([]);
+      }
+
+
+      return {
+        success: false,
+        error: err,
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Unable to add this product to your wishlist."
+      };
+    }
+  };
+
+
+  // =========================================================
+  // REMOVE FROM WISHLIST
+  // =========================================================
+
+  const removeFromWishlist = async (
+    id
+  ) => {
+
+    if (!user) {
+
+      return {
+        success: false,
+        message: "Please login first."
+      };
+    }
+
+
+    if (
+      id === undefined ||
+      id === null ||
+      String(id).trim() === ""
+    ) {
+
+      return {
+        success: false,
+        message: "Invalid product."
+      };
+    }
+
+
+    const productId =
+      String(id).trim();
+
+
+    wishlistOperationVersion.current += 1;
+
+    const operationVersion =
+      wishlistOperationVersion.current;
+
+
+    try {
+
+      const csrfToken =
+        await getCSRFToken();
+
+
+      const res =
+        await axios.delete(
+          `${API_URL}/wishlist/${encodeURIComponent(
+            productId
+          )}`,
+          {
+            withCredentials: true,
+
+            headers: {
+              "X-CSRF-Token": csrfToken
+            }
+          }
+        );
+
+
+      if (
+        operationVersion ===
+        wishlistOperationVersion.current
+      ) {
+
+        const wishlistProducts =
+          Array.isArray(
+            res.data?.products
+          )
+            ? res.data.products
+            : [];
+
+
+        setWishlist(
+          wishlistProducts
+        );
+      }
+
+
+      return {
+        success: true,
+        data: res.data?.products || [],
+        message:
+          res.data?.message ||
+          "Product removed from your wishlist."
+      };
+
+    } catch (err) {
+
+      console.log(
+        "Remove from wishlist error:",
+        err
+      );
+
+
+      if (
+        err.response?.status === 401
+      ) {
+
+        authOperationVersion.current += 1;
+
+        localStorage.removeItem("user");
+
+        setUser(null);
+
+        setCartItems({});
+
+        setOrders([]);
+
+        setWishlist([]);
+      }
+
+
+      return {
+        success: false,
+        error: err,
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Unable to remove this product from your wishlist."
+      };
+    }
+  };
+
+
+  // =========================================================
+  // CLEAR WISHLIST
+  // =========================================================
+
+  const clearWishlist = async () => {
+
+    if (!user) {
+
+      return {
+        success: false,
+        message: "Please login first."
+      };
+    }
+
+
+    if (wishlist.length === 0) {
+
+      return {
+        success: true,
+        message: "Your wishlist is already empty."
+      };
+    }
+
+
+    wishlistOperationVersion.current += 1;
+
+    const operationVersion =
+      wishlistOperationVersion.current;
+
+
+    try {
+
+      const csrfToken =
+        await getCSRFToken();
+
+
+      const res =
+        await axios.delete(
+          `${API_URL}/wishlist`,
+          {
+            withCredentials: true,
+
+            headers: {
+              "X-CSRF-Token": csrfToken
+            }
+          }
+        );
+
+
+      if (
+        operationVersion ===
+        wishlistOperationVersion.current
+      ) {
+
+        setWishlist(
+          Array.isArray(
+            res.data?.products
+          )
+            ? res.data.products
+            : []
+        );
+      }
+
+
+      return {
+        success: true,
+        message:
+          res.data?.message ||
+          "Your wishlist has been cleared."
+      };
+
+    } catch (err) {
+
+      console.log(
+        "Clear wishlist error:",
+        err
+      );
+
+
+      if (
+        err.response?.status === 401
+      ) {
+
+        authOperationVersion.current += 1;
+
+        localStorage.removeItem("user");
+
+        setUser(null);
+
+        setCartItems({});
+
+        setOrders([]);
+
+        setWishlist([]);
+      }
+
+
+      return {
+        success: false,
+        error: err,
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          "Unable to clear your wishlist."
+      };
+    }
+  };
+
+
+  // =========================================================
+  // CHECK WISHLIST
+  // =========================================================
+
+  const isInWishlist = useCallback(
+    (id) => {
+
+      if (
+        id === undefined ||
+        id === null
+      ) {
+
+        return false;
+      }
+
+
+      const productId =
+        String(id);
+
+
+      return wishlist.some(
+        (product) =>
+          String(
+            product.id ??
+            product._id
+          ) === productId
+      );
+
+    },
+    [
+      wishlist
+    ]
+  );
+
+
+  // =========================================================
   // ADD TO CART
   // =========================================================
 
@@ -726,7 +1357,7 @@ const ShopContextProvider = ({ children }) => {
       // The backend gets the authenticated user from
       // the HTTP-only JWT cookie.
       //
-      // We do NOT send userId anymore.
+      // We do NOT send userId.
       // -----------------------------------------------------
 
       const res =
@@ -1557,6 +2188,14 @@ const ShopContextProvider = ({ children }) => {
 
 
   // =========================================================
+  // GET WISHLIST COUNT
+  // =========================================================
+
+  const getWishlistCount = () =>
+    wishlist.length;
+
+
+  // =========================================================
   // CONTEXT
   // =========================================================
 
@@ -1582,7 +2221,16 @@ const ShopContextProvider = ({ children }) => {
         cancelOrder,
 
         getCartTotal,
-        getCartCount
+        getCartCount,
+
+        wishlist,
+        wishlistLoading,
+        fetchWishlist,
+        addToWishlist,
+        removeFromWishlist,
+        clearWishlist,
+        isInWishlist,
+        getWishlistCount
       }}
     >
       {children}

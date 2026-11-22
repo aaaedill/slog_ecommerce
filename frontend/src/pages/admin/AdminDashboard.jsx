@@ -11,7 +11,8 @@ import {
 } from "recharts";
 import API_URL from "../../config/api";
 
-const COLORS = ["#f97316", "#38bdf8"];
+/* Chart colours: Last Week = white, This Week = red */
+const COLORS = ["#ffffff", "#ff2d3f"];
 
 const AdminDashboard = () => {
 
@@ -154,7 +155,7 @@ const AdminDashboard = () => {
   };
 
   /* ─────────────────────────────────────────────────────────
-     TOTAL SALES
+     TOTALS
   ───────────────────────────────────────────────────────── */
 
   const totalSales =
@@ -169,23 +170,11 @@ const AdminDashboard = () => {
       0
     );
 
-  /* ─────────────────────────────────────────────────────────
-     TOTAL ORDERS
-  ───────────────────────────────────────────────────────── */
-
   const totalOrders =
     orders.length;
 
-  /* ─────────────────────────────────────────────────────────
-     TOTAL PRODUCTS
-  ───────────────────────────────────────────────────────── */
-
   const totalProducts =
     products.length;
-
-  /* ─────────────────────────────────────────────────────────
-     TOTAL CUSTOMERS
-  ───────────────────────────────────────────────────────── */
 
   const totalCustomers =
     users.filter(
@@ -235,7 +224,7 @@ const AdminDashboard = () => {
     );
 
   /* ─────────────────────────────────────────────────────────
-     LAST WEEK ORDERS
+     LAST WEEK / THIS WEEK ORDERS
   ───────────────────────────────────────────────────────── */
 
   const lastWeekOrderList =
@@ -256,10 +245,6 @@ const AdminDashboard = () => {
       );
     });
 
-  /* ─────────────────────────────────────────────────────────
-     THIS WEEK ORDERS
-  ───────────────────────────────────────────────────────── */
-
   const thisWeekOrderList =
     orders.filter((order) => {
 
@@ -276,10 +261,6 @@ const AdminDashboard = () => {
       );
     });
 
-  /* ─────────────────────────────────────────────────────────
-     LAST WEEK SALES
-  ───────────────────────────────────────────────────────── */
-
   const lastWeekSales =
     lastWeekOrderList.reduce(
       (sum, order) =>
@@ -291,10 +272,6 @@ const AdminDashboard = () => {
         ),
       0
     );
-
-  /* ─────────────────────────────────────────────────────────
-     THIS WEEK SALES
-  ───────────────────────────────────────────────────────── */
 
   const thisWeekSales =
     thisWeekOrderList.reduce(
@@ -308,16 +285,8 @@ const AdminDashboard = () => {
       0
     );
 
-  /* ─────────────────────────────────────────────────────────
-     LAST WEEK ORDER COUNT
-  ───────────────────────────────────────────────────────── */
-
   const lastWeekOrders =
     lastWeekOrderList.length;
-
-  /* ─────────────────────────────────────────────────────────
-     THIS WEEK ORDER COUNT
-  ───────────────────────────────────────────────────────── */
 
   const thisWeekOrders =
     thisWeekOrderList.length;
@@ -460,8 +429,7 @@ const AdminDashboard = () => {
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
       ),
-      accent: "#f97316",
-      glow: "rgba(249,115,22,0.15)",
+      accent: "#ff2d3f",
     },
 
     {
@@ -490,8 +458,7 @@ const AdminDashboard = () => {
           <path d="M16 10a4 4 0 0 1-8 0" />
         </svg>
       ),
-      accent: "#38bdf8",
-      glow: "rgba(56,189,248,0.15)",
+      accent: "#ff2d3f",
     },
 
     {
@@ -519,8 +486,7 @@ const AdminDashboard = () => {
           <path d="M8 21h8M12 17v4" />
         </svg>
       ),
-      accent: "#a78bfa",
-      glow: "rgba(167,139,250,0.15)",
+      accent: "#ff2d3f",
     },
 
     {
@@ -550,8 +516,7 @@ const AdminDashboard = () => {
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
-      accent: "#34d399",
-      glow: "rgba(52,211,153,0.15)",
+      accent: "#ff2d3f",
     },
   ];
 
@@ -560,15 +525,24 @@ const AdminDashboard = () => {
   ───────────────────────────────────────────────────────── */
 
   const customTooltipStyle = {
-    backgroundColor: "#161b27",
-    border:
-      "1px solid rgba(255,255,255,0.1)",
+    backgroundColor: "#000000",
+    border: "1px solid #ff2d3f",
     borderRadius: "10px",
     color: "#ffffff",
     fontSize: "13px",
-    boxShadow:
-      "0 8px 24px rgba(0,0,0,0.4)",
   };
+
+  /* ─────────────────────────────────────────────────────────
+     STATUS CLASS (styling only)
+  ───────────────────────────────────────────────────────── */
+
+  const statusClass =
+    order_status =>
+      order_status === "Delivered"
+        ? "ad-badge ad-badge--delivered"
+        : order_status === "Cancelled"
+        ? "ad-badge ad-badge--cancelled"
+        : "ad-badge ad-badge--pending";
 
   /* ─────────────────────────────────────────────────────────
      RENDER
@@ -576,71 +550,333 @@ const AdminDashboard = () => {
 
   return (
     <div
-      className="min-h-screen flex justify-center items-start p-3 sm:p-5 md:p-8 rounded-3xl"
-      style={{
-        background: "#0b1120"
-      }}
+      className="ad-root min-h-screen flex justify-center items-start p-3 sm:p-5 md:p-8"
     >
 
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+        .ad-root {
+          --ad-red:        #ff2d3f;
+          --ad-line:       rgba(255, 45, 63, 0.22);
+          --ad-line-hover: rgba(255, 45, 63, 0.6);
+          --ad-white:      #ffffff;
+          --ad-white-soft: rgba(255, 255, 255, 0.7);
+
+          position: relative;
+          overflow: hidden;
+          background: #000000;
+          color: var(--ad-white);
+          font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Entrance ── */
+        .ad-rise {
+          opacity: 0;
+          animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes ad-rise {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Heading ── */
+        .ad-overline {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.65rem;
+          color: var(--ad-red);
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          margin-bottom: 0.5rem;
+        }
+
+        .ad-overline::before {
+          content: '';
+          width: 28px;
+          height: 2px;
+          background: var(--ad-red);
+        }
+
+        .ad-title {
+          color: var(--ad-white);
+          font-weight: 800;
+          letter-spacing: -0.03em;
+          line-height: 1.05;
+          font-size: clamp(2.2rem, 4vw, 3rem);
+        }
+
+        .ad-title-bar {
+          margin-top: 1rem;
+          height: 2px;
+          width: 84px;
+          border-radius: 2px;
+          background: var(--ad-red);
+          transform-origin: left center;
+          animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+        }
+
+        @keyframes ad-draw {
+          from { transform: scaleX(0); }
+          to   { transform: scaleX(1); }
+        }
+
+        /* ── Stat cards ── */
+        .ad-stat {
+          position: relative;
+          background: transparent;
+          border: 1px solid var(--ad-line);
+          border-radius: 16px;
+          transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .ad-stat:hover {
+          transform: translateY(-2px);
+          border-color: var(--ad-line-hover);
+        }
+
+        .ad-stat-label {
+          color: var(--ad-white-soft);
+          font-size: 0.9rem;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+        }
+
+        .ad-stat-value {
+          color: var(--ad-white);
+          font-weight: 800;
+          letter-spacing: -0.03em;
+          font-variant-numeric: tabular-nums;
+          font-size: clamp(1.9rem, 2.6vw, 2.4rem);
+          line-height: 1.1;
+        }
+
+        .ad-icon {
+          color: var(--accent);
+          background: rgba(255, 45, 63, 0.1);
+          border: 1px solid var(--ad-line);
+          transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .ad-stat:hover .ad-icon {
+          background: var(--accent);
+          color: #ffffff;
+        }
+
+        .ad-stat-bar {
+          height: 2px;
+          width: 48px;
+          border-radius: 2px;
+          background: var(--accent);
+          transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .ad-stat:hover .ad-stat-bar { width: 100%; }
+
+        /* ── Panels (charts + orders) ── */
+        .ad-panel {
+          position: relative;
+          background: transparent;
+          border: 1px solid var(--ad-line);
+          border-radius: 16px;
+          transition: border-color 0.3s ease;
+        }
+
+        .ad-panel:hover {
+          border-color: var(--ad-line-hover);
+        }
+
+        .ad-panel-title {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          color: var(--ad-white);
+          font-weight: 700;
+          letter-spacing: -0.015em;
+          font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+        }
+
+        .ad-panel-title::before {
+          content: '';
+          width: 3px;
+          height: 1.1em;
+          border-radius: 2px;
+          background: var(--ad-red);
+        }
+
+        /* ── Recharts text → white ── */
+        .ad-root .recharts-pie-label-text {
+          fill: #ffffff !important;
+          font-size: 0.95rem;
+          font-weight: 700;
+        }
+
+        .ad-root .recharts-legend-item-text {
+          color: #ffffff !important;
+          font-weight: 600;
+        }
+
+        .ad-root .recharts-sector {
+          outline: none;
+          transition: opacity 0.2s ease;
+        }
+
+        .ad-root .recharts-sector:hover {
+          opacity: 0.85;
+        }
+
+        /* ── Latest pill ── */
+        .ad-pill {
+          color: #ffffff;
+          background: var(--ad-red);
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 0.03em;
+        }
+
+        /* ── Table ── */
+        .ad-thead {
+          color: var(--ad-white-soft);
+          border-bottom: 1px solid var(--ad-line);
+          font-size: 0.74rem;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        .ad-row {
+          position: relative;
+          background: transparent;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          transition: background 0.25s ease;
+        }
+
+        .ad-row::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 18%;
+          bottom: 18%;
+          width: 2px;
+          border-radius: 2px;
+          background: var(--ad-red);
+          transform: scaleY(0);
+          transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .ad-row:hover {
+          background: rgba(255, 255, 255, 0.04);
+        }
+
+        .ad-row:hover::before { transform: scaleY(1); }
+
+        .ad-row:last-child { border-bottom: none; }
+
+        .ad-cell-id {
+          color: var(--ad-white);
+          font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: 0.9rem;
+          font-weight: 600;
+        }
+
+        .ad-cell-amount {
+          color: var(--ad-white);
+          font-size: 0.98rem;
+          font-weight: 800;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .ad-cell-date {
+          color: var(--ad-white-soft);
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+
+        .ad-empty {
+          color: var(--ad-white-soft);
+          font-size: 0.95rem;
+          font-weight: 500;
+        }
+
+        /* ── Status badges ── */
+        .ad-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          padding: 0.3rem 0.8rem;
+          border-radius: 999px;
+          font-size: 0.76rem;
+          font-weight: 700;
+          letter-spacing: 0.03em;
+        }
+
+        .ad-badge-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: currentColor;
+        }
+
+        .ad-badge--delivered {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .ad-badge--pending {
+          color: #ff9aa4;
+          background: rgba(255, 154, 164, 0.08);
+          border: 1px solid rgba(255, 154, 164, 0.3);
+        }
+
+        .ad-badge--cancelled {
+          color: #ffffff;
+          background: rgba(255, 45, 63, 0.22);
+          border: 1px solid rgba(255, 45, 63, 0.6);
+        }
+
+        /* ── Reduced motion ── */
+        @media (prefers-reduced-motion: reduce) {
+          .ad-rise,
+          .ad-title-bar {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+          }
+
+          .ad-stat,
+          .ad-icon,
+          .ad-stat-bar,
+          .ad-row,
+          .ad-row::before {
+            transition: none !important;
+          }
+        }
+      `}</style>
+
       <div
-        className="w-full max-w-7xl relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8"
-        style={{
-          background:
-            "linear-gradient(145deg, #0f1623 0%, #131a28 100%)",
-
-          border:
-            "1px solid rgba(255,255,255,0.07)",
-
-          boxShadow:
-            "0 24px 64px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset",
-        }}
+        className="w-full max-w-7xl relative p-2 sm:p-4 md:p-6"
       >
-
-        {/* AMBIENT GLOWS */}
-
-        <div
-          className="absolute -top-40 -left-40 w-96 h-96 rounded-full blur-3xl pointer-events-none"
-          style={{
-            background:
-              "rgba(249,115,22,0.08)"
-          }}
-        />
-
-        <div
-          className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full blur-3xl pointer-events-none"
-          style={{
-            background:
-              "rgba(99,102,241,0.08)"
-          }}
-        />
 
         {/* PAGE HEADING */}
 
         <div
-          className="mb-8 sm:mb-10 relative"
+          className="mb-8 sm:mb-10 relative ad-rise"
         >
 
-          <p
-            className="text-xs font-semibold uppercase tracking-widest mb-1"
-            style={{
-              color: "#f97316",
-              letterSpacing:
-                "0.18em"
-            }}
-          >
+          <p className="ad-overline">
             Overview
           </p>
 
-          <h1
-            className="text-2xl sm:text-3xl font-bold"
-            style={{
-              color: "#f1f5f9",
-              letterSpacing:
-                "-0.02em"
-            }}
-          >
+          <h1 className="ad-title">
             Dashboard
           </h1>
+
+          <div className="ad-title-bar" />
 
         </div>
 
@@ -655,66 +891,32 @@ const AdminDashboard = () => {
 
               <div
                 key={i}
-                className="rounded-xl p-5 flex flex-col gap-4 transition-all duration-300"
+                className="ad-stat ad-rise rounded-xl p-5 flex flex-col gap-4"
                 style={{
-                  background:
-                    "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                  boxShadow:
-                    `0 4px 20px ${card.glow}`,
+                  "--accent": card.accent,
+                  animationDelay: `${0.1 + i * 0.07}s`,
                 }}
               >
 
                 <div className="flex items-center justify-between">
 
-                  <p
-                    className="text-sm font-medium"
-                    style={{
-                      color:
-                        "#94a3b8"
-                    }}
-                  >
+                  <p className="ad-stat-label">
                     {card.label}
                   </p>
 
                   <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center"
-                    style={{
-                      background:
-                        card.glow,
-
-                      border:
-                        `1px solid ${card.accent}30`,
-
-                      color:
-                        card.accent,
-                    }}
+                    className="ad-icon w-10 h-10 rounded-lg flex items-center justify-center"
                   >
                     {card.icon}
                   </div>
 
                 </div>
 
-                <h2
-                  className="text-2xl sm:text-3xl font-bold tracking-tight"
-                  style={{
-                    color:
-                      "#f1f5f9"
-                  }}
-                >
+                <h2 className="ad-stat-value">
                   {card.value}
                 </h2>
 
-                <div
-                  className="h-0.5 rounded-full w-12"
-                  style={{
-                    background:
-                      `linear-gradient(90deg, ${card.accent}, transparent)`
-                  }}
-                />
+                <div className="ad-stat-bar" />
 
               </div>
 
@@ -751,25 +953,14 @@ const AdminDashboard = () => {
 
               <div
                 key={i}
-                className="rounded-xl p-5 sm:p-6"
+                className="ad-panel ad-rise rounded-xl p-5 sm:p-6"
                 style={{
-                  background:
-                    "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
-
-                  border:
-                    "1px solid rgba(255,255,255,0.08)",
+                  animationDelay: `${0.4 + i * 0.08}s`,
                 }}
               >
 
                 <h2
-                  className="text-base sm:text-lg font-semibold mb-5"
-                  style={{
-                    color:
-                      "#e2e8f0",
-
-                    letterSpacing:
-                      "-0.01em"
-                  }}
+                  className="ad-panel-title mb-5"
                 >
                   {chart.title}
                 </h2>
@@ -814,7 +1005,8 @@ const AdminDashboard = () => {
                         return `${value}`;
                       }}
                       labelLine={false}
-                      strokeWidth={0}
+                      stroke="#000000"
+                      strokeWidth={2}
                       isAnimationActive={true}
                     >
 
@@ -831,10 +1023,10 @@ const AdminDashboard = () => {
                             fill={
                               entry.name ===
                               "No Sales Yet"
-                                ? "#475569"
+                                ? "#2a2a2a"
                                 : entry.name ===
                                   "No Orders Yet"
-                                ? "#475569"
+                                ? "#2a2a2a"
                                 : COLORS[
                                     index %
                                       COLORS.length
@@ -865,7 +1057,7 @@ const AdminDashboard = () => {
                     <Legend
                       wrapperStyle={{
                         color:
-                          "#94a3b8",
+                          "#ffffff",
 
                         fontSize:
                           "13px"
@@ -886,13 +1078,9 @@ const AdminDashboard = () => {
         {/* RECENT ORDERS */}
 
         <div
-          className="rounded-xl p-5 sm:p-6 relative"
+          className="ad-panel ad-rise rounded-xl p-5 sm:p-6 relative"
           style={{
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
-
-            border:
-              "1px solid rgba(255,255,255,0.08)",
+            animationDelay: "0.55s",
           }}
         >
 
@@ -901,30 +1089,13 @@ const AdminDashboard = () => {
           >
 
             <h2
-              className="text-base sm:text-lg font-semibold"
-              style={{
-                color:
-                  "#e2e8f0",
-
-                letterSpacing:
-                  "-0.01em"
-              }}
+              className="ad-panel-title"
             >
               Recent Orders
             </h2>
 
             <span
-              className="text-xs font-medium px-2.5 py-1 rounded-full"
-              style={{
-                background:
-                  "rgba(249,115,22,0.12)",
-
-                color:
-                  "#f97316",
-
-                border:
-                  "1px solid rgba(249,115,22,0.2)",
-              }}
+              className="ad-pill px-3 py-1 rounded-full"
             >
               Latest{" "}
               {recentOrders.length}
@@ -935,17 +1106,7 @@ const AdminDashboard = () => {
           {/* TABLE HEADER */}
 
           <div
-            className="hidden sm:grid grid-cols-4 gap-4 px-4 py-2 rounded-lg mb-2 text-xs font-semibold uppercase tracking-wider"
-            style={{
-              background:
-                "rgba(255,255,255,0.04)",
-
-              color:
-                "#64748b",
-
-              letterSpacing:
-                "0.08em",
-            }}
+            className="ad-thead hidden sm:grid grid-cols-4 gap-4 px-4 py-3 mb-1"
           >
 
             <span>
@@ -967,7 +1128,7 @@ const AdminDashboard = () => {
           </div>
 
           <div
-            className="flex flex-col gap-2"
+            className="flex flex-col"
           >
 
             {recentOrders.map(
@@ -975,22 +1136,11 @@ const AdminDashboard = () => {
 
                 <div
                   key={order.id}
-                  className="grid grid-cols-2 sm:grid-cols-4 gap-4 px-4 py-3.5 rounded-xl transition-all duration-200"
-                  style={{
-                    background:
-                      "rgba(255,255,255,0.02)",
-
-                    border:
-                      "1px solid rgba(255,255,255,0.05)",
-                  }}
+                  className="ad-row grid grid-cols-2 sm:grid-cols-4 gap-4 px-4 py-4 items-center"
                 >
 
                   <div
-                    className="text-sm font-medium font-mono"
-                    style={{
-                      color:
-                        "#cbd5e1"
-                    }}
+                    className="ad-cell-id"
                   >
                     #
                     {order.orderId ||
@@ -998,11 +1148,7 @@ const AdminDashboard = () => {
                   </div>
 
                   <div
-                    className="text-sm font-semibold"
-                    style={{
-                      color:
-                        "#f1f5f9"
-                    }}
+                    className="ad-cell-amount"
                   >
                     ₹
                     {Number(
@@ -1013,11 +1159,7 @@ const AdminDashboard = () => {
                   </div>
 
                   <div
-                    className="text-sm hidden sm:block"
-                    style={{
-                      color:
-                        "#64748b"
-                    }}
+                    className="ad-cell-date hidden sm:block"
                   >
                     {order.date ||
                       (
@@ -1034,57 +1176,13 @@ const AdminDashboard = () => {
                   <div>
 
                     <span
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
-                      style={
-                        order.status ===
-                        "Delivered"
-                          ? {
-                              background:
-                                "rgba(52,211,153,0.12)",
-
-                              color:
-                                "#34d399",
-
-                              border:
-                                "1px solid rgba(52,211,153,0.2)",
-                            }
-                          : order.status ===
-                            "Cancelled"
-                          ? {
-                              background:
-                                "rgba(239,68,68,0.12)",
-
-                              color:
-                                "#f87171",
-
-                              border:
-                                "1px solid rgba(239,68,68,0.2)",
-                            }
-                          : {
-                              background:
-                                "rgba(249,115,22,0.12)",
-
-                              color:
-                                "#f97316",
-
-                              border:
-                                "1px solid rgba(249,115,22,0.2)",
-                            }
-                      }
+                      className={statusClass(
+                        order.status
+                      )}
                     >
 
                       <span
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{
-                          background:
-                            order.status ===
-                            "Delivered"
-                              ? "#34d399"
-                              : order.status ===
-                                "Cancelled"
-                              ? "#f87171"
-                              : "#f97316",
-                        }}
+                        className="ad-badge-dot"
                       />
 
                       {order.status ===
@@ -1108,11 +1206,7 @@ const AdminDashboard = () => {
               0 && (
 
               <div
-                className="text-center py-10 text-sm"
-                style={{
-                  color:
-                    "#475569"
-                }}
+                className="ad-empty text-center py-10"
               >
                 No orders found.
               </div>

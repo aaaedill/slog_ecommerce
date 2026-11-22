@@ -7,7 +7,10 @@ display: block;
 
 * {
   font-family: outfit;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+  color 0.2s ease,
+  background-color 0.2s ease,
+  border-color 0.2s ease;
   }
 
 .prata-regular {
@@ -16,65 +19,185 @@ font-weight: 400;
 font-style: normal;
 }
 
-/* ─── THEME TOKENS ─── */
-:root {
---bg-primary: #EEF1FC;
---bg-secondary: #EDE9DF;
---bg-card: #FAF8F4;
---bg-elevated: #FFFFFF;
+/* =========================================================
+GLOBAL THEME TOKENS
+========================================================= */
 
---olive-primary: #5C6B3A;
+:root {
+
+/*
+
+* LIGHT MODE
+*
+* The entire customer-facing website uses the
+* light olive surface as its main canvas.
+*
+* Individual pages should not need a separate
+* outer white/cream container.
+  */
+
+--bg-primary: #F1F4E8;
+
+/*
+
+* Secondary is intentionally kept very close to
+* the main olive canvas.
+*
+* This prevents secondary surfaces from looking
+* like large floating cards.
+  */
+
+--bg-secondary: #EDEFE2;
+
+/*
+
+* Kept as a token for components that genuinely
+* require a small surface such as an image area
+* or a functional control.
+*
+* Page-level cards should not use this as a
+* large surrounding container.
+  */
+
+--bg-card: #F1F4E8;
+
+/*
+
+* Elevated surfaces are also kept close to the
+* main canvas so they do not create the old
+* "card sitting on background" appearance.
+  */
+
+--bg-elevated: #F1F4E8;
+
+/* ─────────────────────────────────────────────
+OLIVE PALETTE
+───────────────────────────────────────────── */
+
+--olive-primary: #6B8E23;
 --olive-secondary: #7A8C4E;
---olive-light: #A3B07A;
+--olive-light: #A9C46C;
 --olive-muted: #DDE3D0;
---olive-glow: rgba(92, 107, 58, 0.10);
+--olive-glow: rgba(107, 142, 35, 0.10);
+
+/* ─────────────────────────────────────────────
+TEXT
+───────────────────────────────────────────── */
 
 --text-primary: #2A2E1E;
---text-secondary: #7A7D6A;
---text-accent: #5C6B3A;
+--text-secondary: #6F7560;
+--text-accent: #6B8E23;
 
---border-subtle: rgba(92, 107, 58, 0.08);
---border-default: rgba(92, 107, 58, 0.18);
---border-strong: rgba(92, 107, 58, 0.40);
+/* ─────────────────────────────────────────────
+BORDERS
+───────────────────────────────────────────── */
+
+--border-subtle: rgba(107, 142, 35, 0.08);
+--border-default: rgba(107, 142, 35, 0.16);
+--border-strong: rgba(107, 142, 35, 0.32);
+}
+
+/* =========================================================
+GLOBAL BODY
+========================================================= */
+
+html,
+body,
+#root {
+min-height: 100%;
 }
 
 body {
+
+/*
+
+* LIGHT MODE MAIN CANVAS
+  */
+
 background-color: var(--bg-primary);
+
 color: var(--text-primary);
-background-image: radial-gradient(
+
+/*
+
+* Very subtle olive atmosphere.
+*
+* This is deliberately restrained so the page
+* still reads as one continuous surface rather
+* than a background behind another container.
+  */
+
+background-image:
+radial-gradient(
 ellipse 80% 50% at 50% -10%,
-rgba(46, 93, 255, 0.06) 0%,
+rgba(107, 142, 35, 0.07) 0%,
 transparent 70%
 );
+
 background-attachment: fixed;
+
 min-height: 100vh;
+
+margin: 0;
 }
 
-/* ─── SCROLLBAR ─── */
+/* =========================================================
+GLOBAL ROOT SURFACE
+========================================================= */
+
+#root {
+
+min-height: 100vh;
+
+background-color: var(--bg-primary);
+
+color: var(--text-primary);
+}
+
+/* =========================================================
+SCROLLBAR
+========================================================= */
+
 ::-webkit-scrollbar {
 width: 6px;
 }
+
 ::-webkit-scrollbar-track {
 background: var(--bg-secondary);
 }
+
 ::-webkit-scrollbar-thumb {
 background: var(--olive-muted);
 border-radius: 999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
 background: var(--olive-secondary);
 }
 
-/* ─── SELECTION ─── */
+/* =========================================================
+TEXT SELECTION
+========================================================= */
+
 ::selection {
-background: rgba(92, 107, 58, 0.18);
+background: rgba(107, 142, 35, 0.18);
 color: var(--olive-primary);
 }
 
-/* ─── ANIMATIONS ─── */
+/* =========================================================
+ANIMATIONS
+========================================================= */
+
 @keyframes fadeIn {
-from { opacity: 0; }
-to   { opacity: 1; }
+
+from {
+opacity: 0;
+}
+
+to {
+opacity: 1;
+}
+
 }
 
 .animate-fadeIn {
@@ -82,68 +205,187 @@ animation: fadeIn 0.25s ease;
 }
 
 @keyframes slideDown {
+
 from {
 opacity: 0;
 transform: translateY(-20px);
 }
+
 to {
 opacity: 1;
 transform: translateY(0);
 }
+
 }
 
 .animate-slideDown {
 animation: slideDown 0.3s ease;
 }
 
-/* ─────────────────────────────────────────────
+/* =========================================================
 DARK MODE
-───────────────────────────────────────────── */
+========================================================= */
 
 html.dark-mode {
---bg-primary: #0F172A;
---bg-secondary: #111827;
---bg-card: #1E293B;
---bg-elevated: #1E293B;
 
---olive-primary: #93A4FF;
---olive-secondary: #7C8FFF;
---olive-light: #A8B4FF;
---olive-muted: #334155;
---olive-glow: rgba(47, 93, 255, 0.16);
+/*
+
+* IMPORTANT
+*
+* The old dark-mode background was:
+*
+* #0F172A
+*
+* That blue/slate surface is being removed.
+*
+* The new global dark canvas is pure black,
+* matching the black surface we want throughout
+* the customer-facing website.
+  */
+
+--bg-primary: #000000;
+
+/*
+
+* Secondary surfaces stay extremely close to
+* black. This prevents large secondary sections
+* from becoming visible blue/gray containers.
+  */
+
+--bg-secondary: #050505;
+
+/*
+
+* Page-level cards are intentionally mapped to
+* the same black canvas.
+*
+* This is important while we flatten each page
+* individually: any remaining component that
+* references --bg-card will not suddenly become
+* a blue/slate card.
+  */
+
+--bg-card: #000000;
+
+/*
+
+* Same principle for elevated surfaces.
+  */
+
+--bg-elevated: #000000;
+
+/* ─────────────────────────────────────────────
+OLIVE PALETTE
+───────────────────────────────────────────── */
+
+--olive-primary: #A9C46C;
+--olive-secondary: #A9C46C;
+--olive-light: #C4D699;
+--olive-muted: #39452A;
+--olive-glow: rgba(169, 196, 108, 0.12);
+
+/* ─────────────────────────────────────────────
+TEXT
+───────────────────────────────────────────── */
 
 --text-primary: #F8FAFC;
---text-secondary: #94A3B8;
---text-accent: #93A4FF;
+--text-secondary: #AAB2A0;
+--text-accent: #A9C46C;
 
---border-subtle: rgba(148, 163, 184, 0.10);
---border-default: rgba(148, 163, 184, 0.18);
---border-strong: rgba(148, 163, 184, 0.35);
+/* ─────────────────────────────────────────────
+BORDERS
+───────────────────────────────────────────── */
+
+--border-subtle: rgba(169, 196, 108, 0.08);
+--border-default: rgba(169, 196, 108, 0.16);
+--border-strong: rgba(169, 196, 108, 0.30);
 }
+
+/* =========================================================
+DARK MODE BODY
+========================================================= */
 
 html.dark-mode body {
-background-color: var(--bg-primary);
+
+/*
+
+* PURE BLACK MAIN CANVAS
+  */
+
+background-color: #000000;
+
 color: var(--text-primary);
-background-image: radial-gradient(
+
+/*
+
+* Remove the old blue radial glow entirely.
+*
+* A very subtle olive atmospheric glow remains,
+* but the underlying surface is black.
+  */
+
+background-image:
+radial-gradient(
 ellipse 80% 50% at 50% -10%,
-rgba(47, 93, 255, 0.12) 0%,
+rgba(169, 196, 108, 0.07) 0%,
 transparent 70%
 );
+
+background-attachment: fixed;
 }
 
+/* =========================================================
+DARK MODE ROOT
+========================================================= */
+
+html.dark-mode #root {
+
+background-color: #000000;
+
+color: var(--text-primary);
+}
+
+/* =========================================================
+DARK MODE SCROLLBAR
+========================================================= */
+
 html.dark-mode ::-webkit-scrollbar-track {
-background: var(--bg-secondary);
+background: #050505;
 }
 
 html.dark-mode ::-webkit-scrollbar-thumb {
-background: #334155;
+background: #252A1D;
 }
 
 html.dark-mode ::-webkit-scrollbar-thumb:hover {
-background: #475569;
+background: #39452A;
 }
 
+/* =========================================================
+DARK MODE SELECTION
+========================================================= */
+
 html.dark-mode ::selection {
-background: rgba(47, 93, 255, 0.30);
+background: rgba(169, 196, 108, 0.24);
 color: #FFFFFF;
+}
+
+/* =========================================================
+GLOBAL SURFACE SAFETY
+=====================
+
+These rules establish the intended global canvas.
+
+Individual page components will be flattened
+separately in the following steps, where their
+page-specific card classes can be removed without
+disturbing functional controls.
+========================================================= */
+
+html.dark-mode {
+color-scheme: dark;
+}
+
+html:not(.dark-mode) {
+color-scheme: light;
 }
