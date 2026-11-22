@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 
@@ -39,7 +40,7 @@ const connectDB = async () => {
       );
 
       console.error(
-        "MONGO_URI is not defined in .env"
+        "MONGO_URI is not defined in environment variables."
       );
 
       console.error(
@@ -49,8 +50,7 @@ const connectDB = async () => {
       console.error("");
 
 
-      connectDB.isConnected =
-        false;
+      connectDB.isConnected = false;
 
 
       return false;
@@ -67,8 +67,7 @@ const connectDB = async () => {
       mongoose.connection.readyState === 1
     ) {
 
-      connectDB.isConnected =
-        true;
+      connectDB.isConnected = true;
 
 
       return true;
@@ -91,14 +90,11 @@ const connectDB = async () => {
       await mongoose.connect(
         mongoURI,
         {
-          serverSelectionTimeoutMS:
-            10000,
+          serverSelectionTimeoutMS: 15000,
 
-          connectTimeoutMS:
-            10000,
+          connectTimeoutMS: 15000,
 
-          socketTimeoutMS:
-            45000
+          socketTimeoutMS: 45000
         }
       );
 
@@ -107,8 +103,7 @@ const connectDB = async () => {
      * Mark the database as connected.
      */
 
-    connectDB.isConnected =
-      true;
+    connectDB.isConnected = true;
 
 
     console.log("");
@@ -144,8 +139,7 @@ const connectDB = async () => {
 
   } catch (error) {
 
-    connectDB.isConnected =
-      false;
+    connectDB.isConnected = false;
 
 
     console.error("");
@@ -163,7 +157,71 @@ const connectDB = async () => {
     );
 
     console.error(
-      `Error: ${error.message}`
+      "Error name:",
+      error.name
+    );
+
+    console.error(
+      "Error message:",
+      error.message
+    );
+
+
+    /*
+     * Display detailed MongoDB server-selection
+     * errors without exposing the connection URI.
+     */
+
+    if (error.reason?.servers) {
+
+      console.error("");
+
+      console.error(
+        "MongoDB server details:"
+      );
+
+      for (
+        const [address, server] of
+        error.reason.servers
+      ) {
+
+        console.error(
+          `Server: ${address}`
+        );
+
+        console.error(
+          `Server error: ${
+            server.error?.message ||
+            "No additional server error available."
+          }`
+        );
+
+      }
+
+    }
+
+
+    /*
+     * Display the underlying error when available.
+     */
+
+    if (error.cause) {
+
+      console.error("");
+
+      console.error(
+        "Underlying error:",
+        error.cause.message ||
+        error.cause
+      );
+
+    }
+
+
+    console.error("");
+
+    console.error(
+      "Check the MongoDB Atlas cluster status, network access, database credentials, and connection string."
     );
 
     console.error(
@@ -186,8 +244,7 @@ const connectDB = async () => {
 |--------------------------------------------------------------------------
 */
 
-connectDB.isConnected =
-  false;
+connectDB.isConnected = false;
 
 
 /*
@@ -211,12 +268,10 @@ connectDB.disconnect =
        */
 
       if (
-        mongoose.connection.readyState ===
-        0
+        mongoose.connection.readyState === 0
       ) {
 
-        connectDB.isConnected =
-          false;
+        connectDB.isConnected = false;
 
 
         return;
@@ -232,8 +287,7 @@ connectDB.disconnect =
       await mongoose.connection.close();
 
 
-      connectDB.isConnected =
-        false;
+      connectDB.isConnected = false;
 
 
       console.log(
@@ -242,13 +296,12 @@ connectDB.disconnect =
 
     } catch (error) {
 
-      connectDB.isConnected =
-        false;
+      connectDB.isConnected = false;
 
 
       console.error(
         "MongoDB disconnect error:",
-        error
+        error.message
       );
 
 
@@ -265,13 +318,11 @@ connectDB.disconnect =
 |--------------------------------------------------------------------------
 */
 
-
 mongoose.connection.on(
   "connected",
   () => {
 
-    connectDB.isConnected =
-      true;
+    connectDB.isConnected = true;
 
   }
 );
@@ -281,8 +332,7 @@ mongoose.connection.on(
   "disconnected",
   () => {
 
-    connectDB.isConnected =
-      false;
+    connectDB.isConnected = false;
 
 
     console.error(
@@ -297,8 +347,7 @@ mongoose.connection.on(
   "reconnected",
   () => {
 
-    connectDB.isConnected =
-      true;
+    connectDB.isConnected = true;
 
 
     console.log(
