@@ -1,5 +1,119 @@
 
 import mongoose from "mongoose";
+import tls from "node:tls";
+
+
+/*
+|--------------------------------------------------------------------------
+| ATLAS TLS DIAGNOSTIC HOSTS
+|--------------------------------------------------------------------------
+|
+| These are the three Atlas server addresses from your Render logs.
+| This temporary test checks TLS connectivity without connecting
+| to or modifying the database.
+|
+|--------------------------------------------------------------------------
+*/
+
+const ATLAS_TLS_HOSTS = [
+  "ac-35ldhjm-shard-00-00.qkemcgk.mongodb.net",
+  "ac-35ldhjm-shard-00-01.qkemcgk.mongodb.net",
+  "ac-35ldhjm-shard-00-02.qkemcgk.mongodb.net"
+];
+
+
+/*
+|--------------------------------------------------------------------------
+| CHECK TLS CONNECTION TO ATLAS
+|--------------------------------------------------------------------------
+*/
+
+const checkAtlasTLS = (host) => {
+
+  return new Promise((resolve, reject) => {
+
+    let completed = false;
+
+    const socket = tls.connect({
+
+      host,
+
+      port: 27017,
+
+      servername: host,
+
+      rejectUnauthorized: true
+
+    });
+
+
+    socket.once("secureConnect", () => {
+
+      if (completed) return;
+
+      completed = true;
+
+
+      console.log("");
+
+      console.log(`TLS SUCCESS: ${host}`);
+
+      console.log(
+        "TLS protocol:",
+        socket.getProtocol()
+      );
+
+      console.log(
+        "Certificate authorized:",
+        socket.authorized
+      );
+
+
+      socket.end();
+
+      resolve(true);
+
+    });
+
+
+    socket.once("error", (error) => {
+
+      if (completed) return;
+
+      completed = true;
+
+
+      console.error("");
+
+      console.error(`TLS FAILED: ${host}`);
+
+      console.error(
+        "Error name:",
+        error.name
+      );
+
+      console.error(
+        "Error message:",
+        error.message
+      );
+
+
+      reject(error);
+
+    });
+
+
+    socket.setTimeout(10000, () => {
+
+      socket.destroy(
+        new Error("TLS handshake timed out after 10 seconds.")
+      );
+
+    });
+
+  });
+
+};
 
 
 /*
@@ -75,16 +189,132 @@ const connectDB = async () => {
     }
 
 
+    /*
+     * Display runtime and package diagnostics.
+     */
+
+    console.log("");
+
+    console.log(
+      "=========================================="
+    );
+
+    console.log(
+      "       RUNTIME DIAGNOSTICS"
+    );
+
+    console.log(
+      "=========================================="
+    );
+
+    console.log(
+      "Node.js version:",
+      process.version
+    );
+
+    console.log(
+      "OpenSSL version:",
+      process.versions.openssl
+    );
+
+    console.log(
+      "Mongoose version:",
+      mongoose.version
+    );
+
+    console.log(
+      "MongoDB driver version:",
+      mongoose.mongo?.version || "Not available"
+    );
+
+    console.log(
+      "Platform:",
+      process.platform
+    );
+
+    console.log(
+      "Architecture:",
+      process.arch
+    );
+
+    console.log(
+      "=========================================="
+    );
+
+
+    /*
+     * Test direct TLS connectivity to all three
+     * MongoDB Atlas servers.
+     */
+
+    console.log("");
+
+    console.log(
+      "=========================================="
+    );
+
+    console.log(
+      "       TESTING ATLAS TLS CONNECTIONS"
+    );
+
+    console.log(
+      "=========================================="
+    );
+
+
+    const tlsResults = await Promise.allSettled(
+
+      ATLAS_TLS_HOSTS.map((host) => {
+
+        return checkAtlasTLS(host);
+
+      })
+
+    );
+
+
+    console.log("");
+
+    console.log(
+      "=========================================="
+    );
+
+    console.log(
+      "       TLS DIAGNOSTIC SUMMARY"
+    );
+
+    console.log(
+      "=========================================="
+    );
+
+
+    tlsResults.forEach((result, index) => {
+
+      console.log(
+        ATLAS_TLS_HOSTS[index],
+        result.status === "fulfilled"
+          ? "TLS SUCCESS"
+          : "TLS FAILED"
+      );
+
+    });
+
+
+    console.log(
+      "=========================================="
+    );
+
+
+    /*
+     * Connect to MongoDB Atlas using Mongoose.
+     */
+
     console.log("");
 
     console.log(
       "Connecting to MongoDB Atlas..."
     );
 
-
-    /*
-     * Connect to MongoDB Atlas.
-     */
 
     const conn =
       await mongoose.connect(
