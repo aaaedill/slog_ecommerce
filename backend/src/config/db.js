@@ -42,7 +42,12 @@ const checkAtlasTLS = (host) => {
 
       servername: host,
 
-      rejectUnauthorized: true
+      rejectUnauthorized: true,
+
+      // Force TLS 1.2 for this diagnostic test.
+      minVersion: "TLSv1.2",
+
+      maxVersion: "TLSv1.2"
 
     });
 
