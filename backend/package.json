@@ -1,9 +1,13 @@
+
 {
   "name": "ecommerce-backend",
   "version": "1.0.0",
   "description": "Production backend for the MERN e-commerce application",
   "type": "module",
   "main": "src/server.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js"
