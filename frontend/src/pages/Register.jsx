@@ -1324,7 +1324,7 @@ const Register = () => {
                 </label>
 
                 <input
-                  placeholder="John Doe"
+                  placeholder="Full Name"
                   className="reg-input"
                   value={name}
                   onChange={(e) =>
@@ -1347,7 +1347,7 @@ const Register = () => {
 
                 <input
                   type="text"
-                  placeholder="you@example.com or 9876543210"
+                  placeholder="Email"
                   className="reg-input"
                   value={emailOrPhone}
                   onChange={(e) =>
@@ -1373,7 +1373,7 @@ const Register = () => {
 
                 <input
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Password"
                   className="reg-input"
                   value={password}
                   onChange={(e) =>

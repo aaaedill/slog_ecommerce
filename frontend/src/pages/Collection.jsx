@@ -6,15 +6,18 @@ import React, {
 } from "react";
 
 import { ShopContext } from "../context/ShopContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Collection = () => {
   const {
     products,
     user,
-    wishlistProducts = [],
-    toggleWishlist
+    addToWishlist,
+    removeFromWishlist,
+    isInWishlist
   } = useContext(ShopContext);
+
+  const navigate = useNavigate();
 
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [sortType, setSortType] = useState("relevant");
@@ -55,21 +58,14 @@ const Collection = () => {
     );
   };
 
-  const isInWishlist = (product) => {
+  const isProductWishlisted = (product) => {
     const productId = getProductIdentifier(product);
 
     if (!productId) {
       return false;
     }
 
-    return wishlistProducts.some((savedProduct) => {
-      const savedProductId =
-        typeof savedProduct === "string"
-          ? savedProduct
-          : getProductIdentifier(savedProduct);
-
-      return String(savedProductId) === productId;
-    });
+    return isInWishlist(productId);
   };
 
   const handleWishlistToggle = async (
@@ -85,20 +81,29 @@ const Collection = () => {
       return;
     }
 
-    if (!user) {
-      window.location.href = "/login";
+    if (wishlistLoading[productId]) {
       return;
     }
 
-    if (typeof toggleWishlist !== "function") {
-      console.error(
-        "Wishlist functionality is not yet available in ShopContext."
+    if (!user) {
+      const returnTo =
+        window.location.pathname +
+        window.location.search;
+
+      localStorage.setItem(
+        "pendingWishlist",
+        JSON.stringify({
+          productId,
+          returnTo
+        })
       );
 
-      return;
-    }
+      navigate("/login", {
+        state: {
+          from: returnTo
+        }
+      });
 
-    if (wishlistLoading[productId]) {
       return;
     }
 
@@ -108,7 +113,18 @@ const Collection = () => {
     }));
 
     try {
-      await toggleWishlist(productId);
+      const wasWishlisted = isInWishlist(productId);
+
+      const result = wasWishlisted
+        ? await removeFromWishlist(productId)
+        : await addToWishlist(productId);
+
+      if (!result?.success) {
+        console.error(
+          result?.message ||
+            "Unable to update wishlist."
+        );
+      }
     } catch (error) {
       console.error(
         "Wishlist update error:",
@@ -887,7 +903,7 @@ const Collection = () => {
             right: 0.4rem;
           }
         }
-      
+
         /* =====================================================
            RESPONSIVE ADDITIONS
         ===================================================== */
@@ -943,7 +959,7 @@ const Collection = () => {
             min-height: 2.5rem;
           }
         }
-`}</style>
+      `}</style>
 
       <div
         className="col-page"
@@ -1035,7 +1051,7 @@ const Collection = () => {
           ) : (
             filteredProducts.map((item) => {
               const productId = getProductIdentifier(item);
-              const saved = isInWishlist(item);
+              const saved = isProductWishlisted(item);
               const loading = Boolean(
                 wishlistLoading[productId]
               );

@@ -1,3 +1,4 @@
+
 import { useState, useContext } from "react";
 import axios from "axios";
 import API_URL from "../config/api";
@@ -26,7 +27,11 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { loginUser, addToCart } = useContext(ShopContext);
+  const {
+    loginUser,
+    addToCart,
+    addToWishlist
+  } = useContext(ShopContext);
 
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -287,6 +292,142 @@ const Login = () => {
 
 
 
+      // HANDLE PENDING WISHLIST
+
+      let wishlistRedirect = null;
+
+      const pendingWishlist =
+        localStorage.getItem(
+          "pendingWishlist"
+        );
+
+
+
+      if (pendingWishlist) {
+
+        let parsedPendingWishlist = null;
+
+
+
+        try {
+
+          parsedPendingWishlist =
+            JSON.parse(
+              pendingWishlist
+            );
+
+        } catch (err) {
+
+          console.log(
+            "Pending wishlist parse error:",
+            err
+          );
+
+          localStorage.removeItem(
+            "pendingWishlist"
+          );
+        }
+
+
+
+        if (
+          parsedPendingWishlist &&
+          parsedPendingWishlist.productId !==
+            undefined &&
+          parsedPendingWishlist.productId !==
+            null &&
+          String(
+            parsedPendingWishlist.productId
+          ).trim() !== ""
+        ) {
+
+          try {
+
+            const wishlistResult =
+              await addToWishlist(
+                parsedPendingWishlist.productId,
+                userData
+              );
+
+
+
+            if (wishlistResult?.success) {
+
+              localStorage.removeItem(
+                "pendingWishlist"
+              );
+
+
+
+              toast.success(
+                "Product added to wishlist",
+                {
+                  style:
+                    glassToastStyle
+                }
+              );
+
+
+
+              // RETURN TO THE PAGE WHERE
+              // THE WISHLIST ACTION STARTED
+
+              const savedReturnTo =
+                parsedPendingWishlist.returnTo;
+
+
+
+              if (
+                typeof savedReturnTo === "string" &&
+                savedReturnTo.startsWith("/") &&
+                !savedReturnTo.startsWith("//")
+              ) {
+
+                wishlistRedirect =
+                  savedReturnTo;
+
+              }
+
+            } else {
+
+              toast.error(
+                wishlistResult?.message ||
+                  "Failed to add product to wishlist",
+                {
+                  style:
+                    glassToastStyle
+                }
+              );
+            }
+
+          } catch (err) {
+
+            console.log(
+              "Pending wishlist error:",
+              err
+            );
+
+
+
+            toast.error(
+              "Failed to add product to wishlist",
+              {
+                style:
+                  glassToastStyle
+                }
+              );
+          }
+
+        } else if (parsedPendingWishlist) {
+
+          localStorage.removeItem(
+            "pendingWishlist"
+          );
+        }
+      }
+
+
+
       toast.success(
         "Welcome to SLOG-FASHION",
         {
@@ -298,7 +439,11 @@ const Login = () => {
 
       // NORMAL REDIRECT
 
-      if (location.state) {
+      if (wishlistRedirect) {
+
+        navigate(wishlistRedirect);
+
+      } else if (location.state) {
 
         const { from } =
           location.state;
@@ -735,7 +880,7 @@ const Login = () => {
 
               <input
                 type="text"
-                placeholder="you@example.com or 9876543210"
+                placeholder="Email"
                 className="lgn-input"
                 value={emailOrPhone}
                 onChange={(e) =>
@@ -759,7 +904,7 @@ const Login = () => {
 
               <input
                 type="password"
-                placeholder="••••••••"
+                placeholder="Password"
                 className="lgn-input"
                 value={password}
                 onChange={(e) =>

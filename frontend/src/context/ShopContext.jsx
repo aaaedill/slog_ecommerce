@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useEffect,
@@ -870,12 +871,23 @@ const ShopContextProvider = ({ children }) => {
   // =========================================================
   // ADD TO WISHLIST
   // =========================================================
+  //
+  // userOverride is optional.
+  //
+  // It allows the Login page to add a pending wishlist
+  // product immediately after successful login, without
+  // waiting for React to update the user state.
+  //
+  // The backend still identifies the user through the
+  // HTTP-only authentication cookie.
+  // =========================================================
 
   const addToWishlist = async (
-    id
+    id,
+    userOverride
   ) => {
 
-    if (!user) {
+    if (!user && !userOverride) {
 
       return {
         success: false,
