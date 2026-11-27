@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 
@@ -5,11 +6,28 @@ import axios from "axios";
 |--------------------------------------------------------------------------
 | API URL
 |--------------------------------------------------------------------------
+|
+| PRODUCTION:
+| Requests use the same Vercel domain:
+|
+| https://slog-ecommerce.vercel.app/api
+|
+| Vercel forwards these requests to the Render backend
+| using the rewrite configured in vercel.json.
+|
+| DEVELOPMENT:
+| Requests continue using the local backend.
+|
+|--------------------------------------------------------------------------
 */
 
 const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000/api";
+  import.meta.env.PROD
+    ? "/api"
+    : (
+        import.meta.env.VITE_API_URL ||
+        "http://localhost:5000/api"
+      );
 
 
 /*
@@ -36,10 +54,6 @@ const STATE_CHANGING_METHODS = [
 |--------------------------------------------------------------------------
 | CSRF EXCLUDED AUTH ENDPOINTS
 |--------------------------------------------------------------------------
-|
-| These endpoints are intentionally excluded because they are used
-| before the user has an authenticated session.
-|
 */
 
 const CSRF_EXCLUDED_ENDPOINTS = [
@@ -117,6 +131,7 @@ const shouldProtectRequest =
 | The backend stores the token in the XSRF-TOKEN cookie and also
 | returns the token in the response body.
 |
+|--------------------------------------------------------------------------
 */
 
 const getCSRFToken =
@@ -205,9 +220,10 @@ const clearCSRFToken =
 | AXIOS DEFAULT CONFIGURATION
 |--------------------------------------------------------------------------
 |
-| The backend uses an HttpOnly authentication cookie.
-| Therefore every request must allow cookies to be sent.
+| Authentication uses an HTTP-only cookie.
+| Every request must allow cookies to be sent.
 |
+|--------------------------------------------------------------------------
 */
 
 axios.defaults.withCredentials =
@@ -222,6 +238,7 @@ axios.defaults.withCredentials =
 | Automatically obtains a CSRF token before every protected
 | state-changing request.
 |
+|--------------------------------------------------------------------------
 */
 
 axios.interceptors.request.use(
@@ -267,6 +284,7 @@ axios.interceptors.request.use(
 | If the backend rejects a request because the CSRF token is stale
 | or invalid, obtain the current token and retry the request once.
 |
+|--------------------------------------------------------------------------
 */
 
 axios.interceptors.response.use(
