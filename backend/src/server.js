@@ -1,3 +1,4 @@
+
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -37,6 +38,30 @@ dotenv.config();
 
 const app =
   express();
+
+
+
+/*
+|--------------------------------------------------------------------------
+| TRUST PROXY
+|--------------------------------------------------------------------------
+|
+| Render runs the backend behind a reverse proxy.
+|
+| Trusting the first proxy allows Express to correctly
+| identify the original client IP address through the
+| X-Forwarded-For header.
+|
+| This is required for express-rate-limit to work
+| correctly when deployed on Render.
+|
+|--------------------------------------------------------------------------
+*/
+
+app.set(
+  "trust proxy",
+  1
+);
 
 
 
