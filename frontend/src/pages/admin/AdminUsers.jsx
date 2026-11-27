@@ -6,9 +6,11 @@ import API_URL from "../../config/api";
 /* ── Glass Toast (black + red theme) ── */
 const ToastContainer = ({ toasts }) => (
   <div style={{
-    position: "fixed", top: "24px", left: "50%", transform: "translateX(-50%)",
+    position: "fixed",
+    top: "calc(env(safe-area-inset-top, 0px) + 16px)",
+    left: "50%", transform: "translateX(-50%)",
     zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "stretch",
-    gap: "10px", width: "min(340px, calc(100vw - 32px))", pointerEvents: "none",
+    gap: "10px", width: "min(360px, calc(100vw - 32px))", pointerEvents: "none",
   }}>
     <style>{`
       @keyframes toastIn  { from{opacity:0;transform:translateY(-10px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
@@ -17,14 +19,16 @@ const ToastContainer = ({ toasts }) => (
 
     {toasts.map((t) => (
       <div key={t.id} style={{
-        display: "flex", alignItems: "center", gap: "12px", padding: "13px 18px",
+        display: "flex", alignItems: "center", gap: "12px",
+        padding: "12px 16px",
         background: "rgba(0,0,0,0.6)",
         border: t.type === "error"
           ? "1px solid rgba(255,45,63,0.6)"
           : "1px solid rgba(255,255,255,0.22)",
         backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
         borderRadius: "14px",
-        color: "#ffffff", fontSize: "14px", fontWeight: 600,
+        color: "#ffffff", fontSize: "clamp(13px, 3.4vw, 14px)", fontWeight: 600,
+        lineHeight: 1.35,
         fontFamily: "'Manrope', 'Inter', system-ui, sans-serif",
         pointerEvents: "auto",
         animation: t.leaving
@@ -75,7 +79,7 @@ const ToastContainer = ({ toasts }) => (
           )}
         </span>
 
-        <span>{t.message}</span>
+        <span style={{ minWidth: 0 }}>{t.message}</span>
       </div>
     ))}
   </div>
@@ -235,140 +239,226 @@ const AdminUsers = () => {
     <>
       <ToastContainer toasts={toasts} />
 
-      <div
-        className="ad-root min-h-screen flex justify-center items-start p-3 sm:p-5 md:p-8 pb-20"
-      >
+      <div className="au-root">
 
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
-          .ad-root {
-            --ad-red:        #ff2d3f;
-            --ad-line:       rgba(255, 45, 63, 0.22);
-            --ad-line-hover: rgba(255, 45, 63, 0.6);
-            --ad-white:      #ffffff;
-            --ad-white-soft: rgba(255, 255, 255, 0.7);
+          .au-root {
+            --au-red:        #ff2d3f;
+            --au-line:       rgba(255, 45, 63, 0.22);
+            --au-line-hover: rgba(255, 45, 63, 0.6);
+            --au-white:      #ffffff;
+            --au-white-soft: rgba(255, 255, 255, 0.7);
+
+            /* responsive scale (overridden per breakpoint below).
+               --au-max and --au-px match the navbar so edges line up. */
+            --au-max:      1400px;
+            --au-px:       0.875rem;
+            --au-py:       1rem;
+            --au-sec:      1.25rem;
+            --au-pad:      0.9rem;
+            --au-radius:   14px;
+            --au-over:     0.68rem;
+            --au-title:    1.9rem;
+            --au-ptitle:   1rem;
+            --au-pill:     0.7rem;
+            --au-avatar:   2.25rem;
+            --au-name:     0.92rem;
+            --au-email:    0.82rem;
+            --au-thead:    0.68rem;
+            --au-badge:    0.7rem;
+            --au-btn:      0.8rem;
+            --au-btn-h:    2.25rem;
+            --au-btn-px:   0.95rem;
+            --au-rowpx:    0.25rem;
+            --au-rowpy:    0.9rem;
+            --au-colgap:   1rem;
+            --au-action:   7rem;
 
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
+            min-height: 100vh;
             background: #000000;
-            color: var(--ad-white);
+            color: var(--au-white);
             font-family: 'Manrope', 'Inter', system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
+            padding:
+              var(--au-py)
+              max(var(--au-px), env(safe-area-inset-right))
+              calc(var(--au-py) + 2rem + env(safe-area-inset-bottom))
+              max(var(--au-px), env(safe-area-inset-left));
+          }
+
+          .au-inner {
+            position: relative;
+            width: 100%;
+            max-width: var(--au-max);
+            margin: 0 auto;
           }
 
           /* ── Entrance ── */
-          .ad-rise {
+          .au-rise {
             opacity: 0;
-            animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: au-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
-          @keyframes ad-rise {
+          @keyframes au-rise {
             from { opacity: 0; transform: translateY(14px); }
             to   { opacity: 1; transform: translateY(0); }
           }
 
           /* ── Heading ── */
-          .ad-overline {
+          .au-head {
+            position: relative;
+            margin-bottom: var(--au-sec);
+          }
+
+          .au-overline {
             display: inline-flex;
             align-items: center;
-            gap: 0.65rem;
-            color: var(--ad-red);
-            font-size: 0.78rem;
+            gap: 0.6rem;
+            color: var(--au-red);
+            font-size: var(--au-over);
             font-weight: 700;
             letter-spacing: 0.22em;
             text-transform: uppercase;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
           }
 
-          .ad-overline::before {
+          .au-overline::before {
             content: '';
-            width: 28px;
+            width: 1.75rem;
             height: 2px;
-            background: var(--ad-red);
+            background: var(--au-red);
           }
 
-          .ad-title {
-            color: var(--ad-white);
+          .au-title {
+            color: var(--au-white);
             font-weight: 800;
             letter-spacing: -0.03em;
             line-height: 1.05;
-            font-size: clamp(2.2rem, 4vw, 3rem);
+            font-size: var(--au-title);
           }
 
-          .ad-title-bar {
-            margin-top: 1rem;
+          .au-title-bar {
+            margin-top: 0.85rem;
             height: 2px;
-            width: 84px;
+            width: 5rem;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--au-red);
             transform-origin: left center;
-            animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+            animation: au-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
           }
 
-          @keyframes ad-draw {
+          @keyframes au-draw {
             from { transform: scaleX(0); }
             to   { transform: scaleX(1); }
           }
 
           /* ── Panel ── */
-          .ad-panel {
+          .au-panel {
             position: relative;
+            min-width: 0;
+            padding: var(--au-pad);
             background: transparent;
-            border: 1px solid var(--ad-line);
-            border-radius: 16px;
+            border: 1px solid var(--au-line);
+            border-radius: var(--au-radius);
             transition: border-color 0.3s ease;
           }
 
-          .ad-panel:hover {
-            border-color: var(--ad-line-hover);
+          .au-panel:hover {
+            border-color: var(--au-line-hover);
           }
 
-          .ad-panel-title {
+          .au-panel-head {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
-            color: var(--ad-white);
-            font-weight: 700;
-            letter-spacing: -0.015em;
-            font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem 0.75rem;
+            margin-bottom: calc(var(--au-pad) * 0.8);
           }
 
-          .ad-panel-title::before {
+          .au-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            min-width: 0;
+            color: var(--au-white);
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            line-height: 1.2;
+            font-size: var(--au-ptitle);
+          }
+
+          .au-panel-title::before {
             content: '';
+            flex: 0 0 auto;
             width: 3px;
             height: 1.1em;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--au-red);
           }
 
           /* ── Count pill ── */
-          .ad-pill {
+          .au-pill {
+            flex: 0 0 auto;
+            padding: 0.25rem 0.7rem;
+            border-radius: 999px;
             color: #ffffff;
-            background: var(--ad-red);
-            font-size: 0.78rem;
+            background: var(--au-red);
+            font-size: var(--au-pill);
             font-weight: 700;
             letter-spacing: 0.03em;
+            white-space: nowrap;
           }
 
-          /* ── Table ── */
-          .ad-thead {
-            color: var(--ad-white-soft);
-            border-bottom: 1px solid var(--ad-line);
-            font-size: 0.74rem;
+          /* ── Users list ──
+             Phone  (< 640px): each user is a 2 × 2 card
+                      [ avatar + name     status ]
+                      [ email             button ]
+             ≥ 640px: 4 column table
+                      [ user | email | status | action ] */
+          .au-thead {
+            display: none;
+            color: var(--au-white-soft);
+            border-bottom: 1px solid var(--au-line);
+            font-size: var(--au-thead);
             font-weight: 700;
             letter-spacing: 0.14em;
             text-transform: uppercase;
           }
 
-          .ad-row {
+          .au-thead,
+          .au-row {
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+              "user  status"
+              "email action";
+            column-gap: var(--au-colgap);
+            padding-left: var(--au-rowpx);
+            padding-right: var(--au-rowpx);
+          }
+
+          .au-list {
+            display: flex;
+            flex-direction: column;
+          }
+
+          .au-row {
             position: relative;
+            display: grid;
+            align-items: center;
+            row-gap: 0.65rem;
+            padding-top: var(--au-rowpy);
+            padding-bottom: var(--au-rowpy);
             background: transparent;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             transition: background 0.25s ease;
           }
 
-          .ad-row::before {
+          .au-row::before {
             content: '';
             position: absolute;
             left: 0;
@@ -376,183 +466,361 @@ const AdminUsers = () => {
             bottom: 18%;
             width: 2px;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--au-red);
             transform: scaleY(0);
             transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
           }
 
-          .ad-row:hover {
+          .au-row:hover {
             background: rgba(255, 255, 255, 0.04);
           }
 
-          .ad-row:hover::before { transform: scaleY(1); }
+          .au-row:hover::before { transform: scaleY(1); }
 
-          .ad-row:last-child { border-bottom: none; }
+          .au-row:last-child { border-bottom: none; }
 
-          .ad-avatar {
-            color: var(--ad-red);
-            background: rgba(255, 45, 63, 0.1);
-            border: 1px solid var(--ad-line);
-            font-weight: 800;
-            font-size: 0.85rem;
+          .au-c-user {
+            grid-area: user;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            min-width: 0;
           }
 
-          .ad-cell-name {
-            color: var(--ad-white);
-            font-size: 0.98rem;
+          .au-c-email  { grid-area: email; min-width: 0; }
+          .au-c-status { grid-area: status; justify-self: end; }
+          .au-c-action { grid-area: action; justify-self: end; }
+
+          .au-avatar {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--au-avatar);
+            height: var(--au-avatar);
+            border-radius: 10px;
+            color: var(--au-red);
+            background: rgba(255, 45, 63, 0.1);
+            border: 1px solid var(--au-line);
+            font-weight: 800;
+            font-size: calc(var(--au-avatar) * 0.38);
+          }
+
+          .au-cell-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--au-white);
+            font-size: var(--au-name);
             font-weight: 700;
           }
 
-          .ad-cell-email {
-            color: var(--ad-white-soft);
-            font-size: 0.92rem;
+          .au-cell-email {
+            color: var(--au-white-soft);
+            font-size: var(--au-email);
             font-weight: 500;
-            word-break: break-all;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
           }
 
-          .ad-empty {
-            color: var(--ad-white-soft);
-            font-size: 0.95rem;
+          .au-empty {
+            padding: 3rem 0.5rem;
+            text-align: center;
+            color: var(--au-white-soft);
+            font-size: var(--au-name);
             font-weight: 500;
           }
 
           /* ── Status badges ── */
-          .ad-badge {
+          .au-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
-            padding: 0.3rem 0.8rem;
+            gap: 0.4rem;
+            padding: 0.28rem 0.7rem;
             border-radius: 999px;
-            font-size: 0.76rem;
+            font-size: var(--au-badge);
             font-weight: 700;
             letter-spacing: 0.03em;
+            white-space: nowrap;
           }
 
-          .ad-badge-dot {
+          .au-badge-dot {
             width: 7px;
             height: 7px;
             border-radius: 50%;
             background: currentColor;
           }
 
-          .ad-badge--active {
+          .au-badge--active {
             color: #22c55e;
             background: rgba(34, 197, 94, 0.12);
             border: 1px solid rgba(34, 197, 94, 0.45);
           }
 
-          .ad-badge--blocked {
+          .au-badge--blocked {
             color: #ffffff;
             background: rgba(255, 45, 63, 0.22);
             border: 1px solid rgba(255, 45, 63, 0.6);
           }
 
           /* ── Action buttons ── */
-          .ad-btn {
+          .au-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 5.5rem;
+            height: var(--au-btn-h);
+            padding: 0 var(--au-btn-px);
             font-family: inherit;
-            font-size: 0.82rem;
+            font-size: var(--au-btn);
             font-weight: 700;
             letter-spacing: 0.02em;
-            padding: 0.5rem 1.1rem;
+            white-space: nowrap;
             border-radius: 10px;
             background: transparent;
             transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
           }
 
-          .ad-btn--block {
+          .au-btn--block {
             color: #ff2d3f;
             border: 1px solid rgba(255, 45, 63, 0.6);
           }
 
-          .ad-btn--block:hover:not(:disabled) {
+          .au-btn--block:hover:not(:disabled) {
             background: #ff2d3f;
             color: #ffffff;
             border-color: #ff2d3f;
           }
 
-          .ad-btn--unblock {
+          .au-btn--unblock {
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.4);
           }
 
-          .ad-btn--unblock:hover:not(:disabled) {
+          .au-btn--unblock:hover:not(:disabled) {
             background: #ffffff;
             color: #000000;
             border-color: #ffffff;
           }
 
-          .ad-btn:focus-visible {
+          .au-btn:focus-visible {
             outline: 2px solid #ffffff;
             outline-offset: 2px;
           }
 
+          /* ── Responsive scale ── */
+
+          /* ≥ 400px: large phones */
+          @media (min-width: 400px) {
+            .au-root {
+              --au-px:     1rem;
+              --au-py:     1.1rem;
+              --au-pad:    1rem;
+              --au-title:  2.05rem;
+              --au-avatar: 2.4rem;
+              --au-name:   0.95rem;
+              --au-email:  0.85rem;
+              --au-btn-px: 1.05rem;
+            }
+          }
+
+          /* ≥ 480px: phones in landscape / small tablets */
+          @media (min-width: 480px) {
+            .au-root {
+              --au-py:     1.25rem;
+              --au-sec:    1.4rem;
+              --au-pad:    1.1rem;
+              --au-ptitle: 1.05rem;
+              --au-avatar: 2.5rem;
+              --au-name:   0.98rem;
+              --au-email:  0.88rem;
+              --au-badge:  0.72rem;
+              --au-btn:    0.82rem;
+              --au-btn-h:  2.4rem;
+            }
+          }
+
+          /* ≥ 640px: tablets (portrait). Users become a table. */
+          @media (min-width: 640px) {
+            .au-root {
+              --au-px:     1.5rem;
+              --au-py:     1.5rem;
+              --au-sec:    1.6rem;
+              --au-pad:    1.25rem;
+              --au-over:   0.74rem;
+              --au-title:  2.4rem;
+              --au-ptitle: 1.1rem;
+              --au-pill:   0.76rem;
+              --au-thead:  0.72rem;
+              --au-rowpx:  0.9rem;
+              --au-rowpy:  0.95rem;
+              --au-colgap: 1rem;
+              --au-action: 6.5rem;
+            }
+
+            .au-thead,
+            .au-row {
+              grid-template-columns:
+                minmax(0, 1.2fr)
+                minmax(0, 1.5fr)
+                minmax(0, 0.9fr)
+                var(--au-action);
+              grid-template-areas: "user email status action";
+            }
+
+            .au-thead { display: grid; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+            .au-row   { row-gap: 0; }
+
+            .au-c-status { justify-self: start; }
+            .au-c-action { justify-self: center; }
+
+            .au-btn { min-width: 0; width: 100%; max-width: 6.5rem; }
+          }
+
+          /* ≥ 768px */
+          @media (min-width: 768px) {
+            .au-root {
+              --au-py:     1.75rem;
+              --au-sec:    1.75rem;
+              --au-title:  2.55rem;
+              --au-avatar: 2.5rem;
+              --au-name:   1rem;
+              --au-email:  0.9rem;
+              --au-badge:  0.74rem;
+              --au-colgap: 1.25rem;
+              --au-action: 7rem;
+            }
+          }
+
+          /* ≥ 1024px: laptops */
+          @media (min-width: 1024px) {
+            .au-root {
+              --au-px:     2rem;
+              --au-py:     2rem;
+              --au-sec:    2rem;
+              --au-pad:    1.4rem;
+              --au-radius: 16px;
+              --au-ptitle: 1.15rem;
+              --au-rowpx:  1.1rem;
+              --au-rowpy:  1.05rem;
+              --au-name:   1.02rem;
+              --au-email:  0.92rem;
+              --au-btn:    0.85rem;
+              --au-btn-h:  2.5rem;
+              --au-colgap: 1.5rem;
+              --au-action: 8rem;
+            }
+
+            .au-btn { max-width: 7.5rem; }
+          }
+
+          /* ≥ 1280px: desktops */
+          @media (min-width: 1280px) {
+            .au-root {
+              --au-py:     2.25rem;
+              --au-pad:    1.6rem;
+              --au-title:  2.8rem;
+              --au-ptitle: 1.2rem;
+              --au-avatar: 2.6rem;
+              --au-thead:  0.74rem;
+              --au-rowpy:  1.15rem;
+              --au-badge:  0.76rem;
+            }
+          }
+
+          /* ≥ 1536px: large monitors */
+          @media (min-width: 1536px) {
+            .au-root {
+              --au-max:    1680px;
+              --au-px:     2.5rem;
+              --au-py:     2.5rem;
+              --au-sec:    2.5rem;
+              --au-pad:    1.85rem;
+              --au-over:   0.8rem;
+              --au-title:  3rem;
+              --au-ptitle: 1.3rem;
+              --au-pill:   0.82rem;
+              --au-avatar: 2.8rem;
+              --au-name:   1.08rem;
+              --au-email:  0.98rem;
+              --au-badge:  0.8rem;
+              --au-btn:    0.9rem;
+              --au-btn-h:  2.7rem;
+              --au-action: 9rem;
+            }
+
+            .au-btn { max-width: 8rem; }
+          }
+
+          /* ≥ 1920px: ultra-wide */
+          @media (min-width: 1920px) {
+            .au-root { --au-max: 1840px; }
+          }
+
           /* ── Reduced motion ── */
           @media (prefers-reduced-motion: reduce) {
-            .ad-rise,
-            .ad-title-bar {
+            .au-rise,
+            .au-title-bar {
               animation: none !important;
               opacity: 1 !important;
               transform: none !important;
             }
 
-            .ad-row,
-            .ad-row::before,
-            .ad-btn {
+            .au-row,
+            .au-row::before,
+            .au-btn {
               transition: none !important;
             }
           }
         `}</style>
 
         {/* Content */}
-        <div
-          className="w-full max-w-7xl relative p-2 sm:p-4 md:p-6"
-        >
+        <div className="au-inner">
 
           {/* Heading */}
-          <div className="mb-8 sm:mb-10 relative ad-rise">
+          <div className="au-head au-rise">
 
-            <p className="ad-overline">
+            <p className="au-overline">
               Management
             </p>
 
-            <h1 className="ad-title">
+            <h1 className="au-title">
               All Users
             </h1>
 
-            <div className="ad-title-bar" />
+            <div className="au-title-bar" />
 
           </div>
 
           {/* Users panel */}
           <div
-            className="ad-panel ad-rise rounded-xl p-5 sm:p-6 relative"
+            className="au-panel au-rise"
             style={{ animationDelay: "0.15s" }}
           >
 
-            <div className="flex items-center justify-between mb-5">
+            <div className="au-panel-head">
 
-              <h2 className="ad-panel-title">
+              <h2 className="au-panel-title">
                 User Accounts
               </h2>
 
-              <span className="ad-pill px-3 py-1 rounded-full">
+              <span className="au-pill">
                 {users.length} {users.length === 1 ? "user" : "users"}
               </span>
 
             </div>
 
-            {/* Table header */}
-            <div
-              className="ad-thead hidden sm:grid grid-cols-[2fr_2fr_1fr_140px] px-4 py-3 mb-1"
-            >
-              <span>Name</span>
-              <span>Email</span>
-              <span>Status</span>
-              <span className="text-center">Action</span>
+            {/* Table header (≥ 640px only) */}
+            <div className="au-thead">
+              <span style={{ gridArea: "user" }}>Name</span>
+              <span style={{ gridArea: "email" }}>Email</span>
+              <span style={{ gridArea: "status" }}>Status</span>
+              <span style={{ gridArea: "action", textAlign: "center" }}>Action</span>
             </div>
 
             {/* Rows */}
-            <div className="flex flex-col">
+            <div className="au-list">
 
               {users.map(user => {
                 const isProcessing =
@@ -561,107 +829,54 @@ const AdminUsers = () => {
                 return (
                   <div
                     key={user.id}
-                    className="ad-row grid grid-cols-1 sm:grid-cols-[2fr_2fr_1fr_140px] gap-3 sm:gap-0 items-center px-4 py-4"
+                    className="au-row"
                   >
 
-                    {/* Mobile */}
-                    <div className="sm:hidden flex items-center justify-between gap-3">
+                    {/* Name */}
+                    <div className="au-c-user">
 
-                      <div className="min-w-0">
-
-                        <p className="ad-cell-name">
-                          {user.name}
-                        </p>
-
-                        <p className="ad-cell-email mt-0.5">
-                          {user.email}
-                        </p>
-
-                        <span
-                          className={`ad-badge mt-2 ${
-                            user.isBlocked
-                              ? "ad-badge--blocked"
-                              : "ad-badge--active"
-                          }`}
-                        >
-                          <span className="ad-badge-dot" />
-
-                          {user.isBlocked ? "Blocked" : "Active"}
-                        </span>
-
-                      </div>
-
-                      <button
-                        onClick={() => toggleBlock(user)}
-                        disabled={isProcessing || processingUserId !== null}
-                        className={`ad-btn shrink-0 ${
-                          user.isBlocked
-                            ? "ad-btn--unblock"
-                            : "ad-btn--block"
-                        }`}
-                        style={{
-                          opacity: isProcessing ? 0.55 : 1,
-                          cursor: isProcessing || processingUserId !== null
-                            ? "not-allowed"
-                            : "pointer"
-                        }}
-                      >
-                        {isProcessing
-                          ? "Saving..."
-                          : user.isBlocked
-                            ? "Unblock"
-                            : "Block"}
-                      </button>
-
-                    </div>
-
-                    {/* Desktop: Name */}
-                    <div className="hidden sm:flex items-center gap-3">
-
-                      <div
-                        className="ad-avatar w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                      >
+                      <div className="au-avatar">
                         {user.name?.charAt(0).toUpperCase()}
                       </div>
 
-                      <span className="ad-cell-name">
+                      <span className="au-cell-name" title={user.name}>
                         {user.name}
                       </span>
 
                     </div>
 
-                    {/* Desktop: Email */}
-                    <p className="hidden sm:block ad-cell-email">
+                    {/* Email */}
+                    <p className="au-c-email au-cell-email">
                       {user.email}
                     </p>
 
-                    {/* Desktop: Status */}
-                    <div className="hidden sm:block">
+                    {/* Status */}
+                    <div className="au-c-status">
 
                       <span
-                        className={`ad-badge ${
+                        className={`au-badge ${
                           user.isBlocked
-                            ? "ad-badge--blocked"
-                            : "ad-badge--active"
+                            ? "au-badge--blocked"
+                            : "au-badge--active"
                         }`}
                       >
-                        <span className="ad-badge-dot" />
+                        <span className="au-badge-dot" />
 
                         {user.isBlocked ? "Blocked" : "Active"}
                       </span>
 
                     </div>
 
-                    {/* Desktop: Action */}
-                    <div className="hidden sm:flex justify-center">
+                    {/* Action */}
+                    <div className="au-c-action">
 
                       <button
                         onClick={() => toggleBlock(user)}
                         disabled={isProcessing || processingUserId !== null}
-                        className={`ad-btn ${
+                        className={`au-btn ${
                           user.isBlocked
-                            ? "ad-btn--unblock"
-                            : "ad-btn--block"
+                            ? "au-btn--unblock"
+                            : "au-btn--block"
                         }`}
                         style={{
                           opacity: isProcessing ? 0.55 : 1,
@@ -684,7 +899,7 @@ const AdminUsers = () => {
               })}
 
               {users.length === 0 && (
-                <div className="ad-empty text-center py-16">
+                <div className="au-empty">
                   No users found.
                 </div>
               )}

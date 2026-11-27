@@ -1,3 +1,4 @@
+
 import React, {
   useEffect,
   useRef,
@@ -37,6 +38,7 @@ import AdminProducts from "./pages/admin/AdminProducts"
 import AddProduct from "./pages/admin/AddProduct"
 import EditProduct from "./pages/admin/EditProduct"
 import AdminOrders from "./pages/admin/AdminOrders"
+import AdminOrderDetails from "./pages/admin/AdminOrderDetails"
 import AdminUsers from './pages/admin/AdminUsers'
 
 import AdminRoute from "./components/AdminRoute"
@@ -349,6 +351,15 @@ const App = () => {
                 path="orders"
                 element={
                   <AdminOrders />
+                }
+              />
+
+              {/* INDIVIDUAL ORDER DETAILS */}
+
+              <Route
+                path="orders/:id"
+                element={
+                  <AdminOrderDetails />
                 }
               />
 

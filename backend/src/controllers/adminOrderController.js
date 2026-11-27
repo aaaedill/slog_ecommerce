@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
@@ -7,8 +8,6 @@ import Product from "../models/Product.js";
 |--------------------------------------------------------------------------
 | Order Status Configuration
 |--------------------------------------------------------------------------
-|
-| The status flow is intentionally controlled on the backend.
 |
 | Order Placed
 |      ↓
@@ -22,7 +21,11 @@ import Product from "../models/Product.js";
 |      ↓
 | Delivered
 |
-| An order can also be cancelled while it is still active.
+| Cancellation is allowed ONLY before Shipped:
+|
+| Order Placed
+| Processing
+| Packing
 |
 |--------------------------------------------------------------------------
 */
@@ -37,26 +40,28 @@ const ORDER_STATUSES = [
   "Cancelled"
 ];
 
+const CANCELLABLE_STATUSES = [
+  "Order Placed",
+  "Processing",
+  "Packing"
+];
+
 const STATUS_TRANSITIONS = {
   "Order Placed": [
     "Processing",
-    "Packing",
-    "Cancelled"
+    "Packing"
   ],
 
   Processing: [
-    "Packing",
-    "Cancelled"
+    "Packing"
   ],
 
   Packing: [
-    "Shipped",
-    "Cancelled"
+    "Shipped"
   ],
 
   Shipped: [
-    "Out for delivery",
-    "Cancelled"
+    "Out for delivery"
   ],
 
   "Out for delivery": [
@@ -139,27 +144,57 @@ const normalizeSizeForComparison = (
 | Helper: Format Order
 |--------------------------------------------------------------------------
 |
-| Keeps the response format compatible with the existing
-| Admin Orders frontend.
+| Supports both populated and unpopulated userId values.
+|
+| Customer email and phone are included for the admin
+| orders list and individual order details page.
 |
 |--------------------------------------------------------------------------
 */
 
 const formatOrder = (order) => {
+  const populatedUser =
+    order.userId &&
+    typeof order.userId === "object"
+      ? order.userId
+      : null;
+
+  const userId =
+    populatedUser
+      ? populatedUser._id
+      : order.userId;
+
   return {
     id: String(order._id),
+
     orderId: order.orderId,
-    userId: order.userId
-      ? String(order.userId)
+
+    userId: userId
+      ? String(userId)
       : null,
+
+    email:
+      populatedUser?.email || "",
+
+    phone:
+      populatedUser?.phone || "",
+
     items: order.items,
+
     amount: order.amount,
+
     total: order.amount,
+
     date: order.date,
+
     status: order.status,
+
     address: order.address,
+
     paymentMethod: order.paymentMethod,
+
     createdAt: order.createdAt,
+
     updatedAt: order.updatedAt
   };
 };
@@ -190,24 +225,6 @@ const createApplicationError = (
 /*
 |--------------------------------------------------------------------------
 | Helper: Find Exact Product Size
-|--------------------------------------------------------------------------
-|
-| Finds the actual canonical size stored in MongoDB.
-|
-| This also keeps compatibility with the existing per-size
-| stock structure:
-|
-| sizes: [
-|   {
-|     size: "S",
-|     stock: 5
-|   },
-|   {
-|     size: "M",
-|     stock: 10
-|   }
-| ]
-|
 |--------------------------------------------------------------------------
 */
 
@@ -278,31 +295,8 @@ const findProductSize = (
 | The exact product ID, exact size and exact quantity stored
 | inside the order are used.
 |
-| Example:
-|
-| Order item:
-|
-| {
-|   productId: "12",
-|   size: "M",
-|   quantity: 2
-| }
-|
-| Product:
-|
-| {
-|   id: "12",
-|   sizes: [
-|     {
-|       size: "M",
-|       stock: 5
-|     }
-|   ]
-| }
-|
-| Result:
-|
-| M stock becomes 7.
+| If any item cannot be restored safely, the transaction
+| will fail and all previous stock changes will roll back.
 |
 |--------------------------------------------------------------------------
 */
@@ -535,15 +529,6 @@ const restoreOrderInventory = async (
 
     /*
      * Prevent stock overflow.
-     *
-     * Example:
-     *
-     * Current stock = 999999
-     * Quantity      = 2
-     *
-     * Result would be 1000001.
-     *
-     * That is rejected.
      */
 
     if (
@@ -560,17 +545,9 @@ const restoreOrderInventory = async (
 
     /*
      * ATOMIC INVENTORY RESTORATION
-     * ------------------------------------------------------
      *
-     * We use the canonical size from MongoDB.
-     *
-     * No $expr is required.
-     *
-     * The $elemMatch query guarantees that:
-     *
-     * 1. The correct product is being updated.
-     * 2. The exact size exists.
-     * 3. Current stock is low enough to safely increase it.
+     * The exact product and size must still exist,
+     * and stock must remain within the allowed limit.
      *
      * MongoDB performs the update atomically.
      */
@@ -628,6 +605,15 @@ const restoreOrderInventory = async (
 |--------------------------------------------------------------------------
 | Get All Orders
 |--------------------------------------------------------------------------
+|
+| Returns all orders, including cancelled orders.
+|
+| Cancelled orders are filtered into their own tab
+| by the frontend.
+|
+| Customer email and phone are populated from User.
+|
+|--------------------------------------------------------------------------
 */
 
 export const getAllOrders = async (
@@ -637,6 +623,10 @@ export const getAllOrders = async (
   try {
     const orders =
       await Order.find({})
+        .populate(
+          "userId",
+          "email phone"
+        )
         .sort({
           createdAt: -1
         })
@@ -679,7 +669,134 @@ export const getAllOrders = async (
 
 /*
 |--------------------------------------------------------------------------
+| Get Single Order By MongoDB ID
+|--------------------------------------------------------------------------
+|
+| Used by the admin order details page.
+|
+| IMPORTANT:
+|
+| This endpoint uses the existing MongoDB _id.
+| It does not create another order ID.
+|
+|--------------------------------------------------------------------------
+*/
+
+export const getOrderById = async (
+  req,
+  res
+) => {
+  try {
+    const orderId =
+      String(
+        req.params.id || ""
+      ).trim();
+
+
+    /*
+     * Validate MongoDB order ID.
+     */
+
+    if (
+      !orderId
+    ) {
+      return res.status(
+        400
+      ).json({
+        success: false,
+        message:
+          "Order ID is required"
+      });
+    }
+
+
+    if (
+      !isValidObjectId(
+        orderId
+      )
+    ) {
+      return res.status(
+        400
+      ).json({
+        success: false,
+        message:
+          "Invalid order ID"
+      });
+    }
+
+
+    /*
+     * Find the order using MongoDB _id.
+     *
+     * Populate customer information.
+     */
+
+    const order =
+      await Order.findById(
+        orderId
+      )
+        .populate(
+          "userId",
+          "email phone"
+        )
+        .lean();
+
+
+    if (
+      !order
+    ) {
+      return res.status(
+        404
+      ).json({
+        success: false,
+        message:
+          "Order not found"
+      });
+    }
+
+
+    return res.status(
+      200
+    ).json({
+      success: true,
+
+      order:
+        formatOrder(
+          order
+        )
+    });
+
+  } catch (
+    error
+  ) {
+    console.error(
+      "Get order by ID error:",
+      error
+    );
+
+    return res.status(
+      500
+    ).json({
+      success: false,
+      message:
+        "Failed to load order details"
+    });
+  }
+};
+
+
+/*
+|--------------------------------------------------------------------------
 | Update Order Status
+|--------------------------------------------------------------------------
+|
+| This endpoint handles normal status progression only.
+|
+| Cancellation MUST use the dedicated cancelOrder endpoint.
+|
+| This prevents admins from changing an order to Cancelled
+| without restoring its inventory.
+|
 |--------------------------------------------------------------------------
 */
 
@@ -688,12 +805,6 @@ export const updateOrderStatus =
     req,
     res
   ) => {
-    /*
-     * A transaction is required here because
-     * changing an order to "Cancelled" must restore
-     * inventory atomically with the status change.
-     */
-
     const session =
       await mongoose.startSession();
 
@@ -762,6 +873,24 @@ export const updateOrderStatus =
       }
 
 
+      /*
+       * Cancellation must use the dedicated endpoint.
+       */
+
+      if (
+        requestedStatus ===
+        "Cancelled"
+      ) {
+        return res.status(
+          400
+        ).json({
+          success: false,
+          message:
+            "Please use the cancel order action to cancel an order."
+        });
+      }
+
+
       let updatedOrder =
         null;
 
@@ -771,16 +900,10 @@ export const updateOrderStatus =
        * TRANSACTION
        * -------------------------------------------------------
        *
-       * If cancellation occurs:
+       * Normal status changes are performed inside
+       * a transaction.
        *
-       *     restore stock
-       *          +
-       *     set status Cancelled
-       *
-       * happen together.
-       *
-       * If either operation fails,
-       * MongoDB rolls everything back.
+       * Cancellation is handled separately.
        */
 
       await session.withTransaction(
@@ -808,7 +931,7 @@ export const updateOrderStatus =
 
 
           /*
-           * Do not allow changes to completed
+           * Do not allow changes to delivered
            * or cancelled orders.
            */
 
@@ -870,35 +993,6 @@ export const updateOrderStatus =
             throw createApplicationError(
               `Order cannot move from "${order.status}" to "${requestedStatus}".`,
               400
-            );
-          }
-
-
-          /*
-           * ---------------------------------------------------
-           * ADMIN CANCELLATION INVENTORY RESTORATION
-           * ---------------------------------------------------
-           *
-           * Only restore inventory when the requested
-           * new status is actually "Cancelled".
-           *
-           * This prevents stock from being restored when
-           * an admin simply moves the order through:
-           *
-           * Processing
-           * Packing
-           * Shipped
-           * Out for delivery
-           * Delivered
-           */
-
-          if (
-            requestedStatus ===
-            "Cancelled"
-          ) {
-            await restoreOrderInventory(
-              order,
-              session
             );
           }
 
@@ -1096,7 +1190,7 @@ export const updateOrderStatus =
 | Cancel Order
 |--------------------------------------------------------------------------
 |
-| We do NOT permanently delete the order.
+| The order is NOT permanently deleted.
 |
 | The order remains in MongoDB for:
 |
@@ -1104,6 +1198,12 @@ export const updateOrderStatus =
 | - Admin records
 | - Customer records
 | - Future reporting
+|
+| Cancellation is permitted ONLY when the current status is:
+|
+| - Order Placed
+| - Processing
+| - Packing
 |
 | When an admin cancels an order:
 |
@@ -1119,12 +1219,6 @@ export const cancelOrder = async (
   req,
   res
 ) => {
-  /*
-   * A transaction is required because
-   * inventory restoration and cancellation
-   * must happen together.
-   */
-
   const session =
     await mongoose.startSession();
 
@@ -1218,15 +1312,19 @@ export const cancelOrder = async (
 
 
         /*
-         * Do not cancel delivered orders.
+         * Enforce the cancellation window.
+         *
+         * Shipped, Out for delivery and Delivered
+         * orders cannot be cancelled.
          */
 
         if (
-          order.status ===
-          "Delivered"
+          !CANCELLABLE_STATUSES.includes(
+            order.status
+          )
         ) {
           throw createApplicationError(
-            "A delivered order cannot be cancelled",
+            `This order cannot be cancelled because its current status is "${order.status}". Orders can only be cancelled before they are shipped.`,
             400
           );
         }
@@ -1434,6 +1532,7 @@ export const cancelOrder = async (
       message:
         "Failed to cancel order"
     });
+
   } finally {
     await session.endSession();
   }

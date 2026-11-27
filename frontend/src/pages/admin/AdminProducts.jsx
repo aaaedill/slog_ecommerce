@@ -15,9 +15,11 @@ import API_URL from "../../config/api";
 
 const ToastContainer = ({ toasts }) => (
   <div style={{
-    position: "fixed", top: "100px", left: "50%", transform: "translateX(-50%)",
+    position: "fixed",
+    top: "calc(env(safe-area-inset-top, 0px) + 84px)",
+    left: "50%", transform: "translateX(-50%)",
     zIndex: 9999, display: "flex", flexDirection: "column", alignItems: "stretch",
-    gap: "10px", width: "min(340px, calc(100vw - 32px))", pointerEvents: "none",
+    gap: "10px", width: "min(360px, calc(100vw - 32px))", pointerEvents: "none",
   }}>
     <style>{`
       @keyframes toastIn  { from{opacity:0;transform:translateY(-10px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
@@ -26,14 +28,15 @@ const ToastContainer = ({ toasts }) => (
 
     {toasts.map((t) => (
       <div key={t.id} style={{
-        display: "flex", alignItems: "center", gap: "12px", padding: "13px 18px",
+        display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px",
         background: "rgba(0,0,0,0.6)",
         border: t.type === "error"
           ? "1px solid rgba(255,45,63,0.6)"
           : "1px solid rgba(255,255,255,0.22)",
         backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
         borderRadius: "14px",
-        color: "#ffffff", fontSize: "14px", fontWeight: 600,
+        color: "#ffffff", fontSize: "clamp(13px, 3.4vw, 14px)", fontWeight: 600,
+        lineHeight: 1.35,
         fontFamily: "'Manrope', 'Inter', system-ui, sans-serif",
         pointerEvents: "auto",
         animation: t.leaving
@@ -62,7 +65,7 @@ const ToastContainer = ({ toasts }) => (
           )}
         </span>
 
-        <span>{t.message}</span>
+        <span style={{ minWidth: 0 }}>{t.message}</span>
       </div>
     ))}
   </div>
@@ -79,11 +82,11 @@ const ConfirmToast = ({
   <div
     style={{
       position: "fixed",
-      top: "100px",
+      top: "calc(env(safe-area-inset-top, 0px) + 84px)",
       left: "50%",
       transform: "translateX(-50%)",
       zIndex: 10000,
-      width: "min(360px, calc(100vw - 32px))",
+      width: "min(380px, calc(100vw - 32px))",
       pointerEvents: "auto",
       animation: "toastIn 0.35s cubic-bezier(0.22,1,0.36,1) forwards",
       fontFamily: "'Manrope', 'Inter', system-ui, sans-serif"
@@ -91,7 +94,7 @@ const ConfirmToast = ({
   >
     <div
       style={{
-        padding: "22px 24px",
+        padding: "clamp(16px, 4.5vw, 22px) clamp(16px, 5vw, 24px)",
         background: "rgba(0,0,0,0.72)",
         border: "1px solid rgba(255,45,63,0.6)",
         backdropFilter: "blur(32px) saturate(140%)",
@@ -124,13 +127,7 @@ const ConfirmToast = ({
         This action cannot be undone.
       </p>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 10
-        }}
-      >
+      <div className="ap-confirm-actions">
         <button
           onClick={onCancel}
           disabled={loading}
@@ -460,10 +457,9 @@ const AdminProducts = () => {
 
   /* ── Icons (design only) ── */
 
-  const EditIcon = ({ size = 14 }) => (
+  const EditIcon = () => (
     <svg
-      width={size}
-      height={size}
+      className="ap-ico"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -476,10 +472,9 @@ const AdminProducts = () => {
     </svg>
   );
 
-  const TrashIcon = ({ size = 14 }) => (
+  const TrashIcon = () => (
     <svg
-      width={size}
-      height={size}
+      className="ap-ico"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -517,140 +512,234 @@ const AdminProducts = () => {
       )}
 
 
-      <div
-        className="ad-root min-h-screen flex justify-center items-start p-3 sm:p-5 md:p-8 pb-20"
-      >
+      <div className="ap-root">
 
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
-          .ad-root {
-            --ad-red:        #ff2d3f;
-            --ad-line:       rgba(255, 45, 63, 0.22);
-            --ad-line-hover: rgba(255, 45, 63, 0.6);
-            --ad-white:      #ffffff;
-            --ad-white-soft: rgba(255, 255, 255, 0.7);
+          .ap-root {
+            --ap-red:        #ff2d3f;
+            --ap-line:       rgba(255, 45, 63, 0.22);
+            --ap-line-hover: rgba(255, 45, 63, 0.6);
+            --ap-white:      #ffffff;
+            --ap-white-soft: rgba(255, 255, 255, 0.7);
+
+            /* responsive scale (overridden per breakpoint below).
+               --ap-max and --ap-px match the navbar so edges line up. */
+            --ap-max:     1400px;
+            --ap-px:      0.875rem;
+            --ap-py:      1rem;
+            --ap-sec:     1.25rem;
+            --ap-pad:     0.9rem;
+            --ap-radius:  14px;
+            --ap-over:    0.68rem;
+            --ap-title:   1.9rem;
+            --ap-ptitle:  1rem;
+            --ap-pill:    0.7rem;
+            --ap-img:     3.5rem;
+            --ap-name:    0.92rem;
+            --ap-meta:    0.8rem;
+            --ap-price:   0.86rem;
+            --ap-thead:   0.68rem;
+            --ap-chip:    0.7rem;
+            --ap-ibtn:    2.25rem;
+            --ap-ico:     0.85rem;
+            --ap-add-h:   2.25rem;
+            --ap-add-fs:  0.8rem;
+            --ap-rowpx:   0.25rem;
+            --ap-rowpy:   0.95rem;
+            --ap-colgap:  0.9rem;
+            --ap-action:  5.25rem;
 
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
+            min-height: 100vh;
             background: #000000;
-            color: var(--ad-white);
+            color: var(--ap-white);
             font-family: 'Manrope', 'Inter', system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
+            padding:
+              var(--ap-py)
+              max(var(--ap-px), env(safe-area-inset-right))
+              calc(var(--ap-py) + 2rem + env(safe-area-inset-bottom))
+              max(var(--ap-px), env(safe-area-inset-left));
+          }
+
+          .ap-inner {
+            position: relative;
+            width: 100%;
+            max-width: var(--ap-max);
+            margin: 0 auto;
           }
 
           /* ── Entrance ── */
-          .ad-rise {
+          .ap-rise {
             opacity: 0;
-            animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: ap-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
-          @keyframes ad-rise {
+          @keyframes ap-rise {
             from { opacity: 0; transform: translateY(14px); }
             to   { opacity: 1; transform: translateY(0); }
           }
 
           /* ── Heading ── */
-          .ad-overline {
+          .ap-head {
+            position: relative;
+            margin-bottom: var(--ap-sec);
+          }
+
+          .ap-overline {
             display: inline-flex;
             align-items: center;
-            gap: 0.65rem;
-            color: var(--ad-red);
-            font-size: 0.78rem;
+            gap: 0.6rem;
+            color: var(--ap-red);
+            font-size: var(--ap-over);
             font-weight: 700;
             letter-spacing: 0.22em;
             text-transform: uppercase;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
           }
 
-          .ad-overline::before {
+          .ap-overline::before {
             content: '';
-            width: 28px;
+            width: 1.75rem;
             height: 2px;
-            background: var(--ad-red);
+            background: var(--ap-red);
           }
 
-          .ad-title {
-            color: var(--ad-white);
+          .ap-title {
+            color: var(--ap-white);
             font-weight: 800;
             letter-spacing: -0.03em;
             line-height: 1.05;
-            font-size: clamp(2.2rem, 4vw, 3rem);
+            font-size: var(--ap-title);
           }
 
-          .ad-title-bar {
-            margin-top: 1rem;
+          .ap-title-bar {
+            margin-top: 0.85rem;
             height: 2px;
-            width: 84px;
+            width: 5rem;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--ap-red);
             transform-origin: left center;
-            animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+            animation: ap-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
           }
 
-          @keyframes ad-draw {
+          @keyframes ap-draw {
             from { transform: scaleX(0); }
             to   { transform: scaleX(1); }
           }
 
           /* ── Panel ── */
-          .ad-panel {
+          .ap-panel {
             position: relative;
+            min-width: 0;
+            padding: var(--ap-pad);
             background: transparent;
-            border: 1px solid var(--ad-line);
-            border-radius: 16px;
+            border: 1px solid var(--ap-line);
+            border-radius: var(--ap-radius);
             transition: border-color 0.3s ease;
           }
 
-          .ad-panel:hover {
-            border-color: var(--ad-line-hover);
+          .ap-panel:hover {
+            border-color: var(--ap-line-hover);
           }
 
-          .ad-panel-title {
+          .ap-panel-head {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
-            color: var(--ad-white);
-            font-weight: 700;
-            letter-spacing: -0.015em;
-            font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.6rem 0.75rem;
+            margin-bottom: calc(var(--ap-pad) * 0.8);
           }
 
-          .ad-panel-title::before {
+          .ap-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            min-width: 0;
+            color: var(--ap-white);
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            line-height: 1.2;
+            font-size: var(--ap-ptitle);
+          }
+
+          .ap-panel-title::before {
             content: '';
+            flex: 0 0 auto;
             width: 3px;
             height: 1.1em;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--ap-red);
+          }
+
+          .ap-head-tools {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
           }
 
           /* ── Count pill ── */
-          .ad-pill {
+          .ap-pill {
+            flex: 0 0 auto;
+            padding: 0.25rem 0.7rem;
+            border-radius: 999px;
             color: #ffffff;
-            background: var(--ad-red);
-            font-size: 0.78rem;
+            background: var(--ap-red);
+            font-size: var(--ap-pill);
             font-weight: 700;
             letter-spacing: 0.03em;
+            white-space: nowrap;
           }
 
-          /* ── Table ── */
-          .ad-thead {
-            color: var(--ad-white-soft);
-            border-bottom: 1px solid var(--ad-line);
-            font-size: 0.74rem;
+          /* ── Products list ──
+             Phone (< 640px): card
+                 [ image | name / category / price | edit delete ]
+                 [ stock chips ............................... ]
+             640 – 767px: table  [ image | name+category+price | stock | actions ]
+             ≥ 768px:     table  [ image | name+price | category | stock | actions ] */
+          .ap-thead {
+            display: none;
+            color: var(--ap-white-soft);
+            border-bottom: 1px solid var(--ap-line);
+            font-size: var(--ap-thead);
             font-weight: 700;
             letter-spacing: 0.14em;
             text-transform: uppercase;
           }
 
-          .ad-row {
+          .ap-thead,
+          .ap-row {
+            grid-template-columns: var(--ap-img) minmax(0, 1fr) auto;
+            grid-template-areas:
+              "img   name  action"
+              "stock stock stock";
+            column-gap: var(--ap-colgap);
+            padding-left: var(--ap-rowpx);
+            padding-right: var(--ap-rowpx);
+          }
+
+          .ap-list {
+            display: flex;
+            flex-direction: column;
+          }
+
+          .ap-row {
             position: relative;
+            display: grid;
+            align-items: center;
+            row-gap: 0.75rem;
+            padding-top: var(--ap-rowpy);
+            padding-bottom: var(--ap-rowpy);
             background: transparent;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             transition: background 0.25s ease;
           }
 
-          .ad-row::before {
+          .ap-row::before {
             content: '';
             position: absolute;
             left: 0;
@@ -658,56 +747,82 @@ const AdminProducts = () => {
             bottom: 18%;
             width: 2px;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--ap-red);
             transform: scaleY(0);
             transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
           }
 
-          .ad-row:hover {
+          .ap-row:hover {
             background: rgba(255, 255, 255, 0.04);
           }
 
-          .ad-row:hover::before { transform: scaleY(1); }
+          .ap-row:hover::before { transform: scaleY(1); }
 
-          .ad-row:last-child { border-bottom: none; }
+          .ap-row:last-child { border-bottom: none; }
 
-          .ad-cell-name {
-            color: var(--ad-white);
-            font-size: 0.98rem;
+          .ap-c-img    { grid-area: img; }
+          .ap-c-name   { grid-area: name; min-width: 0; }
+          .ap-c-cat    { grid-area: cat; display: none; }
+          .ap-c-stock  { grid-area: stock; min-width: 0; }
+          .ap-c-action { grid-area: action; }
+
+          .ap-cell-name {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            overflow-wrap: anywhere;
+            color: var(--ap-white);
+            font-size: var(--ap-name);
             font-weight: 700;
+            line-height: 1.25;
           }
 
-          .ad-cell-price {
-            color: var(--ad-red);
-            font-size: 0.9rem;
+          .ap-cell-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.1rem 0.6rem;
+            margin-top: 0.2rem;
+          }
+
+          .ap-cell-price {
+            color: var(--ap-red);
+            font-size: var(--ap-price);
             font-weight: 800;
             font-variant-numeric: tabular-nums;
           }
 
-          .ad-cell-cat {
-            color: var(--ad-white-soft);
-            font-size: 0.92rem;
+          .ap-cell-cat {
+            color: var(--ap-white-soft);
+            font-size: var(--ap-meta);
             font-weight: 500;
             text-transform: capitalize;
+            overflow-wrap: anywhere;
           }
 
-          .ad-empty {
-            color: var(--ad-white-soft);
-            font-size: 0.95rem;
+          .ap-cell-cat--inline { display: inline; }
+
+          .ap-empty-text {
+            color: var(--ap-white-soft);
+            font-size: var(--ap-name);
             font-weight: 500;
           }
 
           /* ── Product image ── */
           .ap-img {
+            display: block;
+            width: var(--ap-img);
+            height: var(--ap-img);
             object-fit: cover;
             border-radius: 12px;
-            border: 1px solid var(--ad-line);
+            border: 1px solid var(--ap-line);
             background: #000000;
             transition: border-color 0.3s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
           }
 
-          .ad-row:hover .ap-img {
-            border-color: var(--ad-line-hover);
+          .ap-row:hover .ap-img {
+            border-color: var(--ap-line-hover);
             transform: scale(1.05);
           }
 
@@ -730,9 +845,9 @@ const AdminProducts = () => {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 0.25rem 0.55rem;
+            padding: 0.22rem 0.5rem;
             border-radius: 8px;
-            font-size: 0.76rem;
+            font-size: var(--ap-chip);
             font-weight: 700;
             white-space: nowrap;
           }
@@ -752,7 +867,7 @@ const AdminProducts = () => {
           }
 
           .ap-size--none {
-            color: var(--ad-white-soft);
+            color: var(--ap-white-soft);
             background: transparent;
             border: 1px dashed rgba(255, 255, 255, 0.25);
           }
@@ -775,17 +890,17 @@ const AdminProducts = () => {
           }
 
           .ap-total-dot--out {
-            background: var(--ad-red);
+            background: #ff2d3f;
             box-shadow: 0 0 8px rgba(255, 45, 63, 0.6);
           }
 
           .ap-total-text {
-            color: var(--ad-white-soft);
-            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: var(--ap-chip);
             font-weight: 700;
           }
 
-          .ap-total-text--out { color: var(--ad-red); }
+          .ap-total-text--out { color: #ff2d3f; }
 
           /* ── Buttons ── */
           .ap-btn {
@@ -793,6 +908,7 @@ const AdminProducts = () => {
             font-size: 0.82rem;
             font-weight: 700;
             letter-spacing: 0.02em;
+            min-height: 2.5rem;
             padding: 0.5rem 1.2rem;
             border-radius: 10px;
             background: transparent;
@@ -811,32 +927,44 @@ const AdminProducts = () => {
           }
 
           .ap-btn--danger {
-            color: var(--ad-red);
+            color: #ff2d3f;
             border: 1px solid rgba(255, 45, 63, 0.6);
           }
 
           .ap-btn--danger:hover:not(:disabled) {
-            background: var(--ad-red);
+            background: #ff2d3f;
             color: #ffffff;
-            border-color: var(--ad-red);
+            border-color: #ff2d3f;
             box-shadow: 0 0 22px rgba(255, 45, 63, 0.4);
           }
+
+          /* Confirm dialog buttons: full width halves on phones */
+          .ap-confirm-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+          }
+
+          .ap-confirm-actions .ap-btn { flex: 1 1 0; }
 
           .ap-add {
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
+            justify-content: center;
+            gap: 0.4rem;
+            height: var(--ap-add-h);
+            padding: 0 0.95rem;
             font-family: inherit;
-            font-size: 0.85rem;
+            font-size: var(--ap-add-fs);
             font-weight: 700;
             letter-spacing: 0.02em;
+            white-space: nowrap;
             color: #ffffff;
-            background: var(--ad-red);
-            border: 1px solid var(--ad-red);
+            background: var(--ap-red);
+            border: 1px solid var(--ap-red);
             border-radius: 10px;
-            padding: 0.5rem 1.1rem;
             cursor: pointer;
-            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
           }
 
           .ap-add:hover {
@@ -846,12 +974,23 @@ const AdminProducts = () => {
 
           .ap-add:active { transform: translateY(0); }
 
+          .ap-add svg { width: 0.9em; height: 0.9em; }
+
+          .ap-add-long { display: none; }
+
+          .ap-actions {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0.5rem;
+          }
+
           .ap-icon-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 34px;
-            height: 34px;
+            width: var(--ap-ibtn);
+            height: var(--ap-ibtn);
             border-radius: 10px;
             background: transparent;
             cursor: pointer;
@@ -859,6 +998,11 @@ const AdminProducts = () => {
           }
 
           .ap-icon-btn:hover:not(:disabled) { transform: translateY(-1px); }
+
+          .ap-ico {
+            width: var(--ap-ico);
+            height: var(--ap-ico);
+          }
 
           .ap-icon-btn--edit {
             color: #ffffff;
@@ -872,14 +1016,14 @@ const AdminProducts = () => {
           }
 
           .ap-icon-btn--delete {
-            color: var(--ad-red);
+            color: var(--ap-red);
             border: 1px solid rgba(255, 45, 63, 0.6);
           }
 
           .ap-icon-btn--delete:hover:not(:disabled) {
-            background: var(--ad-red);
+            background: var(--ap-red);
             color: #ffffff;
-            border-color: var(--ad-red);
+            border-color: var(--ap-red);
           }
 
           .ap-btn:focus-visible,
@@ -889,24 +1033,208 @@ const AdminProducts = () => {
             outline-offset: 2px;
           }
 
-          /* ── Empty state icon ── */
+          /* ── Empty state ── */
+          .ap-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 3rem 0.5rem;
+            text-align: center;
+          }
+
           .ap-empty-icon {
-            color: var(--ad-red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 12px;
+            color: var(--ap-red);
             background: rgba(255, 45, 63, 0.1);
-            border: 1px solid var(--ad-line);
+            border: 1px solid var(--ap-line);
+          }
+
+          /* ── Responsive scale ── */
+
+          /* ≥ 400px: large phones */
+          @media (min-width: 400px) {
+            .ap-root {
+              --ap-px:    1rem;
+              --ap-py:    1.1rem;
+              --ap-pad:   1rem;
+              --ap-title: 2.05rem;
+              --ap-name:  0.95rem;
+              --ap-img:   3.75rem;
+            }
+          }
+
+          /* ≥ 480px: phones in landscape / small tablets */
+          @media (min-width: 480px) {
+            .ap-root {
+              --ap-py:      1.25rem;
+              --ap-sec:     1.4rem;
+              --ap-pad:     1.1rem;
+              --ap-ptitle:  1.05rem;
+              --ap-img:     4rem;
+              --ap-name:    0.98rem;
+              --ap-meta:    0.84rem;
+              --ap-price:   0.9rem;
+              --ap-chip:    0.74rem;
+              --ap-add-h:   2.4rem;
+              --ap-add-fs:  0.84rem;
+              --ap-action:  5.5rem;
+            }
+
+            /* edit + delete sit side by side */
+            .ap-actions { flex-direction: row; }
+          }
+
+          /* ≥ 640px: tablets (portrait). Products become a table. */
+          @media (min-width: 640px) {
+            .ap-root {
+              --ap-px:     1.5rem;
+              --ap-py:     1.5rem;
+              --ap-sec:    1.6rem;
+              --ap-pad:    1.25rem;
+              --ap-over:   0.74rem;
+              --ap-title:  2.4rem;
+              --ap-ptitle: 1.1rem;
+              --ap-pill:   0.76rem;
+              --ap-img:    3.25rem;
+              --ap-thead:  0.72rem;
+              --ap-rowpx:  0.9rem;
+              --ap-rowpy:  1rem;
+              --ap-colgap: 1rem;
+              --ap-action: 5.75rem;
+            }
+
+            .ap-add-long { display: inline; }
+            .ap-add-short { display: none; }
+
+            .ap-thead,
+            .ap-row {
+              grid-template-columns:
+                var(--ap-img)
+                minmax(0, 1.5fr)
+                minmax(0, 1.5fr)
+                var(--ap-action);
+              grid-template-areas: "img name stock action";
+            }
+
+            .ap-thead { display: grid; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+            .ap-row   { row-gap: 0; }
+
+            .ap-actions { justify-content: center; }
+          }
+
+          /* ≥ 768px: category gets its own column */
+          @media (min-width: 768px) {
+            .ap-root {
+              --ap-py:     1.75rem;
+              --ap-sec:    1.75rem;
+              --ap-title:  2.55rem;
+              --ap-img:    3.4rem;
+              --ap-name:   1rem;
+              --ap-meta:   0.88rem;
+              --ap-colgap: 1.25rem;
+              --ap-action: 6rem;
+            }
+
+            .ap-thead,
+            .ap-row {
+              grid-template-columns:
+                var(--ap-img)
+                minmax(0, 1.6fr)
+                minmax(0, 0.9fr)
+                minmax(0, 1.5fr)
+                var(--ap-action);
+              grid-template-areas: "img name cat stock action";
+            }
+
+            .ap-c-cat { display: block; }
+            .ap-cell-cat--inline { display: none; }
+          }
+
+          /* ≥ 1024px: laptops */
+          @media (min-width: 1024px) {
+            .ap-root {
+              --ap-px:     2rem;
+              --ap-py:     2rem;
+              --ap-sec:    2rem;
+              --ap-pad:    1.4rem;
+              --ap-radius: 16px;
+              --ap-ptitle: 1.15rem;
+              --ap-img:    3.6rem;
+              --ap-name:   1.02rem;
+              --ap-meta:   0.9rem;
+              --ap-chip:   0.76rem;
+              --ap-ibtn:   2.4rem;
+              --ap-ico:    0.95rem;
+              --ap-rowpx:  1.1rem;
+              --ap-rowpy:  1.1rem;
+              --ap-colgap: 1.5rem;
+              --ap-action: 6.5rem;
+            }
+          }
+
+          /* ≥ 1280px: desktops */
+          @media (min-width: 1280px) {
+            .ap-root {
+              --ap-py:     2.25rem;
+              --ap-pad:    1.6rem;
+              --ap-title:  2.8rem;
+              --ap-ptitle: 1.2rem;
+              --ap-img:    4rem;
+              --ap-thead:  0.74rem;
+              --ap-rowpy:  1.2rem;
+              --ap-add-h:  2.5rem;
+              --ap-add-fs: 0.86rem;
+            }
+          }
+
+          /* ≥ 1536px: large monitors */
+          @media (min-width: 1536px) {
+            .ap-root {
+              --ap-max:    1680px;
+              --ap-px:     2.5rem;
+              --ap-py:     2.5rem;
+              --ap-sec:    2.5rem;
+              --ap-pad:    1.85rem;
+              --ap-over:   0.8rem;
+              --ap-title:  3rem;
+              --ap-ptitle: 1.3rem;
+              --ap-pill:   0.82rem;
+              --ap-img:    4.5rem;
+              --ap-name:   1.1rem;
+              --ap-meta:   0.96rem;
+              --ap-price:  0.98rem;
+              --ap-chip:   0.82rem;
+              --ap-ibtn:   2.6rem;
+              --ap-ico:    1.05rem;
+              --ap-add-h:  2.7rem;
+              --ap-add-fs: 0.9rem;
+              --ap-action: 7.25rem;
+            }
+          }
+
+          /* ≥ 1920px: ultra-wide */
+          @media (min-width: 1920px) {
+            .ap-root { --ap-max: 1840px; }
           }
 
           /* ── Reduced motion ── */
           @media (prefers-reduced-motion: reduce) {
-            .ad-rise,
-            .ad-title-bar {
+            .ap-rise,
+            .ap-title-bar {
               animation: none !important;
               opacity: 1 !important;
               transform: none !important;
             }
 
-            .ad-row,
-            .ad-row::before,
+            .ap-row,
+            .ap-row::before,
             .ap-img,
             .ap-btn,
             .ap-add,
@@ -917,40 +1245,38 @@ const AdminProducts = () => {
         `}</style>
 
         {/* Content */}
-        <div
-          className="w-full max-w-7xl relative p-2 sm:p-4 md:p-6"
-        >
+        <div className="ap-inner">
 
           {/* Heading */}
-          <div className="mb-8 sm:mb-10 relative ad-rise">
+          <div className="ap-head ap-rise">
 
-            <p className="ad-overline">
+            <p className="ap-overline">
               Inventory
             </p>
 
-            <h1 className="ad-title">
+            <h1 className="ap-title">
               All Products
             </h1>
 
-            <div className="ad-title-bar" />
+            <div className="ap-title-bar" />
 
           </div>
 
           {/* Products panel */}
           <div
-            className="ad-panel ad-rise rounded-xl p-5 sm:p-6 relative"
+            className="ap-panel ap-rise"
             style={{ animationDelay: "0.15s" }}
           >
 
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div className="ap-panel-head">
 
-              <h2 className="ad-panel-title">
+              <h2 className="ap-panel-title">
                 Product Catalogue
               </h2>
 
-              <div className="flex items-center gap-2 sm:gap-3">
+              <div className="ap-head-tools">
 
-                <span className="ad-pill px-3 py-1 rounded-full">
+                <span className="ap-pill">
                   {products.length}{" "}
                   {products.length === 1 ? "product" : "products"}
                 </span>
@@ -961,8 +1287,6 @@ const AdminProducts = () => {
                 >
 
                   <svg
-                    width="14"
-                    height="14"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -973,11 +1297,11 @@ const AdminProducts = () => {
                     <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
 
-                  <span className="hidden sm:inline">
+                  <span className="ap-add-long">
                     Add Product
                   </span>
 
-                  <span className="sm:hidden">
+                  <span className="ap-add-short">
                     Add
                   </span>
 
@@ -988,139 +1312,92 @@ const AdminProducts = () => {
             </div>
 
 
-            {/* Table header — desktop */}
-            <div
-              className="ad-thead hidden sm:grid grid-cols-[72px_2fr_1fr_1.35fr_100px] px-4 py-3 mb-1"
-            >
-              <span>Image</span>
-              <span>Name</span>
-              <span>Category</span>
-              <span>Stock</span>
-              <span className="text-center">Action</span>
+            {/* Table header (≥ 640px only) */}
+            <div className="ap-thead">
+              <span style={{ gridArea: "img" }}>Image</span>
+              <span style={{ gridArea: "name" }}>Name</span>
+              <span style={{ gridArea: "cat" }} className="ap-c-cat">Category</span>
+              <span style={{ gridArea: "stock" }}>Stock</span>
+              <span style={{ gridArea: "action", textAlign: "center" }}>Action</span>
             </div>
 
 
             {/* Products list */}
-            <div className="flex flex-col">
+            <div className="ap-list">
 
               {products.map((product) => (
 
                 <div
                   key={product.id}
-                  className="ad-row"
+                  className="ap-row"
                 >
 
-                  {/* MOBILE layout */}
-                  <div className="flex sm:hidden items-center gap-3 px-4 py-4">
-
+                  {/* Image */}
+                  <div className="ap-c-img">
                     <img
                       src={product.image}
-                      className="ap-img w-14 h-14 shrink-0"
+                      className="ap-img"
                       alt=""
+                      loading="lazy"
                     />
+                  </div>
 
-                    <div className="flex-1 min-w-0">
+                  {/* Name + (category on small screens) + price */}
+                  <div className="ap-c-name">
 
-                      <p className="ad-cell-name truncate">
-                        {product.name}
-                      </p>
+                    <p className="ap-cell-name" title={product.name}>
+                      {product.name}
+                    </p>
 
-                      <p className="ad-cell-cat mt-0.5">
+                    <div className="ap-cell-meta">
+
+                      <span className="ap-cell-cat ap-cell-cat--inline">
                         {product.category}
-                      </p>
+                      </span>
 
-                      <p className="ad-cell-price mt-0.5">
+                      <span className="ap-cell-price">
                         ₹{product.price}
-                      </p>
-
-                      <div
-                        className="mt-2"
-                        style={{ maxWidth: "100%" }}
-                      >
-                        <ProductStock sizes={product.sizes} />
-                      </div>
-
-                    </div>
-
-                    <div className="flex flex-col gap-2 shrink-0">
-
-                      <button
-                        onClick={() => editProduct(product.id)}
-                        className="ap-icon-btn ap-icon-btn--edit"
-                        title="Edit"
-                      >
-                        <EditIcon size={13} />
-                      </button>
-
-                      <button
-                        onClick={() => deleteProduct(product.id)}
-                        disabled={deleting}
-                        className="ap-icon-btn ap-icon-btn--delete"
-                        style={{
-                          opacity: deleting ? 0.5 : 1,
-                          cursor: deleting ? "not-allowed" : "pointer"
-                        }}
-                        title="Delete"
-                      >
-                        <TrashIcon size={13} />
-                      </button>
+                      </span>
 
                     </div>
 
                   </div>
 
+                  {/* Category column (≥ 768px) */}
+                  <p className="ap-c-cat ap-cell-cat">
+                    {product.category}
+                  </p>
 
-                  {/* DESKTOP layout */}
-                  <div className="hidden sm:grid grid-cols-[72px_2fr_1fr_1.35fr_100px] items-center gap-0 px-4 py-4">
-
-                    <img
-                      src={product.image}
-                      className="ap-img w-12 h-12"
-                      alt=""
-                    />
-
-                    <div className="pr-4 min-w-0">
-
-                      <p className="ad-cell-name truncate">
-                        {product.name}
-                      </p>
-
-                      <p className="ad-cell-price mt-1">
-                        ₹{product.price}
-                      </p>
-
-                    </div>
-
-                    <p className="ad-cell-cat">
-                      {product.category}
-                    </p>
-
+                  {/* Stock */}
+                  <div className="ap-c-stock">
                     <ProductStock sizes={product.sizes} />
+                  </div>
 
-                    <div className="flex justify-center gap-2">
+                  {/* Actions */}
+                  <div className="ap-c-action ap-actions">
 
-                      <button
-                        onClick={() => editProduct(product.id)}
-                        className="ap-icon-btn ap-icon-btn--edit"
-                        title="Edit"
-                      >
-                        <EditIcon size={14} />
-                      </button>
+                    <button
+                      onClick={() => editProduct(product.id)}
+                      className="ap-icon-btn ap-icon-btn--edit"
+                      title="Edit"
+                      aria-label="Edit product"
+                    >
+                      <EditIcon />
+                    </button>
 
-                      <button
-                        onClick={() => deleteProduct(product.id)}
-                        disabled={deleting}
-                        className="ap-icon-btn ap-icon-btn--delete"
-                        style={{
-                          opacity: deleting ? 0.5 : 1,
-                          cursor: deleting ? "not-allowed" : "pointer"
-                        }}
-                        title="Delete"
-                      >
-                        <TrashIcon size={14} />
-                      </button>
-
-                    </div>
+                    <button
+                      onClick={() => deleteProduct(product.id)}
+                      disabled={deleting}
+                      className="ap-icon-btn ap-icon-btn--delete"
+                      style={{
+                        opacity: deleting ? 0.5 : 1,
+                        cursor: deleting ? "not-allowed" : "pointer"
+                      }}
+                      title="Delete"
+                      aria-label="Delete product"
+                    >
+                      <TrashIcon />
+                    </button>
 
                   </div>
 
@@ -1131,11 +1408,9 @@ const AdminProducts = () => {
 
               {products.length === 0 && (
 
-                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <div className="ap-empty">
 
-                  <div
-                    className="ap-empty-icon w-14 h-14 rounded-xl flex items-center justify-center"
-                  >
+                  <div className="ap-empty-icon">
 
                     <svg
                       width="24"
@@ -1151,7 +1426,7 @@ const AdminProducts = () => {
 
                   </div>
 
-                  <p className="ad-empty">
+                  <p className="ap-empty-text">
                     No products found
                   </p>
 

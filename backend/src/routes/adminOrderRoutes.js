@@ -1,3 +1,4 @@
+
 import express from "express";
 
 import authMiddleware from "../middleware/authMiddleware.js";
@@ -9,6 +10,7 @@ import {
 
 import {
   getAllOrders,
+  getOrderById,
   updateOrderStatus,
   cancelOrder
 } from "../controllers/adminOrderController.js";
@@ -36,20 +38,12 @@ const router = express.Router();
 // AUTHENTICATION
 // ============================================================
 
-// First verify that the request contains a valid
-// authentication cookie and that the user still exists.
-//
-// authMiddleware also rejects blocked users.
-
 router.use(authMiddleware);
 
 
 // ============================================================
 // ADMIN AUTHORIZATION
 // ============================================================
-
-// After authentication, verify that the authenticated
-// user has the admin role.
 
 router.use(adminMiddleware);
 
@@ -59,10 +53,6 @@ router.use(adminMiddleware);
 // ============================================================
 
 // GET /api/admin/orders
-//
-// Returns all orders for the admin dashboard.
-//
-// Only authenticated administrators can access this route.
 
 router.get(
   "/",
@@ -71,19 +61,25 @@ router.get(
 
 
 // ============================================================
+// GET SINGLE ORDER DETAILS
+// ============================================================
+
+// GET /api/admin/orders/:id
+//
+// Uses the existing MongoDB _id.
+// No additional order ID is generated.
+
+router.get(
+  "/:id",
+  getOrderById
+);
+
+
+// ============================================================
 // UPDATE ORDER STATUS
 // ============================================================
 
 // PATCH /api/admin/orders/:orderId/status
-//
-// Updates the status of an order.
-//
-// The controller is responsible for validating:
-//
-// - The order ID
-// - The requested status
-// - Allowed order-status transitions
-// - Whether the order can still be changed
 
 router.patch(
   "/:orderId/status",
@@ -97,14 +93,6 @@ router.patch(
 // ============================================================
 
 // DELETE /api/admin/orders/:orderId
-//
-// Cancels an order from the admin dashboard.
-//
-// The controller is responsible for validating:
-//
-// - The order ID
-// - Whether the order exists
-// - Whether the order is eligible for cancellation
 
 router.delete(
   "/:orderId",

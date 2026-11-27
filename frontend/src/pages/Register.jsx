@@ -1,48 +1,147 @@
-import { useState } from "react";
-
+import { useState, useRef } from "react";
 import axios from "axios";
-
 import API_URL from "../config/api";
-
 import { toast } from "react-toastify";
-
 import { useNavigate, Link } from "react-router-dom";
 
 
-
-
-
 const glassToastStyle = {
-
   background: "rgba(255,255,255,0.55)",
-
   backdropFilter: "blur(24px) saturate(1.8)",
-
   WebkitBackdropFilter: "blur(24px) saturate(1.8)",
-
   border: "1px solid rgba(107,142,35,0.25)",
-
   borderRadius: "16px",
-
   color: "#4B5320",
-
   fontFamily: "Jost, sans-serif",
-
   boxShadow:
     "0 8px 32px rgba(107,142,35,0.16), 0 1px 0 rgba(255,255,255,0.8) inset"
-
 };
 
 
+/*
+|--------------------------------------------------------------------------
+| OTP Boxes
+|--------------------------------------------------------------------------
+|
+| Six separate boxes, one digit each. The parent keeps `otp` as a plain
+| string, so the verify handler does not need to change.
+|
+| Note: do NOT add maxLength={1} to the inputs. Mobile keyboards fill the
+| whole code into one box when you tap the SMS suggestion, and maxLength
+| would cut it down to a single digit.
+|
+|--------------------------------------------------------------------------
+*/
 
+const OTP_LENGTH = 6;
+
+const OtpBoxes = ({ value, onChange, disabled }) => {
+  const refs = useRef([]);
+
+  const focusBox = (i) => {
+    const el = refs.current[Math.max(0, Math.min(OTP_LENGTH - 1, i))];
+    if (el) {
+      el.focus();
+      el.select();
+    }
+  };
+
+  const handleChange = (e, i) => {
+    let raw = e.target.value.replace(/\D/g, "");
+
+    // Digit deleted
+    if (!raw) {
+      onChange(value.slice(0, i) + value.slice(i + 1));
+      return;
+    }
+
+    // Keyboard autofill (SMS suggestion) or a full code: spread across all boxes
+    if (raw.length >= OTP_LENGTH) {
+      onChange(raw.slice(-OTP_LENGTH));
+      focusBox(OTP_LENGTH - 1);
+      return;
+    }
+
+    // Box already had a digit and a new one was typed next to it:
+    // keep only the newly typed digit
+    const old = value[i] || "";
+    if (old && raw.length > 1) {
+      const idx = raw.indexOf(old);
+      if (idx >= 0) raw = raw.slice(0, idx) + raw.slice(idx + 1);
+      raw = raw.slice(-1);
+    }
+
+    // Normal typing: never leave gaps
+    const pos = Math.min(i, value.length);
+    const next = (
+      value.slice(0, pos) +
+      raw +
+      value.slice(pos + raw.length)
+    ).slice(0, OTP_LENGTH);
+
+    onChange(next);
+    focusBox(pos + raw.length);
+  };
+
+  const handleKeyDown = (e, i) => {
+    const isBackspace = e.key === "Backspace" || e.keyCode === 8;
+
+    if (isBackspace && !value[i] && i > 0) {
+      e.preventDefault();
+      onChange(value.slice(0, i - 1) + value.slice(i));
+      focusBox(i - 1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      focusBox(i - 1);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      focusBox(i + 1);
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, OTP_LENGTH);
+
+    if (!pasted) return;
+
+    onChange(pasted);
+    focusBox(pasted.length >= OTP_LENGTH ? OTP_LENGTH - 1 : pasted.length);
+  };
+
+  return (
+    <div className="reg-otp-row">
+      {Array.from({ length: OTP_LENGTH }).map((_, i) => (
+        <input
+          key={i}
+          ref={(el) => (refs.current[i] = el)}
+          type="text"
+          inputMode="numeric"
+          pattern="\d*"
+          autoComplete={i === 0 ? "one-time-code" : "off"}
+          aria-label={`Digit ${i + 1} of ${OTP_LENGTH}`}
+          className="reg-otp-box"
+          value={value[i] || ""}
+          disabled={disabled}
+          autoFocus={i === 0}
+          onChange={(e) => handleChange(e, i)}
+          onKeyDown={(e) => handleKeyDown(e, i)}
+          onPaste={handlePaste}
+          onFocus={(e) => e.target.select()}
+        />
+      ))}
+    </div>
+  );
+};
 
 
 const Register = () => {
 
   const navigate = useNavigate();
-
-
-
 
 
   /*
@@ -52,13 +151,8 @@ const Register = () => {
   */
 
   const [name, setName] = useState("");
-
   const [emailOrPhone, setEmailOrPhone] = useState("");
-
   const [password, setPassword] = useState("");
-
-
-
 
 
   /*
@@ -68,13 +162,8 @@ const Register = () => {
   */
 
   const [showOTP, setShowOTP] = useState(false);
-
   const [otp, setOtp] = useState("");
-
   const [userId, setUserId] = useState("");
-
-
-
 
 
   /*
@@ -84,13 +173,8 @@ const Register = () => {
   */
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [isVerifying, setIsVerifying] = useState(false);
-
   const [isResending, setIsResending] = useState(false);
-
-
-
 
 
   /*
@@ -103,25 +187,11 @@ const Register = () => {
 
     e.preventDefault();
 
-
-
-
-
     if (isSubmitting) return;
 
-
-
-
-
     const cleanName = name.trim();
-
-    const cleanEmailOrPhone =
-      emailOrPhone.trim();
-
+    const cleanEmailOrPhone = emailOrPhone.trim();
     const cleanPassword = password;
-
-
-
 
 
     /*
@@ -130,25 +200,15 @@ const Register = () => {
     |--------------------------------------------------------------------------
     */
 
-    if (
-      !cleanName ||
-      !cleanEmailOrPhone ||
-      !cleanPassword
-    ) {
+    if (!cleanName || !cleanEmailOrPhone || !cleanPassword) {
 
-      toast.error(
-        "Please fill all fields",
-        {
-          style: glassToastStyle
-        }
-      );
+      toast.error("Please fill all fields", {
+        style: glassToastStyle
+      });
 
       return;
 
     }
-
-
-
 
 
     /*
@@ -164,11 +224,7 @@ const Register = () => {
     |--------------------------------------------------------------------------
     */
 
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-
-
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 
     /*
@@ -185,45 +241,15 @@ const Register = () => {
     |--------------------------------------------------------------------------
     */
 
-    const phoneRegex =
-      /^(?:\+91|91)?[6-9]\d{9}$/;
+    const phoneRegex = /^(?:\+91|91)?[6-9]\d{9}$/;
 
+    const isEmail = emailRegex.test(cleanEmailOrPhone.toLowerCase());
 
+    const normalizedPhoneInput = cleanEmailOrPhone.replace(/[\s-]/g, "");
 
+    const isPhone = phoneRegex.test(normalizedPhoneInput);
 
-
-    const isEmail =
-      emailRegex.test(
-        cleanEmailOrPhone.toLowerCase()
-      );
-
-
-
-
-
-    const normalizedPhoneInput =
-      cleanEmailOrPhone.replace(
-        /[\s-]/g,
-        ""
-      );
-
-
-
-
-
-    const isPhone =
-      phoneRegex.test(
-        normalizedPhoneInput
-      );
-
-
-
-
-
-    if (
-      !isEmail &&
-      !isPhone
-    ) {
+    if (!isEmail && !isPhone) {
 
       toast.error(
         "Please enter a valid email address or Indian mobile number",
@@ -237,27 +263,15 @@ const Register = () => {
     }
 
 
-
-
-
     /*
     |--------------------------------------------------------------------------
     | Password Validation
     |--------------------------------------------------------------------------
     */
 
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*\d).{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*\d).{8,}$/;
 
-
-
-
-
-    if (
-      !passwordRegex.test(
-        cleanPassword
-      )
-    ) {
+    if (!passwordRegex.test(cleanPassword)) {
 
       toast.error(
         "Password must be at least 8 characters and include lowercase letter and number",
@@ -271,14 +285,7 @@ const Register = () => {
     }
 
 
-
-
-
     setIsSubmitting(true);
-
-
-
-
 
     try {
 
@@ -288,29 +295,17 @@ const Register = () => {
       |--------------------------------------------------------------------------
       */
 
-      const response =
-        await axios.post(
-
-          `${API_URL}/auth/register`,
-
-          {
-            name: cleanName,
-
-            emailOrPhone:
-              cleanEmailOrPhone,
-
-            password:
-              cleanPassword
-          },
-
-          {
-            withCredentials: true
-          }
-
-        );
-
-
-
+      const response = await axios.post(
+        `${API_URL}/auth/register`,
+        {
+          name: cleanName,
+          emailOrPhone: cleanEmailOrPhone,
+          password: cleanPassword
+        },
+        {
+          withCredentials: true
+        }
+      );
 
 
       /*
@@ -319,13 +314,10 @@ const Register = () => {
       |--------------------------------------------------------------------------
       */
 
-      if (
-        !response.data?.success
-      ) {
+      if (!response.data?.success) {
 
         toast.error(
-          response.data?.message ||
-            "Error creating account",
+          response.data?.message || "Error creating account",
           {
             style: glassToastStyle
           }
@@ -334,9 +326,6 @@ const Register = () => {
         return;
 
       }
-
-
-
 
 
       /*
@@ -355,10 +344,6 @@ const Register = () => {
         response.data?.user?._id ||
         response.data?.user?.id;
 
-
-
-
-
       if (!returnedUserId) {
 
         toast.error(
@@ -373,21 +358,13 @@ const Register = () => {
       }
 
 
-
-
-
       /*
       |--------------------------------------------------------------------------
       | Store User ID
       |--------------------------------------------------------------------------
       */
 
-      setUserId(
-        String(returnedUserId)
-      );
-
-
-
+      setUserId(String(returnedUserId));
 
 
       /*
@@ -398,13 +375,8 @@ const Register = () => {
 
       setShowOTP(true);
 
-
-
-
-
       toast.success(
-        response.data?.message ||
-          "OTP sent successfully",
+        response.data?.message || "OTP sent successfully",
         {
           style: glassToastStyle
         }
@@ -412,13 +384,7 @@ const Register = () => {
 
     } catch (error) {
 
-      console.error(
-        "Registration error:",
-        error
-      );
-
-
-
+      console.error("Registration error:", error);
 
 
       /*
@@ -427,10 +393,7 @@ const Register = () => {
       |--------------------------------------------------------------------------
       */
 
-      if (
-        error.response?.status ===
-        409
-      ) {
+      if (error.response?.status === 409) {
 
         toast.error(
           error.response?.data?.message ||
@@ -443,15 +406,10 @@ const Register = () => {
       } else {
 
         toast.error(
-
-          error.response?.data?.message ||
-
-            "Error creating account",
-
+          error.response?.data?.message || "Error creating account",
           {
             style: glassToastStyle
           }
-
         );
 
       }
@@ -465,36 +423,19 @@ const Register = () => {
   };
 
 
-
-
-
   /*
   |--------------------------------------------------------------------------
   | Verify OTP
   |--------------------------------------------------------------------------
   */
 
-  const handleVerifyOTP = async (
-    e
-  ) => {
+  const handleVerifyOTP = async (e) => {
 
     e.preventDefault();
 
-
-
-
-
     if (isVerifying) return;
 
-
-
-
-
-    const cleanOTP =
-      otp.trim();
-
-
-
+    const cleanOTP = otp.trim();
 
 
     /*
@@ -503,26 +444,15 @@ const Register = () => {
     |--------------------------------------------------------------------------
     */
 
-    if (
-      !/^\d{6}$/.test(
-        cleanOTP
-      )
-    ) {
+    if (!/^\d{6}$/.test(cleanOTP)) {
 
-      toast.error(
-        "Please enter the 6-digit OTP",
-        {
-          style: glassToastStyle
-        }
-      );
+      toast.error("Please enter the 6-digit OTP", {
+        style: glassToastStyle
+      });
 
       return;
 
     }
-
-
-
-
 
     if (!userId) {
 
@@ -537,15 +467,7 @@ const Register = () => {
 
     }
 
-
-
-
-
     setIsVerifying(true);
-
-
-
-
 
     try {
 
@@ -555,25 +477,16 @@ const Register = () => {
       |--------------------------------------------------------------------------
       */
 
-      const response =
-        await axios.post(
-
-          `${API_URL}/auth/verify-otp`,
-
-          {
-            userId,
-
-            otp: cleanOTP
-          },
-
-          {
-            withCredentials: true
-          }
-
-        );
-
-
-
+      const response = await axios.post(
+        `${API_URL}/auth/verify-otp`,
+        {
+          userId,
+          otp: cleanOTP
+        },
+        {
+          withCredentials: true
+        }
+      );
 
 
       /*
@@ -582,28 +495,18 @@ const Register = () => {
       |--------------------------------------------------------------------------
       */
 
-      if (
-        !response.data?.success
-      ) {
+      if (!response.data?.success) {
 
         toast.error(
-
-          response.data?.message ||
-
-            "Invalid OTP",
-
+          response.data?.message || "Invalid OTP",
           {
             style: glassToastStyle
           }
-
         );
 
         return;
 
       }
-
-
-
 
 
       /*
@@ -613,19 +516,11 @@ const Register = () => {
       */
 
       toast.success(
-
-        response.data?.message ||
-
-          "Account verified successfully",
-
+        response.data?.message || "Account verified successfully",
         {
           style: glassToastStyle
         }
-
       );
-
-
-
 
 
       /*
@@ -634,31 +529,17 @@ const Register = () => {
       |--------------------------------------------------------------------------
       */
 
-      navigate(
-        "/login"
-      );
+      navigate("/login");
 
     } catch (error) {
 
-      console.error(
-        "OTP verification error:",
-        error
-      );
-
-
-
-
+      console.error("OTP verification error:", error);
 
       toast.error(
-
-        error.response?.data?.message ||
-
-          "OTP verification failed",
-
+        error.response?.data?.message || "OTP verification failed",
         {
           style: glassToastStyle
         }
-
       );
 
     } finally {
@@ -668,9 +549,6 @@ const Register = () => {
     }
 
   };
-
-
-
 
 
   /*
@@ -683,10 +561,6 @@ const Register = () => {
 
     if (isResending) return;
 
-
-
-
-
     if (!userId) {
 
       toast.error(
@@ -700,106 +574,52 @@ const Register = () => {
 
     }
 
-
-
-
-
     setIsResending(true);
-
-
-
-
 
     try {
 
-      /*
-      |--------------------------------------------------------------------------
-      | Resend OTP
-      |--------------------------------------------------------------------------
-      */
+      const response = await axios.post(
+        `${API_URL}/auth/resend-otp`,
+        {
+          userId
+        },
+        {
+          withCredentials: true
+        }
+      );
 
-      const response =
-        await axios.post(
-
-          `${API_URL}/auth/resend-otp`,
-
-          {
-            userId
-          },
-
-          {
-            withCredentials: true
-          }
-
-        );
-
-
-
-
-
-      /*
-      |--------------------------------------------------------------------------
-      | Backend Error Response
-      |--------------------------------------------------------------------------
-      */
-
-      if (
-        !response.data?.success
-      ) {
+      if (!response.data?.success) {
 
         toast.error(
-
-          response.data?.message ||
-
-            "Unable to resend OTP",
-
+          response.data?.message || "Unable to resend OTP",
           {
             style: glassToastStyle
           }
-
         );
 
         return;
 
       }
 
-
-
-
+      // Clear old digits so the user starts fresh with the new code
+      setOtp("");
 
       toast.success(
-
-        response.data?.message ||
-
-          "A new OTP has been sent",
-
+        response.data?.message || "A new OTP has been sent",
         {
           style: glassToastStyle
         }
-
       );
 
     } catch (error) {
 
-      console.error(
-        "Resend OTP error:",
-        error
-      );
-
-
-
-
+      console.error("Resend OTP error:", error);
 
       toast.error(
-
-        error.response?.data?.message ||
-
-          "Unable to resend OTP",
-
+        error.response?.data?.message || "Unable to resend OTP",
         {
           style: glassToastStyle
         }
-
       );
 
     } finally {
@@ -811,9 +631,6 @@ const Register = () => {
   };
 
 
-
-
-
   /*
   |--------------------------------------------------------------------------
   | Back To Registration
@@ -822,28 +639,15 @@ const Register = () => {
 
   const handleBackToRegistration = () => {
 
-    if (
-      isVerifying ||
-      isResending ||
-      isSubmitting
-    ) {
+    if (isVerifying || isResending || isSubmitting) {
       return;
     }
 
-
-
-
-
     setShowOTP(false);
-
     setOtp("");
-
     setUserId("");
 
   };
-
-
-
 
 
   return (
@@ -1028,6 +832,63 @@ const Register = () => {
           box-shadow:
             0 8px 20px rgba(107,142,35,0.14),
             0 1px 0 var(--reg-glass-shine) inset;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           OTP BOXES — six single-digit glass boxes
+        ──────────────────────────────────────────────── */
+
+        .reg-otp-row {
+          display: flex;
+          gap: 0.55rem;
+          justify-content: space-between;
+        }
+
+        .reg-otp-box {
+          flex: 1;
+          min-width: 0;
+          height: 3.4rem;
+          text-align: center;
+          font-family: 'Jost', sans-serif;
+          font-size: 1.25rem; /* 16px+ prevents iOS zoom on focus */
+          font-weight: 500;
+          color: var(--reg-ink);
+          caret-color: var(--reg-olive);
+
+          background: var(--reg-glass-bg);
+          border: 1px solid var(--reg-glass-border);
+          border-radius: 14px;
+          outline: none;
+          padding: 0;
+
+          backdrop-filter: blur(20px) saturate(1.8);
+          -webkit-backdrop-filter: blur(20px) saturate(1.8);
+          box-shadow: 0 1px 0 var(--reg-glass-shine) inset;
+
+          transition:
+            background 0.22s ease,
+            border-color 0.22s ease,
+            box-shadow 0.22s ease,
+            transform 0.22s ease;
+        }
+
+        .reg-otp-box:hover {
+          background: var(--reg-glass-bg2);
+        }
+
+        .reg-otp-box:focus {
+          background: var(--reg-glass-bg2);
+          border-color: var(--reg-olive);
+          transform: translateY(-1px);
+          box-shadow:
+            0 8px 20px rgba(107,142,35,0.14),
+            0 1px 0 var(--reg-glass-shine) inset;
+        }
+
+        .reg-otp-box:disabled {
+          opacity: 0.6;
         }
 
 
@@ -1261,12 +1122,18 @@ const Register = () => {
             font-size: 1.7rem;
           }
 
+          .reg-otp-row {
+            gap: 0.4rem;
+          }
+
+          .reg-otp-box {
+            height: 3rem;
+            border-radius: 12px;
+          }
+
         }
 
       `}</style>
-
-
-
 
 
       <div className="reg-page">
@@ -1300,9 +1167,6 @@ const Register = () => {
           </div>
 
 
-
-
-
           {!showOTP ? (
 
             /* ==================================================
@@ -1327,14 +1191,11 @@ const Register = () => {
                   placeholder="Full Name"
                   className="reg-input"
                   value={name}
-                  onChange={(e) =>
-                    setName(e.target.value)
-                  }
+                  onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
                 />
 
               </div>
-
 
 
               {/* Email Or Phone */}
@@ -1342,7 +1203,7 @@ const Register = () => {
               <div className="reg-field">
 
                 <label className="reg-label">
-                  Email / Mobile Number
+                  Email
                 </label>
 
                 <input
@@ -1350,17 +1211,12 @@ const Register = () => {
                   placeholder="Email"
                   className="reg-input"
                   value={emailOrPhone}
-                  onChange={(e) =>
-                    setEmailOrPhone(
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => setEmailOrPhone(e.target.value)}
                   autoComplete="email"
                   inputMode="email"
                 />
 
               </div>
-
 
 
               {/* Password */}
@@ -1376,11 +1232,7 @@ const Register = () => {
                   placeholder="Password"
                   className="reg-input"
                   value={password}
-                  onChange={(e) =>
-                    setPassword(
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => setPassword(e.target.value)}
                   autoComplete="new-password"
                 />
 
@@ -1391,7 +1243,6 @@ const Register = () => {
               </div>
 
 
-
               {/* Submit */}
 
               <button
@@ -1399,13 +1250,8 @@ const Register = () => {
                 className="reg-btn"
                 disabled={isSubmitting}
               >
-
-                {isSubmitting
-                  ? "Sending OTP..."
-                  : "Create Account"}
-
+                {isSubmitting ? "Sending OTP..." : "Create Account"}
               </button>
-
 
 
               {/* Secure Note */}
@@ -1445,9 +1291,7 @@ const Register = () => {
               </div>
 
 
-
               <div className="reg-divider" />
-
 
 
               <p className="reg-footer">
@@ -1468,7 +1312,7 @@ const Register = () => {
           ) : (
 
             /* ==================================================
-               OTP FORM — no card, fields directly on the page
+               OTP FORM — six single-digit boxes
                ================================================== */
 
             <form
@@ -1484,23 +1328,10 @@ const Register = () => {
                   Verification Code
                 </label>
 
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  placeholder="123456"
-                  className="reg-input"
+                <OtpBoxes
                   value={otp}
-                  onChange={(e) =>
-                    setOtp(
-                      e.target.value.replace(
-                        /\D/g,
-                        ""
-                      )
-                    )
-                  }
-                  autoComplete="one-time-code"
-                  autoFocus
+                  onChange={setOtp}
+                  disabled={isVerifying}
                 />
 
                 <p className="reg-hint">
@@ -1510,7 +1341,6 @@ const Register = () => {
               </div>
 
 
-
               {/* Verify Button */}
 
               <button
@@ -1518,13 +1348,8 @@ const Register = () => {
                 className="reg-btn"
                 disabled={isVerifying}
               >
-
-                {isVerifying
-                  ? "Verifying..."
-                  : "Verify Account"}
-
+                {isVerifying ? "Verifying..." : "Verify Account"}
               </button>
-
 
 
               {/* Resend OTP */}
@@ -1542,15 +1367,10 @@ const Register = () => {
                   disabled={isResending}
                   className="reg-ghost-btn reg-ghost-primary"
                 >
-
-                  {isResending
-                    ? "Sending..."
-                    : "Resend OTP"}
-
+                  {isResending ? "Sending..." : "Resend OTP"}
                 </button>
 
               </div>
-
 
 
               {/* Back */}
@@ -1573,9 +1393,7 @@ const Register = () => {
               </div>
 
 
-
               <div className="reg-divider" />
-
 
 
               <p className="reg-footer">
@@ -1604,9 +1422,6 @@ const Register = () => {
   );
 
 };
-
-
-
 
 
 export default Register;

@@ -875,7 +875,7 @@ const Login = () => {
             <div className="lgn-field">
 
               <label className="lgn-label">
-                Email or Phone Number
+                Email
               </label>
 
               <input
