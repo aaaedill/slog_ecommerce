@@ -170,9 +170,12 @@ const App = () => {
 
       {/* NAVBAR */}
 
-      {!isAdminRoute && (
-        <Navbar />
-      )}
+      {!isAdminRoute &&
+        !isAuthRoute && (
+
+          <Navbar />
+
+        )}
 
 
       {/* ==========================================
@@ -184,22 +187,24 @@ const App = () => {
           Reserve space below the fixed navbar
           so customer page content starts below it.
 
-          Admin pages remain independent.
+          Authentication and admin pages remain
+          independent from the customer navbar.
           ========================================== */}
 
-      {!isAdminRoute && (
+      {!isAdminRoute &&
+        !isAuthRoute && (
 
-        <div
-          aria-hidden="true"
-          className="
-            w-full
-            shrink-0
-            h-[64px]
-            md:h-[76px]
-          "
-        />
+          <div
+            aria-hidden="true"
+            className="
+              w-full
+              shrink-0
+              h-[64px]
+              md:h-[76px]
+            "
+          />
 
-      )}
+        )}
 
 
       {/* MAIN CONTENT */}
