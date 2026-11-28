@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 
 const About = () => {
@@ -317,7 +318,13 @@ const About = () => {
 
         {/* ── HERO ── */}
         <div className="about-hero relative h-[250px] sm:h-[350px] md:h-[440px] flex flex-col items-center justify-center gap-3">
-          <img src="/images/about.jpg" className="about-hero-img" alt="SLOG Fashion" />
+          <img
+            src="/images/about.webp"
+            className="about-hero-img"
+            alt="SLOG Fashion"
+            loading="eager"
+            decoding="async"
+          />
           <p className="about-eyebrow">Est. 2021</p>
           <h1 className="about-hero-title text-3xl sm:text-5xl md:text-6xl text-center px-4">
             About SLOG Fashion
@@ -326,7 +333,13 @@ const About = () => {
 
         {/* ── STORY ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center mt-16 md:mt-20 ab-reveal">
-          <img src="/images/about2.jpg" className="about-story-img" alt="Craftsmanship at SLOG" />
+          <img
+            src="/images/about2.webp"
+            className="about-story-img"
+            alt="Craftsmanship at SLOG"
+            loading="lazy"
+            decoding="async"
+          />
           <div>
             <p className="ab-eyebrow">Our Story</p>
             <div className="ab-rule" />

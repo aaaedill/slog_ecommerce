@@ -1,3 +1,4 @@
+
 import {
   useParams,
   useNavigate
@@ -77,6 +78,40 @@ const getSizeStock = (sizeItem) => {
   }
 
   return Math.max(0, Math.floor(stock));
+};
+
+
+/* =========================================================
+   OPTIMIZE CLOUDINARY IMAGE URL
+========================================================= */
+
+const getOptimizedImageUrl = (imageUrl) => {
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return imageUrl;
+  }
+
+  const transformationMarker = "/image/upload/";
+
+  if (
+    !imageUrl.includes("res.cloudinary.com/") ||
+    !imageUrl.includes(transformationMarker)
+  ) {
+    return imageUrl;
+  }
+
+  const [beforeUpload, afterUpload] =
+    imageUrl.split(transformationMarker);
+
+  if (!afterUpload) {
+    return imageUrl;
+  }
+
+  return (
+    beforeUpload +
+    transformationMarker +
+    "f_auto,q_auto,w_900,c_limit/" +
+    afterUpload
+  );
 };
 
 
@@ -1222,9 +1257,11 @@ html.dark-mode .product-wishlist-btn:focus-visible {
         <div className="product-img-wrap a1 w-full sm:w-[420px] md:w-[460px]">
 
           <img
-            src={product.image}
+            src={getOptimizedImageUrl(product.image)}
             alt={product.name}
             className="product-img"
+            loading="eager"
+            decoding="async"
           />
 
           {/* WISHLIST HEART */}

@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { ShopContext } from "../../context/ShopContext";
@@ -593,7 +594,7 @@ const AdminDashboard = () => {
           --ad-over:      0.68rem;
           --ad-title:     1.9rem;
           --ad-label:     0.8rem;
-          --ad-value:     1.45rem;
+          --ad-value:    1.45rem;
           --ad-ptitle:    1rem;
           --ad-chart-h:   230px;
           --ad-legend:    0.78rem;
@@ -629,13 +630,13 @@ const AdminDashboard = () => {
 
         /* ── Entrance ── */
         .ad-rise {
-          opacity: 0;
+          opacity: 1;
           animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         @keyframes ad-rise {
-          from { opacity: 0; transform: translateY(14px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { transform: translateY(14px); }
+          to   { transform: translateY(0); }
         }
 
         /* ── Heading ── */
@@ -1042,7 +1043,7 @@ const AdminDashboard = () => {
             --ad-icon:      2.4rem;
             --ad-icon-svg:  1.05rem;
             --ad-label:     0.86rem;
-            --ad-value:     1.7rem;
+            --ad-value:    1.7rem;
             --ad-ptitle:    1.05rem;
             --ad-chart-h:   270px;
             --ad-legend:    0.82rem;
@@ -1062,7 +1063,7 @@ const AdminDashboard = () => {
             --ad-icon-svg:  1.1rem;
             --ad-over:      0.74rem;
             --ad-title:     2.4rem;
-            --ad-value:     1.85rem;
+            --ad-value:    1.85rem;
             --ad-ptitle:    1.1rem;
             --ad-chart-h:   290px;
             --ad-thead:     0.72rem;
@@ -1117,7 +1118,7 @@ const AdminDashboard = () => {
             --ad-radius:    16px;
             --ad-icon:      2.6rem;
             --ad-label:     0.88rem;
-            --ad-value:     1.75rem;
+            --ad-value:    1.75rem;
             --ad-ptitle:    1.15rem;
             --ad-chart-h:   300px;
             --ad-legend:    0.85rem;
@@ -1136,7 +1137,7 @@ const AdminDashboard = () => {
             --ad-icon:      2.75rem;
             --ad-icon-svg:  1.2rem;
             --ad-title:     2.8rem;
-            --ad-value:     2rem;
+            --ad-value:    2rem;
             --ad-ptitle:    1.2rem;
             --ad-chart-h:   320px;
             --ad-thead:     0.74rem;
@@ -1161,7 +1162,7 @@ const AdminDashboard = () => {
             --ad-over:      0.8rem;
             --ad-title:     3rem;
             --ad-label:     0.95rem;
-            --ad-value:     2.3rem;
+            --ad-value:    2.3rem;
             --ad-ptitle:    1.3rem;
             --ad-chart-h:   360px;
             --ad-legend:    0.92rem;
@@ -1177,7 +1178,7 @@ const AdminDashboard = () => {
         @media (min-width: 1920px) {
           .ad-root {
             --ad-max:       1840px;
-            --ad-value:     2.5rem;
+            --ad-value:    2.5rem;
             --ad-chart-h:   400px;
           }
         }

@@ -5,6 +5,39 @@ import { Title } from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
+
+const getOptimizedImageUrl = (imageUrl) => {
+
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return imageUrl;
+  }
+
+  const transformationMarker = "/image/upload/";
+
+  if (
+    !imageUrl.includes("res.cloudinary.com/") ||
+    !imageUrl.includes(transformationMarker)
+  ) {
+    return imageUrl;
+  }
+
+  const [beforeUpload, afterUpload] =
+    imageUrl.split(transformationMarker);
+
+  if (!afterUpload) {
+    return imageUrl;
+  }
+
+  return (
+    beforeUpload +
+    transformationMarker +
+    "f_auto,q_auto,w_400,c_limit/" +
+    afterUpload
+  );
+
+};
+
+
 const Orders = () => {
   const { orders, cancelOrder } = useContext(ShopContext);
   const navigate = useNavigate();
@@ -707,9 +740,11 @@ const Orders = () => {
                               }}
                             >
                               <img
-                                src={item.image}
+                                src={getOptimizedImageUrl(item.image)}
                                 alt={item.name}
                                 className="thumb-img w-full h-full object-cover block"
+                                loading="lazy"
+                                decoding="async"
                               />
                             </div>
 

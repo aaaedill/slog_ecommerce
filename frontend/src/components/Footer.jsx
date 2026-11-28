@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -247,7 +248,7 @@ const Footer = () => {
         }
       `}</style>
 
-      <footer className="footer-root mt-20 w-full">
+      <footer className="footer-root w-full">
 
         {/* ── TOP ── */}
         <div className="

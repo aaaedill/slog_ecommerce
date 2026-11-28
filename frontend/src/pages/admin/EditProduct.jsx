@@ -1,3 +1,4 @@
+
 import React, {
   useEffect,
   useState,
@@ -14,6 +15,40 @@ import {
 
 import { ShopContext } from "../../context/ShopContext";
 import API_URL from "../../config/api";
+
+
+/* ── Optimize Cloudinary Images ── */
+
+const getOptimizedImageUrl = (imageUrl) => {
+
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return imageUrl;
+  }
+
+  const transformationMarker = "/image/upload/";
+
+  if (
+    !imageUrl.includes("res.cloudinary.com/") ||
+    !imageUrl.includes(transformationMarker)
+  ) {
+    return imageUrl;
+  }
+
+  const [beforeUpload, afterUpload] =
+    imageUrl.split(transformationMarker);
+
+  if (!afterUpload) {
+    return imageUrl;
+  }
+
+  return (
+    beforeUpload +
+    transformationMarker +
+    "f_auto,q_auto,w_400,c_limit/" +
+    afterUpload
+  );
+
+};
 
 
 /* ── Glass Toast (black + red theme) ── */
@@ -1472,9 +1507,11 @@ const EditProduct = () => {
 
                   {preview && (
                     <img
-                      src={preview}
+                      src={getOptimizedImageUrl(preview)}
                       alt={product.name || "Product preview"}
                       className="ae-preview"
+                      loading="eager"
+                      decoding="async"
                     />
                   )}
 

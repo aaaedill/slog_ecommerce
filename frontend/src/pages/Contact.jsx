@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Title } from "../components/Title";
 import { Link } from "react-router-dom";
@@ -210,7 +211,13 @@ const Contact = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-16 items-center a2">
 
           {/* IMAGE */}
-          <img src="/images/contact.jpg" className="contact-img" alt="SLOG Fashion store" />
+          <img
+            src="/images/contact.webp"
+            className="contact-img"
+            alt="SLOG Fashion store"
+            loading="eager"
+            decoding="async"
+          />
 
           {/* INFO */}
           <div>

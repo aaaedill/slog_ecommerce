@@ -1,3 +1,4 @@
+
 import React, {
   useEffect,
   useState,
@@ -9,6 +10,40 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 import API_URL from "../../config/api";
+
+
+/* ── Cloudinary Image Optimization ── */
+
+const getOptimizedImageUrl = (imageUrl) => {
+
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return imageUrl;
+  }
+
+  const transformationMarker = "/image/upload/";
+
+  if (
+    !imageUrl.includes("res.cloudinary.com/") ||
+    !imageUrl.includes(transformationMarker)
+  ) {
+    return imageUrl;
+  }
+
+  const [beforeUpload, afterUpload] =
+    imageUrl.split(transformationMarker);
+
+  if (!afterUpload) {
+    return imageUrl;
+  }
+
+  return (
+    beforeUpload +
+    transformationMarker +
+    "f_auto,q_auto,w_200,c_limit/" +
+    afterUpload
+  );
+
+};
 
 
 /* ── Glass Toast (black + red theme) ── */
@@ -1335,10 +1370,11 @@ const AdminProducts = () => {
                   {/* Image */}
                   <div className="ap-c-img">
                     <img
-                      src={product.image}
+                      src={getOptimizedImageUrl(product.image)}
                       className="ap-img"
-                      alt=""
+                      alt={product.name || "Product"}
                       loading="lazy"
+                      decoding="async"
                     />
                   </div>
 

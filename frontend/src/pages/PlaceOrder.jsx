@@ -1,9 +1,10 @@
+
 import { useContext, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import gpay from "../assets/gpay.png";
-import phonepe from "../assets/phonepe.png";
+import gpay from "../assets/gpay.webp";
+import phonepe from "../assets/phonepe.webp";
 
 const glassToastStyle = {
   background: "rgba(255,255,255,0.55)",

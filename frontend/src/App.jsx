@@ -1,8 +1,6 @@
-
 import React, {
-  useEffect,
-  useRef,
-  useState
+  lazy,
+  Suspense
 } from 'react'
 
 import {
@@ -12,47 +10,56 @@ import {
   Navigate
 } from 'react-router-dom'
 
+/* ==========================================
+   LAZY-LOADED USER PAGES
+   ========================================== */
 
-import Home from './pages/Home'
-import Collection from './pages/Collection'
-import About from './pages/About'
-import Contact from './pages/Contact'
-import Product from './pages/Product'
-import Cart from './pages/Cart'
-import Login from './pages/Login'
-import PlaceOrder from './pages/PlaceOrder'
-import Orders from './pages/Orders'
-import Register from './pages/Register'
-import Profile from './pages/Profile'
-import Wishlist from './pages/Wishlist'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
+const Home = lazy(() => import('./pages/Home'))
+const Collection = lazy(() => import('./pages/Collection'))
+const About = lazy(() => import('./pages/About'))
+const Contact = lazy(() => import('./pages/Contact'))
+const Product = lazy(() => import('./pages/Product'))
+const Cart = lazy(() => import('./pages/Cart'))
+const Login = lazy(() => import('./pages/Login'))
+const PlaceOrder = lazy(() => import('./pages/PlaceOrder'))
+const Orders = lazy(() => import('./pages/Orders'))
+const Register = lazy(() => import('./pages/Register'))
+const Profile = lazy(() => import('./pages/Profile'))
+const Wishlist = lazy(() => import('./pages/Wishlist'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const Newsletter = lazy(() => import('./pages/Newsletter'))
 
+/* ==========================================
+   SHARED COMPONENTS
+   ========================================== */
 
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
 
+/* ==========================================
+   LAZY-LOADED ADMIN PAGES
+   ========================================== */
 
-import AdminLayout from "./pages/admin/AdminLayout"
-import AdminDashboard from "./pages/admin/AdminDashboard"
-import AdminProducts from "./pages/admin/AdminProducts"
-import AddProduct from "./pages/admin/AddProduct"
-import EditProduct from "./pages/admin/EditProduct"
-import AdminOrders from "./pages/admin/AdminOrders"
-import AdminOrderDetails from "./pages/admin/AdminOrderDetails"
-import AdminUsers from './pages/admin/AdminUsers'
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"))
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"))
+const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"))
+const AddProduct = lazy(() => import("./pages/admin/AddProduct"))
+const EditProduct = lazy(() => import("./pages/admin/EditProduct"))
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"))
+const AdminOrderDetails = lazy(() => import("./pages/admin/AdminOrderDetails"))
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"))
+
+/* ==========================================
+   ADMIN ROUTE PROTECTION
+   ========================================== */
 
 import AdminRoute from "./components/AdminRoute"
-
 
 const App = () => {
 
   const location = useLocation()
-
-  const [showFooter, setShowFooter] = useState(false)
-
-  const footerTriggerRef = useRef(null)
 
   const isAdminRoute =
     location.pathname.startsWith("/admin")
@@ -66,91 +73,8 @@ const App = () => {
   const isHomeRoute =
     location.pathname === "/"
 
-
-  /*
-   * Reset the footer whenever the user
-   * navigates to another page.
-   */
-
-  useEffect(() => {
-
-    setShowFooter(false)
-
-  }, [location.pathname])
-
-
-  /*
-   * FOOTER REVEAL
-   *
-   * The footer is not mounted immediately.
-   *
-   * An invisible 80px area exists after
-   * the main page content.
-   *
-   * The footer appears after the user
-   * scrolls through this reveal area.
-   */
-
-  useEffect(() => {
-
-    if (
-      isAdminRoute ||
-      isAuthRoute
-    ) {
-      return
-    }
-
-    const trigger =
-      footerTriggerRef.current
-
-    if (!trigger) {
-      return
-    }
-
-    const checkFooterTrigger = () => {
-
-      if (showFooter) {
-        return
-      }
-
-      const rect =
-        trigger.getBoundingClientRect()
-
-      if (
-        rect.bottom <=
-        window.innerHeight
-      ) {
-
-        setShowFooter(true)
-
-      }
-
-    }
-
-    window.addEventListener(
-      "scroll",
-      checkFooterTrigger,
-      { passive: true }
-    )
-
-    checkFooterTrigger()
-
-    return () => {
-
-      window.removeEventListener(
-        "scroll",
-        checkFooterTrigger
-      )
-
-    }
-
-  }, [
-    location.pathname,
-    isAdminRoute,
-    isAuthRoute,
-    showFooter
-  ])
-
+  const isNewsletterRoute =
+    location.pathname === "/newsletter"
 
   return (
 
@@ -167,16 +91,15 @@ const App = () => {
 
       <ScrollToTop />
 
-
       {/* NAVBAR */}
 
       {!isAdminRoute &&
-        !isAuthRoute && (
+        !isAuthRoute &&
+        !isNewsletterRoute && (
 
           <Navbar />
 
         )}
-
 
       {/* ==========================================
           FIXED NAVBAR SPACING
@@ -187,12 +110,14 @@ const App = () => {
           Reserve space below the fixed navbar
           so customer page content starts below it.
 
-          Authentication and admin pages remain
-          independent from the customer navbar.
+          Authentication, admin and newsletter
+          pages remain independent from the
+          customer navbar.
           ========================================== */}
 
       {!isAdminRoute &&
-        !isAuthRoute && (
+        !isAuthRoute &&
+        !isNewsletterRoute && (
 
           <div
             aria-hidden="true"
@@ -207,7 +132,9 @@ const App = () => {
         )}
 
 
-      {/* MAIN CONTENT */}
+      {/* ==========================================
+          MAIN CONTENT
+          ========================================== */}
 
       <div
         className="
@@ -218,203 +145,248 @@ const App = () => {
         <div
           className={
             !isAdminRoute &&
-            !isHomeRoute
+            !isHomeRoute &&
+            !isNewsletterRoute
               ? 'px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'
               : ''
           }
         >
+          {/* ==========================================
+              LAZY LOADING FALLBACK
+              ========================================== */}
 
-          <Routes>
+          <Suspense
+            fallback={
+              <div
+                className="
+                  min-h-[50vh]
+                  w-full
+                  flex
+                  items-center
+                  justify-center
+                  text-sm
+                  tracking-widest
+                  text-[var(--text-primary)]
+                "
+              >
+                LOADING...
+              </div>
+            }
+          >
 
-            {/* ==========================================
-                USER ROUTES
-                ========================================== */}
+            <Routes>
 
-            <Route
-              path="/"
-              element={
-                <Home />
-              }
-            />
-
-            <Route
-              path="/collection"
-              element={
-                <Collection />
-              }
-            />
-
-            <Route
-              path="/about"
-              element={
-                <About />
-              }
-            />
-
-            <Route
-              path="/contact"
-              element={
-                <Contact />
-              }
-            />
-
-            <Route
-              path="/product/:id"
-              element={
-                <Product />
-              }
-            />
-
-            <Route
-              path="/cart"
-              element={
-                <Cart />
-              }
-            />
-
-            <Route
-              path="/wishlist"
-              element={
-                <Wishlist />
-              }
-            />
-
-            <Route
-              path="/login"
-              element={
-                <Login />
-              }
-            />
-
-            <Route
-              path="/register"
-              element={
-                <Register />
-              }
-            />
-
-            {/* FORGOT PASSWORD */}
-
-            <Route
-              path="/forgot-password"
-              element={
-                <ForgotPassword />
-              }
-            />
-
-            {/* RESET PASSWORD */}
-
-            <Route
-              path="/reset-password"
-              element={
-                <ResetPassword />
-              }
-            />
-
-            <Route
-              path="/place-order"
-              element={
-                <PlaceOrder />
-              }
-            />
-
-            <Route
-              path="/orders"
-              element={
-                <Orders />
-              }
-            />
-
-            <Route
-              path="/profile"
-              element={
-                <Profile />
-              }
-            />
-
-
-            {/* ==========================================
-                ADMIN ROUTES
-                ========================================== */}
-
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminLayout />
-                </AdminRoute>
-              }
-            >
+              {/* ==========================================
+                  USER ROUTES
+                  ========================================== */}
 
               <Route
-                index
+                path="/"
                 element={
-                  <AdminDashboard />
+                  <Home />
                 }
               />
 
               <Route
-                path="products"
+                path="/collection"
                 element={
-                  <AdminProducts />
+                  <Collection />
                 }
               />
 
               <Route
-                path="add"
+                path="/about"
                 element={
-                  <AddProduct />
+                  <About />
                 }
               />
 
               <Route
-                path="edit-product/:id"
+                path="/contact"
                 element={
-                  <EditProduct />
+                  <Contact />
                 }
               />
 
               <Route
-                path="orders"
+                path="/product/:id"
                 element={
-                  <AdminOrders />
-                }
-              />
-
-              {/* INDIVIDUAL ORDER DETAILS */}
-
-              <Route
-                path="orders/:id"
-                element={
-                  <AdminOrderDetails />
+                  <Product />
                 }
               />
 
               <Route
-                path="users"
+                path="/cart"
                 element={
-                  <AdminUsers />
+                  <Cart />
                 }
               />
 
-            </Route>
+              <Route
+                path="/wishlist"
+                element={
+                  <Wishlist />
+                }
+              />
 
 
-            {/* ==========================================
-                FALLBACK
-                ========================================== */}
+              {/* NEWSLETTER */}
 
-            <Route
-              path="*"
-              element={
-                <Navigate
-                  to="/"
-                  replace
+              <Route
+                path="/newsletter"
+                element={
+                  <Newsletter />
+                }
+              />
+
+
+              {/* AUTHENTICATION */}
+
+              <Route
+                path="/login"
+                element={
+                  <Login />
+                }
+              />
+
+              <Route
+                path="/register"
+                element={
+                  <Register />
+                }
+              />
+
+
+              {/* FORGOT PASSWORD */}
+
+              <Route
+                path="/forgot-password"
+                element={
+                  <ForgotPassword />
+                }
+              />
+
+
+              {/* RESET PASSWORD */}
+
+              <Route
+                path="/reset-password"
+                element={
+                  <ResetPassword />
+                }
+              />
+
+
+              {/* ORDERS */}
+
+              <Route
+                path="/place-order"
+                element={
+                  <PlaceOrder />
+                }
+              />
+
+              <Route
+                path="/orders"
+                element={
+                  <Orders />
+                }
+              />
+
+              <Route
+                path="/profile"
+                element={
+                  <Profile />
+                }
+              />
+
+
+              {/* ==========================================
+                  ADMIN ROUTES
+                  ========================================== */}
+
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminLayout />
+                  </AdminRoute>
+                }
+              >
+
+                <Route
+                  index
+                  element={
+                    <AdminDashboard />
+                  }
                 />
-              }
-            />
 
-          </Routes>
+                <Route
+                  path="products"
+                  element={
+                    <AdminProducts />
+                  }
+                />
+
+                <Route
+                  path="add"
+                  element={
+                    <AddProduct />
+                  }
+                />
+
+                <Route
+                  path="edit-product/:id"
+                  element={
+                    <EditProduct />
+                  }
+                />
+
+                <Route
+                  path="orders"
+                  element={
+                    <AdminOrders />
+                  }
+                />
+
+
+                {/* INDIVIDUAL ORDER DETAILS */}
+
+                <Route
+                  path="orders/:id"
+                  element={
+                    <AdminOrderDetails />
+                  }
+                />
+
+
+                <Route
+                  path="users"
+                  element={
+                    <AdminUsers />
+                  }
+                />
+
+              </Route>
+
+
+              {/* ==========================================
+                  FALLBACK
+                  ========================================== */}
+
+              <Route
+                path="*"
+                element={
+                  <Navigate
+                    to="/"
+                    replace
+                  />
+                }
+              />
+
+            </Routes>
+
+          </Suspense>
 
         </div>
 
@@ -422,31 +394,18 @@ const App = () => {
 
 
       {/* ==========================================
-          FOOTER REVEAL ZONE
+          FOOTER
+
+          Footer now appears directly after
+          the main page content.
+
+          No 80px reveal zone.
+          No scroll-triggered mounting.
           ========================================== */}
 
       {!isAdminRoute &&
-        !isAuthRoute && (
-
-          <div
-            ref={footerTriggerRef}
-            className="
-              h-[80px]
-              w-full
-              shrink-0
-              bg-[var(--bg-primary)]
-            "
-            aria-hidden="true"
-          />
-
-        )}
-
-
-      {/* FOOTER */}
-
-      {!isAdminRoute &&
         !isAuthRoute &&
-        showFooter && (
+        !isNewsletterRoute && (
 
           <Footer />
 

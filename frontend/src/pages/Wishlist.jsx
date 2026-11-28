@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
@@ -115,6 +116,37 @@ const Wishlist = () => {
     }
 
     return "";
+  };
+
+  /* ── Cloudinary image optimization ── */
+
+  const getOptimizedImageUrl = (imageUrl) => {
+    if (!imageUrl || typeof imageUrl !== "string") {
+      return imageUrl;
+    }
+
+    const transformationMarker = "/image/upload/";
+
+    if (
+      !imageUrl.includes("res.cloudinary.com/") ||
+      !imageUrl.includes(transformationMarker)
+    ) {
+      return imageUrl;
+    }
+
+    const [beforeUpload, afterUpload] =
+      imageUrl.split(transformationMarker);
+
+    if (!afterUpload) {
+      return imageUrl;
+    }
+
+    return (
+      beforeUpload +
+      transformationMarker +
+      "f_auto,q_auto,w_600,c_limit/" +
+      afterUpload
+    );
   };
 
   const getProductPrice = (product) => {
@@ -524,9 +556,10 @@ const Wishlist = () => {
                   {productImage ? (
                     <img
                       className="wl-product-image"
-                      src={productImage}
+                      src={getOptimizedImageUrl(productImage)}
                       alt={productName}
                       loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div className="wl-image-placeholder">

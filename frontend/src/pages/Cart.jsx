@@ -1,8 +1,42 @@
+
 import { useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { Title } from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+
+
+const getOptimizedImageUrl = (imageUrl) => {
+
+  if (!imageUrl || typeof imageUrl !== "string") {
+    return imageUrl;
+  }
+
+  const transformationMarker = "/image/upload/";
+
+  if (
+    !imageUrl.includes("res.cloudinary.com/") ||
+    !imageUrl.includes(transformationMarker)
+  ) {
+    return imageUrl;
+  }
+
+  const [beforeUpload, afterUpload] =
+    imageUrl.split(transformationMarker);
+
+  if (!afterUpload) {
+    return imageUrl;
+  }
+
+  return (
+    beforeUpload +
+    transformationMarker +
+    "f_auto,q_auto,w_400,c_limit/" +
+    afterUpload
+  );
+
+};
+
 
 const Cart = () => {
 
@@ -1451,12 +1485,16 @@ const Cart = () => {
 
                             <img
                               src={
-                                product.image
+                                getOptimizedImageUrl(
+                                  product.image
+                                )
                               }
                               alt={
                                 product.name
                               }
                               className="cart-thumb-img"
+                              loading="lazy"
+                              decoding="async"
                             />
 
                           </div>

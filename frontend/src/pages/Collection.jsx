@@ -1,3 +1,4 @@
+
 import React, {
   useContext,
   useState,
@@ -6,7 +7,12 @@ import React, {
 } from "react";
 
 import { ShopContext } from "../context/ShopContext";
-import { Link, useNavigate } from "react-router-dom";
+
+import {
+  Link,
+  useNavigate,
+  useSearchParams
+} from "react-router-dom";
 
 const Collection = () => {
   const {
@@ -19,13 +25,73 @@ const Collection = () => {
 
   const navigate = useNavigate();
 
-  const [selectedCategory, setSelectedCategory] = useState([]);
+  const categories = ["shirt", "tshirt", "hoodie", "pants"];
+
+  const [searchParams] = useSearchParams();
+
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const initialCategory = searchParams
+      .get("category")
+      ?.toLowerCase();
+
+    return categories.includes(initialCategory)
+      ? [initialCategory]
+      : [];
+  });
+
   const [sortType, setSortType] = useState("relevant");
   const [wishlistLoading, setWishlistLoading] = useState({});
 
-  const categories = ["shirt", "tshirt", "hoodie", "pants"];
-
   const rootRef = useRef(null);
+
+  // =========================================================
+  // OPTIMIZE CLOUDINARY IMAGE URL
+  // =========================================================
+
+  const getOptimizedImageUrl = (imageUrl) => {
+    if (!imageUrl || typeof imageUrl !== "string") {
+      return imageUrl;
+    }
+
+    const transformationMarker = "/image/upload/";
+
+    if (
+      !imageUrl.includes("res.cloudinary.com/") ||
+      !imageUrl.includes(transformationMarker)
+    ) {
+      return imageUrl;
+    }
+
+    const [beforeUpload, afterUpload] =
+      imageUrl.split(transformationMarker);
+
+    if (!afterUpload) {
+      return imageUrl;
+    }
+
+    return (
+      beforeUpload +
+      transformationMarker +
+      "f_auto,q_auto,w_600,c_limit/" +
+      afterUpload
+    );
+  };
+
+  // =========================================================
+  // SYNC CATEGORY FILTER WITH URL
+  // =========================================================
+
+  useEffect(() => {
+    const categoryFromUrl = searchParams
+      .get("category")
+      ?.toLowerCase();
+
+    if (categories.includes(categoryFromUrl)) {
+      setSelectedCategory([categoryFromUrl]);
+    } else {
+      setSelectedCategory([]);
+    }
+  }, [searchParams]);
 
   // =========================================================
   // CATEGORY FILTER
@@ -1070,10 +1136,11 @@ const Collection = () => {
 
                     <div className="col-img-wrap">
                       <img
-                        src={item.image}
+                        src={getOptimizedImageUrl(item.image)}
                         className="col-img"
                         alt={item.name}
                         loading="lazy"
+                        decoding="async"
                       />
 
                       {/* WISHLIST HEART */}

@@ -1,10 +1,66 @@
+
 import { useContext, useEffect, useRef } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { Link } from "react-router-dom";
 
+/*
+ * CLOUDINARY IMAGE OPTIMIZATION
+ *
+ * Cloudinary images receive automatic format, quality
+ * and width optimizations.
+ *
+ * Local images such as /images/p5.png remain unchanged.
+ */
+const getOptimizedImageUrl = (imageUrl) => {
+  if (
+    !imageUrl ||
+    typeof imageUrl !== "string"
+  ) {
+    return imageUrl;
+  }
+
+  const cloudinaryUploadPath = "/image/upload/";
+
+  if (
+    !imageUrl.includes("res.cloudinary.com/") ||
+    !imageUrl.includes(cloudinaryUploadPath)
+  ) {
+    return imageUrl;
+  }
+
+  // Avoid adding transformations more than once.
+  const transformationMarker = "/image/upload/";
+
+  const [beforeUpload, afterUpload] = imageUrl.split(
+    transformationMarker
+  );
+
+  if (!afterUpload) {
+    return imageUrl;
+  }
+
+  return (
+    beforeUpload +
+    transformationMarker +
+    "f_auto,q_auto,w_600,c_limit/" +
+    afterUpload
+  );
+};
+
 const LatestCollection = () => {
   const { products } = useContext(ShopContext);
   const rootRef = useRef(null);
+
+  // Get the 8 most recently added products.
+  // Uses createdAt so editing an older product
+  // does not move it to the top of the collection.
+  const latestProducts = [...(products || [])]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt || 0) -
+        new Date(a.createdAt || 0)
+    )
+    .slice(0, 8);
 
   /*
    * SCROLL-TRIGGERED REVEAL
@@ -226,7 +282,8 @@ const LatestCollection = () => {
 
           display: flex;
 
-          align-items: center;
+          align-items:
+            center;
 
           gap:
             0.5rem;
@@ -981,7 +1038,7 @@ const LatestCollection = () => {
               1.7rem;
           }
         }
-      
+
         /* ────────────────────────────────────────────────
            RESPONSIVE ADDITIONS
         ──────────────────────────────────────────────── */
@@ -1013,7 +1070,7 @@ const LatestCollection = () => {
             min-height: 2.75rem;
           }
         }
-`}</style>
+      `}</style>
 
       {/* ==================================================
           LATEST COLLECTION
@@ -1042,7 +1099,7 @@ const LatestCollection = () => {
             <div className="lc-header-right">
 
               <span className="lc-count">
-                {products.length} Pieces
+                {latestProducts.length} Pieces
               </span>
 
               <Link
@@ -1083,7 +1140,7 @@ const LatestCollection = () => {
 
           <div className="lc-grid">
 
-            {products.map(
+            {latestProducts.map(
               (
                 item,
                 i
@@ -1107,13 +1164,12 @@ const LatestCollection = () => {
                     <div className="lc-img-wrap">
 
                       <img
-                        src={
-                          item.image
-                        }
+                        src={getOptimizedImageUrl(item.image)}
                         className="lc-img"
-                        alt={
-                          item.name
-                        }
+                        alt={item.name}
+                        loading="lazy"
+                        decoding="async"
+                        sizes="(max-width: 480px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
 
                       <span className="lc-quick">
