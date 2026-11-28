@@ -36,15 +36,20 @@
 
 import bcrypt from "bcryptjs";
 
+import crypto from "crypto";
+
 import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
+
+import PasswordReset from "../models/PasswordReset.js";
 
 import {
   OTP_EXPIRY_MINUTES,
   OTP_MAX_ATTEMPTS,
   createOTPData,
   sendEmailOTP,
+  sendPasswordResetOTP,
   sendSMSOTP,
   verifyOTP
 } from "../services/otpService.js";
@@ -1947,6 +1952,936 @@ const resendRegistrationOTP =
 
 /*
 |--------------------------------------------------------------------------
+| REQUEST PASSWORD RESET
+|--------------------------------------------------------------------------
+|
+| Sends a password-reset OTP to an existing, verified email account.
+|
+| The response is deliberately generic so callers cannot discover
+| whether an email address is registered on the website.
+|
+| Expected request body:
+|
+| {
+|   "email": "customer@example.com"
+| }
+|
+|--------------------------------------------------------------------------
+*/
+
+const requestPasswordReset = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const {
+      email
+    } =
+      req.body;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Email
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      typeof email !== "string" ||
+      !email.trim() ||
+      email.trim().length > EMAIL_MAX_LENGTH ||
+      !emailRegex.test(email.trim())
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Please enter a valid email address."
+
+      });
+
+    }
+
+
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Generic Response
+    |--------------------------------------------------------------------------
+    */
+
+    const genericResponse = {
+
+      success: true,
+
+      message:
+        "If an account exists with this email address, a password reset code will be sent shortly."
+
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Find Verified Account
+    |--------------------------------------------------------------------------
+    |
+    | Unverified accounts cannot use password reset.
+    | The same generic response is returned either way.
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    const user =
+      await User.findOne({
+
+        email:
+          normalizedEmail,
+
+        isVerified:
+          true
+
+      });
+
+
+    if (!user) {
+
+      return res.status(200).json(
+        genericResponse
+      );
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Check Resend Cooldown
+    |--------------------------------------------------------------------------
+    |
+    | A new OTP can be requested after 60 seconds.
+    | Keep the response generic to avoid account enumeration.
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    const existingReset =
+      await PasswordReset.findOne({
+
+        email:
+          normalizedEmail
+
+      });
+
+
+    if (existingReset?.lastSentAt) {
+
+      const elapsedSeconds =
+        Math.floor(
+          (Date.now() - new Date(existingReset.lastSentAt).getTime()) / 1000
+        );
+
+      if (
+        elapsedSeconds < OTP_RESEND_COOLDOWN_SECONDS
+      ) {
+
+        return res.status(200).json(
+          genericResponse
+        );
+
+      }
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Generate OTP
+    |--------------------------------------------------------------------------
+    */
+
+    const {
+      otp,
+      otpHash,
+      otpExpiresAt
+    } =
+      await createOTPData();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Send Password Reset Email
+    |--------------------------------------------------------------------------
+    |
+    | Send before replacing an existing reset record so a provider
+    | failure does not invalidate a previously delivered OTP.
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    await sendPasswordResetOTP({
+
+      email:
+        user.email,
+
+      name:
+        user.name,
+
+      otp
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Save Password Reset Data
+    |--------------------------------------------------------------------------
+    |
+    | The plain OTP is never stored in MongoDB.
+    | cleanupAt is also used by the model's TTL index.
+    | Expiry is checked manually during verification as well.
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    await PasswordReset.findOneAndUpdate(
+
+      {
+        email:
+          normalizedEmail
+      },
+
+      {
+        $set: {
+
+          userId:
+            user._id,
+
+          email:
+            normalizedEmail,
+
+          otpHash,
+
+          otpExpiresAt,
+
+          otpAttempts:
+            0,
+
+          lastSentAt:
+            new Date(),
+
+          cleanupAt:
+            otpExpiresAt
+
+        },
+
+        $unset: {
+
+          resetTokenHash: 1,
+
+          resetTokenExpiresAt: 1,
+
+          verifiedAt: 1
+
+        }
+
+      },
+
+      {
+        upsert: true,
+        new: true,
+        runValidators: true,
+        setDefaultsOnInsert: true
+      }
+
+    );
+
+
+    return res.status(200).json(
+      genericResponse
+    );
+
+
+  } catch (error) {
+
+    console.error(
+
+      "Request password reset error:",
+
+      error
+
+    );
+
+    return res.status(200).json({
+
+      success: true,
+
+      message:
+        "If an account exists with this email address, a password reset code will be sent shortly."
+
+    });
+
+  }
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| VERIFY PASSWORD RESET OTP
+|--------------------------------------------------------------------------
+|
+| Verifies the email OTP and creates a short-lived reset authorization.
+|
+| Expected request body:
+|
+| {
+|   "email": "customer@example.com",
+|   "otp": "123456"
+| }
+|
+|--------------------------------------------------------------------------
+*/
+
+const verifyPasswordResetOTP = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const {
+      email,
+      otp
+    } =
+      req.body;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Input
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      typeof email !== "string" ||
+      !email.trim() ||
+      email.trim().length > EMAIL_MAX_LENGTH ||
+      !emailRegex.test(email.trim()) ||
+      typeof otp !== "string" ||
+      !/^\d{6}$/.test(otp)
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "A valid email address and six-digit OTP are required."
+
+      });
+
+    }
+
+
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Find Reset Record
+    |--------------------------------------------------------------------------
+    */
+
+    const resetRecord =
+      await PasswordReset.findOne({
+
+        email:
+          normalizedEmail
+
+      }).select(
+        "+otpHash +resetTokenHash"
+      );
+
+
+    if (!resetRecord) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Invalid or expired verification code. Please request a new code."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Verify OTP
+    |--------------------------------------------------------------------------
+    */
+
+    const result =
+      await verifyOTP({
+
+        otp,
+
+        otpHash:
+          resetRecord.otpHash,
+
+        otpExpiresAt:
+          resetRecord.otpExpiresAt,
+
+        otpAttempts:
+          resetRecord.otpAttempts || 0
+
+      });
+
+
+    if (!result.success) {
+
+      /*
+      |--------------------------------------------------------------------------
+      | Increase Failed Attempt Counter
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        result.reason === "INVALID_OTP" ||
+        result.reason === "OTP_NOT_FOUND"
+      ) {
+
+        await PasswordReset.updateOne(
+
+          {
+            _id:
+              resetRecord._id,
+
+            otpHash:
+              resetRecord.otpHash
+
+          },
+
+          {
+            $inc: {
+              otpAttempts: 1
+            }
+          }
+
+        );
+
+      }
+
+
+      if (
+        result.reason === "MAX_ATTEMPTS"
+      ) {
+
+        return res.status(429).json({
+
+          success: false,
+
+          message:
+            "Too many incorrect verification attempts. Please request a new code."
+
+        });
+
+      }
+
+
+      if (
+        result.reason === "OTP_EXPIRED"
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "This verification code has expired. Please request a new code."
+
+        });
+
+      }
+
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Invalid verification code."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Create Secure Reset Token
+    |--------------------------------------------------------------------------
+    |
+    | The raw token is returned once to the frontend.
+    | Only its SHA-256 hash is stored in MongoDB.
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    const resetToken =
+      crypto.randomBytes(32).toString("hex");
+
+    const resetTokenHash =
+      crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+    const resetTokenExpiresAt =
+      new Date(
+        Date.now() + 15 * 60 * 1000
+      );
+
+    const verifiedAt =
+      new Date();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Atomically Consume OTP
+    |--------------------------------------------------------------------------
+    |
+    | The OTP hash is removed in the same database operation that
+    | creates the reset authorization. This prevents the same OTP
+    | from being exchanged for multiple reset tokens concurrently.
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    const updatedRecord =
+      await PasswordReset.findOneAndUpdate(
+
+        {
+          _id:
+            resetRecord._id,
+
+          otpHash:
+            resetRecord.otpHash,
+
+          otpAttempts: {
+            $lt: OTP_MAX_ATTEMPTS
+          },
+
+          otpExpiresAt: {
+            $gt: new Date()
+          }
+
+        },
+
+        {
+          $set: {
+
+            resetTokenHash,
+
+            resetTokenExpiresAt,
+
+            verifiedAt,
+
+            cleanupAt:
+              resetTokenExpiresAt,
+
+            otpAttempts:
+              0
+
+          },
+
+          $unset: {
+
+            otpHash: 1,
+
+            otpExpiresAt: 1
+
+          }
+
+        },
+
+        {
+          new: true
+        }
+
+      );
+
+
+    if (!updatedRecord) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "This verification code is no longer valid. Please request a new code."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Verification Successful
+    |--------------------------------------------------------------------------
+    */
+
+    return res.status(200).json({
+
+      success: true,
+
+      message:
+        "Email verified successfully. You can now reset your password.",
+
+      resetToken,
+
+      expiresInMinutes:
+        15
+
+    });
+
+
+  } catch (error) {
+
+    console.error(
+
+      "Verify password reset OTP error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message:
+        "Could not verify the code. Please try again later."
+
+    });
+
+  }
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| RESET PASSWORD
+|--------------------------------------------------------------------------
+|
+| Validates the one-time reset authorization and updates the password.
+|
+| Expected request body:
+|
+| {
+|   "resetToken": "...",
+|   "password": "newPassword123"
+| }
+|
+|--------------------------------------------------------------------------
+*/
+
+const resetPassword = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const {
+      resetToken,
+      password
+    } =
+      req.body;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Reset Token
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      typeof resetToken !== "string" ||
+      !/^[a-f0-9]{64}$/i.test(resetToken)
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "A valid password reset authorization is required. Please verify your email again."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate New Password
+    |--------------------------------------------------------------------------
+    */
+
+    if (typeof password !== "string") {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "A new password is required."
+
+      });
+
+    }
+
+
+    if (
+      password.length < PASSWORD_MIN_LENGTH
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          `Password must be at least ${PASSWORD_MIN_LENGTH} characters long.`
+
+      });
+
+    }
+
+
+    if (
+      password.length > PASSWORD_MAX_LENGTH
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          `Password cannot exceed ${PASSWORD_MAX_LENGTH} characters.`
+
+      });
+
+    }
+
+
+    if (!passwordRegex.test(password)) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Password must contain at least one lowercase letter and one number."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hash Reset Token
+    |--------------------------------------------------------------------------
+    */
+
+    const resetTokenHash =
+      crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Find Valid Reset Authorization
+    |--------------------------------------------------------------------------
+    */
+
+    const resetRecord =
+      await PasswordReset.findOne({
+
+        resetTokenHash,
+
+        resetTokenExpiresAt: {
+          $gt: new Date()
+        },
+
+        verifiedAt: {
+          $ne: null
+        }
+
+      }).select(
+        "+resetTokenHash"
+      );
+
+
+    if (!resetRecord) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Your password reset session is invalid or has expired. Please start again."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Consume Reset Authorization
+    |--------------------------------------------------------------------------
+    |
+    | Delete the matching reset record before changing the password.
+    | This makes the reset token single-use, including concurrent requests.
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    const consumedRecord =
+      await PasswordReset.findOneAndDelete({
+
+        _id:
+          resetRecord._id,
+
+        resetTokenHash,
+
+        resetTokenExpiresAt: {
+          $gt: new Date()
+        }
+
+      });
+
+
+    if (!consumedRecord) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Your password reset session is invalid or has already been used. Please start again."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Find Account
+    |--------------------------------------------------------------------------
+    */
+
+    const user =
+      await User.findById(
+        resetRecord.userId
+      );
+
+
+    if (!user || !user.isVerified) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "This account can no longer be reset. Please contact support."
+
+      });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hash New Password
+    |--------------------------------------------------------------------------
+    |
+    | Use the same bcrypt cost as the existing registration flow.
+    |
+    |--------------------------------------------------------------------------
+    */
+
+    const passwordHash =
+      await bcrypt.hash(
+        password,
+        12
+      );
+
+
+    user.password =
+      passwordHash;
+
+    await user.save();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Password Reset Successful
+    |--------------------------------------------------------------------------
+    */
+
+    return res.status(200).json({
+
+      success: true,
+
+      message:
+        "Your password has been reset successfully. You can now log in with your new password."
+
+    });
+
+
+  } catch (error) {
+
+    console.error(
+
+      "Reset password error:",
+
+      error
+
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message:
+        "Password reset failed. Please try again later."
+
+    });
+
+  }
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
 | LOGIN
 |--------------------------------------------------------------------------
 |
@@ -2526,6 +3461,12 @@ export {
   verifyRegistrationOTP,
 
   resendRegistrationOTP,
+
+  requestPasswordReset,
+
+  verifyPasswordResetOTP,
+
+  resetPassword,
 
   login,
 

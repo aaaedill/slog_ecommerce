@@ -1018,8 +1018,8 @@ const AdminDashboard = () => {
 
         /* ── Responsive scale ── */
 
-        /* ≥ 400px: large phones. Stat cards go 2 across. */
-        @media (min-width: 400px) {
+        /* ≥ 375px: large phones. Stat cards go 2 across. */
+        @media (min-width: 375px) {
           .ad-root {
             --ad-px:       1rem;
             --ad-py:       1.1rem;

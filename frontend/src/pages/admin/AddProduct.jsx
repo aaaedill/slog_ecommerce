@@ -79,7 +79,7 @@ const ToastContainer = ({ toasts }) => (
           )}
         </span>
 
-        <span>{t.message}</span>
+        <span style={{ minWidth: 0 }}>{t.message}</span>
       </div>
     ))}
   </div>
@@ -376,163 +376,181 @@ const AddProduct = () => {
     <>
       <ToastContainer toasts={toasts} />
 
-      <div className="ad-root">
+      <div className="aa-root">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
-          .ad-root {
-            --ad-red:        #ff2d3f;
-            --ad-line:       rgba(255, 45, 63, 0.22);
-            --ad-line-hover: rgba(255, 45, 63, 0.6);
-            --ad-white:      #ffffff;
-            --ad-white-soft: rgba(255, 255, 255, 0.7);
+          .aa-root {
+            --aa-red:        #ff2d3f;
+            --aa-line:       rgba(255, 45, 63, 0.22);
+            --aa-line-hover: rgba(255, 45, 63, 0.6);
+            --aa-white:      #ffffff;
+            --aa-white-soft: rgba(255, 255, 255, 0.7);
 
-            /* responsive scale (inherits gap / padding / radius from AdminLayout) */
-            --ap-max: 1240px;
-            --ap-gap: var(--al-gap, 0.75rem);
-            --ap-pad: var(--al-card-pad, 0.875rem);
-            --ap-radius: calc(var(--al-radius, 0.75rem) + 0.25rem);
-            --ap-ctl: 2.75rem;
-            --ap-fs: 1rem;
-            --ap-label-fs: 0.7rem;
-            --ap-panel-fs: 1.05rem;
-            --ap-upload: 7rem;
-            --ap-aside: 340px;
-            --ap-sticky-top: 5.5rem;
-            --ap-chip-cols: 5;
+            /* responsive scale (overridden per breakpoint below).
+               --aa-max and --aa-px match the navbar so edges line up. */
+            --aa-max:       1400px;
+            --aa-px:        0.875rem;
+            --aa-py:        1rem;
+            --aa-gap:       0.75rem;
+            --aa-pad:       0.9rem;
+            --aa-radius:    14px;
+            --aa-ctl:       2.75rem;
+            --aa-fs:        1rem;
+            --aa-label:     0.68rem;
+            --aa-over:      0.68rem;
+            --aa-title:     1.9rem;
+            --aa-panel:     1rem;
+            --aa-upload:    7rem;
+            --aa-aside:     250px;
+            --aa-sticky:    5.5rem;
+            --aa-chip-cols: 5;
 
             position: relative;
-            width: 100%;
-            min-width: 0;
-            color: var(--ad-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: #000000;
+            color: var(--aa-white);
             font-family: 'Manrope', 'Inter', system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
+            padding:
+              var(--aa-py)
+              max(var(--aa-px), env(safe-area-inset-right))
+              calc(var(--aa-py) + 1rem + env(safe-area-inset-bottom))
+              max(var(--aa-px), env(safe-area-inset-left));
           }
 
-          .ap-shell {
+          .aa-shell {
             width: 100%;
-            max-width: var(--ap-max);
+            max-width: var(--aa-max);
             margin: 0 auto;
             min-width: 0;
           }
 
-          @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes aa-spin { to { transform: rotate(360deg); } }
 
           /* ── Entrance ── */
-          .ad-rise {
+          .aa-rise {
             opacity: 0;
-            animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: aa-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
-          @keyframes ad-rise {
+          @keyframes aa-rise {
             from { opacity: 0; transform: translateY(14px); }
             to   { opacity: 1; transform: translateY(0); }
           }
 
-          /* ── Page header: back button on top (phones), title left + back right (≥768) ── */
-          .ap-head {
+          /* ── Page header: title left, Back button right ── */
+          .aa-head {
             display: flex;
-            flex-direction: column;
             align-items: flex-start;
-            gap: var(--ap-gap);
-            margin-bottom: calc(var(--ap-gap) * 1.5);
+            justify-content: space-between;
+            gap: var(--aa-gap);
+            margin-bottom: calc(var(--aa-gap) * 1.5);
           }
 
-          .ad-overline {
+          .aa-head-text { min-width: 0; }
+
+          .aa-overline {
             display: inline-flex;
             align-items: center;
-            gap: 0.65rem;
-            color: var(--ad-red);
-            font-size: var(--ap-label-fs);
+            gap: 0.6rem;
+            color: var(--aa-red);
+            font-size: var(--aa-over);
             font-weight: 700;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.22em;
             text-transform: uppercase;
             margin-bottom: 0.4rem;
           }
 
-          .ad-overline::before {
+          .aa-overline::before {
             content: '';
-            width: clamp(18px, 3vw, 28px);
+            width: 1.75rem;
             height: 2px;
-            background: var(--ad-red);
+            background: var(--aa-red);
           }
 
-          .ad-title {
-            color: var(--ad-white);
+          .aa-title {
+            color: var(--aa-white);
             font-weight: 800;
             letter-spacing: -0.03em;
             line-height: 1.05;
-            font-size: clamp(1.9rem, 1.2rem + 2.6vw, 3rem);
+            font-size: var(--aa-title);
             overflow-wrap: anywhere;
           }
 
-          .ad-title-bar {
-            margin-top: clamp(0.65rem, 1.4vw, 1rem);
+          .aa-title-bar {
+            margin-top: 0.85rem;
             height: 2px;
-            width: clamp(56px, 8vw, 84px);
+            width: 5rem;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--aa-red);
             transform-origin: left center;
-            animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+            animation: aa-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
           }
 
-          @keyframes ad-draw {
+          @keyframes aa-draw {
             from { transform: scaleX(0); }
             to   { transform: scaleX(1); }
           }
 
-          /* ── Page grid: 1 column → sidebar + form (≥1024) ── */
-          .ap-layout {
+          /* ── Page grid:
+                phones / small tablets: one column (image, details, sizes)
+                ≥ 768px: image sidebar + form column ── */
+          .aa-layout {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
-            gap: var(--ap-gap);
+            gap: var(--aa-gap);
             align-items: start;
           }
 
-          .ap-col {
+          .aa-col {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
-            gap: var(--ap-gap);
+            gap: var(--aa-gap);
             min-width: 0;
           }
 
           /* ── Panel ── */
-          .ad-panel {
+          .aa-panel {
             position: relative;
             min-width: 0;
             background: transparent;
-            border: 1px solid var(--ad-line);
-            border-radius: var(--ap-radius);
-            padding: var(--ap-pad);
+            border: 1px solid var(--aa-line);
+            border-radius: var(--aa-radius);
+            padding: var(--aa-pad);
             transition: border-color 0.3s ease;
           }
 
-          .ad-panel:hover,
-          .ad-panel:focus-within {
-            border-color: var(--ad-line-hover);
+          .aa-panel:hover,
+          .aa-panel:focus-within {
+            border-color: var(--aa-line-hover);
           }
 
-          .ad-panel-title {
+          .aa-panel-title {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
-            margin-bottom: calc(var(--ap-pad) * 1.1);
-            color: var(--ad-white);
+            gap: 0.6rem;
+            margin-bottom: calc(var(--aa-pad) * 1.1);
+            color: var(--aa-white);
             font-weight: 700;
             letter-spacing: -0.015em;
-            font-size: var(--ap-panel-fs);
+            line-height: 1.2;
+            font-size: var(--aa-panel);
           }
 
-          .ad-panel-title::before {
+          .aa-panel-title::before {
             content: '';
+            flex: 0 0 auto;
             width: 3px;
             height: 1.1em;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--aa-red);
           }
 
           /* ── Back button ── */
-          .ap-back {
+          .aa-back {
+            flex: 0 0 auto;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -550,74 +568,74 @@ const AddProduct = () => {
             transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
           }
 
-          .ap-back svg { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+          .aa-back svg { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
 
-          .ap-back:hover {
+          .aa-back:hover {
             background: #ffffff;
             color: #000000;
             border-color: #ffffff;
           }
 
-          .ap-back:hover svg { transform: translateX(-3px); }
+          .aa-back:hover svg { transform: translateX(-3px); }
 
           /* ── Form layout inside panels ── */
-          .ap-fields {
+          .aa-fields {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
-            gap: calc(var(--ap-gap) * 1.25);
+            gap: calc(var(--aa-gap) * 1.25);
           }
 
-          .ap-row {
+          .aa-row {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
-            gap: calc(var(--ap-gap) * 1.25);
+            gap: calc(var(--aa-gap) * 1.25);
           }
 
-          .ap-block { min-width: 0; }
+          .aa-block { min-width: 0; }
 
           /* ── Labels + fields ── */
-          .ap-label {
+          .aa-label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var(--ad-white-soft);
-            font-size: var(--ap-label-fs);
+            color: var(--aa-white-soft);
+            font-size: var(--aa-label);
             font-weight: 700;
             letter-spacing: 0.12em;
             text-transform: uppercase;
           }
 
-          .ap-req { color: var(--ad-red); }
+          .aa-req { color: var(--aa-red); }
 
-          .ap-field {
+          .aa-field {
             display: block;
             width: 100%;
             min-width: 0;
-            min-height: var(--ap-ctl);
+            min-height: var(--aa-ctl);
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.22);
             border-radius: 12px;
             padding: 0.6rem 1rem;
             color: #ffffff;
             font-family: inherit;
-            font-size: var(--ap-fs);
+            font-size: var(--aa-fs);
             font-weight: 500;
             outline: none;
             transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
           }
 
-          .ap-field:hover { border-color: rgba(255, 255, 255, 0.4); }
+          .aa-field:hover { border-color: rgba(255, 255, 255, 0.4); }
 
-          .ap-field:focus {
-            border-color: var(--ad-red);
+          .aa-field:focus {
+            border-color: var(--aa-red);
             background: rgba(255, 45, 63, 0.04);
             box-shadow: 0 0 0 3px rgba(255, 45, 63, 0.18);
           }
 
-          .ap-field::placeholder { color: rgba(255, 255, 255, 0.35); }
+          .aa-field::placeholder { color: rgba(255, 255, 255, 0.35); }
 
-          .ap-field option { background: #000000; color: #ffffff; }
+          .aa-field option { background: #000000; color: #ffffff; }
 
-          select.ap-field {
+          select.aa-field {
             cursor: pointer;
             appearance: none;
             -webkit-appearance: none;
@@ -627,51 +645,58 @@ const AddProduct = () => {
             background-position: right 1rem center;
           }
 
-          textarea.ap-field {
+          textarea.aa-field {
             resize: none;
             line-height: 1.6;
             min-height: 6.5rem;
           }
 
-          input[type=number]::-webkit-inner-spin-button,
-          input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+          .aa-root input[type=number]::-webkit-inner-spin-button,
+          .aa-root input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-          input[type=number] { -moz-appearance: textfield; }
+          .aa-root input[type=number] { -moz-appearance: textfield; }
 
-          /* ── Image panel (row on phones/tablets, sticky sidebar on desktop) ── */
-          .ap-media-body {
+          /* ── Image panel (row on phones/small tablets, column in the sidebar) ── */
+          .aa-media-body {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: var(--ap-gap);
+            gap: var(--aa-gap);
           }
 
-          .ap-upload {
+          .aa-upload {
             position: relative;
             display: block;
             flex: 0 0 auto;
-            width: var(--ap-upload);
+            width: var(--aa-upload);
             aspect-ratio: 1 / 1;
             border-radius: 14px;
             overflow: hidden;
             cursor: pointer;
             background: transparent;
-            color: var(--ad-white-soft);
+            color: var(--aa-white-soft);
             transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease, transform 0.3s ease;
           }
 
-          .ap-upload--empty { border: 2px dashed var(--ad-line-hover); }
+          .aa-upload--empty { border: 2px dashed var(--aa-line-hover); }
 
-          .ap-upload--empty:hover {
+          .aa-upload--empty:hover {
             color: #ffffff;
             background: rgba(255, 45, 63, 0.08);
-            border-color: var(--ad-red);
+            border-color: var(--aa-red);
             transform: translateY(-2px);
           }
 
-          .ap-upload--filled { border: 1px solid var(--ad-line-hover); }
+          .aa-upload--filled { border: 1px solid var(--aa-line-hover); }
 
-          .ap-upload-inner {
+          .aa-preview {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          .aa-upload-inner {
             width: 100%;
             height: 100%;
             display: flex;
@@ -684,9 +709,9 @@ const AddProduct = () => {
             letter-spacing: 0.03em;
           }
 
-          .ap-upload-inner svg { color: var(--ad-red); }
+          .aa-upload-inner svg { color: var(--aa-red); }
 
-          .ap-upload-overlay {
+          .aa-upload-overlay {
             position: absolute;
             inset: 0;
             background: rgba(0, 0, 0, 0.72);
@@ -704,29 +729,31 @@ const AddProduct = () => {
             transition: opacity 0.25s ease;
           }
 
-          .ap-upload:hover .ap-upload-overlay { opacity: 1; }
+          .aa-upload:hover .aa-upload-overlay { opacity: 1; }
 
           /* touch screens have no hover: keep the "Change" hint visible */
           @media (hover: none) {
-            .ap-upload--filled .ap-upload-overlay {
+            .aa-upload--filled .aa-upload-overlay {
               opacity: 1;
               inset: auto 0 0 0;
               flex-direction: row;
               padding: 0.35rem;
               background: rgba(0, 0, 0, 0.65);
             }
+
+            .aa-upload--empty:hover { transform: none; }
           }
 
-          .ap-hint {
+          .aa-hint {
             flex: 1 1 9rem;
             min-width: 0;
-            color: var(--ad-white-soft);
+            color: var(--aa-white-soft);
             font-size: 0.8rem;
             font-weight: 500;
             line-height: 1.5;
           }
 
-          .ap-hint strong {
+          .aa-hint strong {
             display: block;
             margin-bottom: 0.2rem;
             color: #ffffff;
@@ -735,14 +762,14 @@ const AddProduct = () => {
           }
 
           /* ── Size chips ── */
-          .ap-sizes {
+          .aa-sizes {
             display: grid;
-            grid-template-columns: repeat(var(--ap-chip-cols), minmax(0, 1fr));
+            grid-template-columns: repeat(var(--aa-chip-cols), minmax(0, 1fr));
             gap: 0.5rem;
           }
 
-          .ap-chip {
-            min-height: var(--ap-ctl);
+          .aa-chip {
+            min-height: var(--aa-ctl);
             padding: 0.4rem 0.5rem;
             border-radius: 10px;
             font-family: inherit;
@@ -752,60 +779,60 @@ const AddProduct = () => {
             transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
           }
 
-          .ap-chip--off {
+          .aa-chip--off {
             background: transparent;
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.3);
           }
 
-          .ap-chip--off:hover {
-            border-color: var(--ad-red);
-            color: var(--ad-red);
+          .aa-chip--off:hover {
+            border-color: var(--aa-red);
+            color: var(--aa-red);
             transform: translateY(-1px);
           }
 
-          .ap-chip--on {
-            background: var(--ad-red);
+          .aa-chip--on {
+            background: var(--aa-red);
             color: #ffffff;
-            border: 1px solid var(--ad-red);
+            border: 1px solid var(--aa-red);
             box-shadow: 0 0 20px rgba(255, 45, 63, 0.4);
           }
 
           /* ── Per-size stock cards ── */
-          .ap-stock-grid {
+          .aa-stock-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-            gap: calc(var(--ap-gap) * 0.8);
-            margin-top: var(--ap-gap);
+            gap: calc(var(--aa-gap) * 0.8);
+            margin-top: var(--aa-gap);
           }
 
-          .ap-stock {
+          .aa-stock {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 0.75rem;
             min-width: 0;
             padding: 0.7rem 0.85rem;
-            border: 1px solid var(--ad-line);
+            border: 1px solid var(--aa-line);
             border-radius: 12px;
             background: transparent;
-            animation: ad-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+            animation: aa-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
             transition: border-color 0.3s ease;
           }
 
-          .ap-stock:hover,
-          .ap-stock:focus-within { border-color: var(--ad-line-hover); }
+          .aa-stock:hover,
+          .aa-stock:focus-within { border-color: var(--aa-line-hover); }
 
-          .ap-stock-info {
+          .aa-stock-info {
             display: flex;
             align-items: center;
             gap: 0.65rem;
             min-width: 0;
           }
 
-          .ap-stock-text { min-width: 0; }
+          .aa-stock-text { min-width: 0; }
 
-          .ap-stock-badge {
+          .aa-stock-badge {
             width: 2.25rem;
             height: 2.25rem;
             flex-shrink: 0;
@@ -813,23 +840,23 @@ const AddProduct = () => {
             align-items: center;
             justify-content: center;
             border-radius: 10px;
-            color: var(--ad-red);
+            color: var(--aa-red);
             background: rgba(255, 45, 63, 0.1);
-            border: 1px solid var(--ad-line);
+            border: 1px solid var(--aa-line);
             font-size: 0.8rem;
             font-weight: 800;
           }
 
-          .ap-stock-name {
+          .aa-stock-name {
             color: #ffffff;
             font-size: 0.92rem;
             font-weight: 700;
             white-space: nowrap;
           }
 
-          .ap-stock-sub {
+          .aa-stock-sub {
             margin-top: 2px;
-            color: var(--ad-white-soft);
+            color: var(--aa-white-soft);
             font-size: 0.74rem;
             font-weight: 500;
             white-space: nowrap;
@@ -837,65 +864,65 @@ const AddProduct = () => {
             text-overflow: ellipsis;
           }
 
-          .ap-stock-qty {
+          .aa-stock-qty {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             flex-shrink: 0;
           }
 
-          .ap-stock-input {
+          .aa-stock-input {
             width: 5rem;
             text-align: center;
             padding: 0.4rem 0.5rem;
             font-weight: 700;
           }
 
-          .ap-unit {
-            color: var(--ad-white-soft);
+          .aa-unit {
+            color: var(--aa-white-soft);
             font-size: 0.78rem;
             font-weight: 600;
           }
 
           /* ── Sticky action bar ── */
-          .ap-actions {
+          .aa-actions {
             position: sticky;
             bottom: max(0.5rem, env(safe-area-inset-bottom));
             z-index: 5;
             display: flex;
             align-items: center;
             justify-content: stretch;
-            gap: var(--ap-gap);
+            gap: var(--aa-gap);
             padding: 0.6rem;
-            border: 1px solid var(--ad-line);
-            border-radius: var(--ap-radius);
+            border: 1px solid var(--aa-line);
+            border-radius: var(--aa-radius);
             background: rgba(0, 0, 0, 0.78);
             -webkit-backdrop-filter: blur(16px);
             backdrop-filter: blur(16px);
           }
 
-          .ap-actions-note {
+          .aa-actions-note {
             display: none;
             flex: 1 1 auto;
             min-width: 0;
             padding-left: 0.5rem;
-            color: var(--ad-white-soft);
+            color: var(--aa-white-soft);
             font-size: 0.8rem;
             font-weight: 500;
           }
 
-          .ap-submit {
+          .aa-submit {
             flex: 1 1 auto;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.6rem;
-            min-height: var(--ap-ctl);
+            min-height: var(--aa-ctl);
             padding: 0.6rem 1.6rem;
             border-radius: 12px;
             color: #ffffff;
-            background: var(--ad-red);
-            border: 1px solid var(--ad-red);
+            background: var(--aa-red);
+            border: 1px solid var(--aa-red);
             font-family: inherit;
             font-size: 0.95rem;
             font-weight: 800;
@@ -904,158 +931,209 @@ const AddProduct = () => {
             transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease;
           }
 
-          .ap-submit:hover:not(:disabled) {
+          .aa-submit:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 0 30px rgba(255, 45, 63, 0.55);
           }
 
-          .ap-submit:active:not(:disabled) { transform: translateY(0); }
+          .aa-submit:active:not(:disabled) { transform: translateY(0); }
 
-          .ap-submit:disabled {
+          .aa-submit:disabled {
             opacity: 0.6;
             cursor: not-allowed;
           }
 
-          .ap-back:focus-visible,
-          .ap-chip:focus-visible,
-          .ap-submit:focus-visible,
-          .ap-upload:focus-within {
+          .aa-back:focus-visible,
+          .aa-chip:focus-visible,
+          .aa-submit:focus-visible,
+          .aa-upload:focus-within {
             outline: 2px solid #ffffff;
             outline-offset: 2px;
           }
 
           /* ══════════ Responsive scale ══════════ */
 
-          /* ≥ 400px */
-          @media (min-width: 400px) {
-            .ad-root {
-              --ap-label-fs: 0.72rem;
-              --ap-chip-cols: 5;
+          /* ≥ 375px: iPhone-size phones */
+          @media (min-width: 375px) {
+            .aa-root {
+              --aa-px:    1rem;
+              --aa-py:    1.1rem;
+              --aa-pad:   1rem;
+              --aa-title: 2.05rem;
+              --aa-label: 0.7rem;
             }
-            .ap-stock-input { width: 5.5rem; }
+
+            .aa-stock-input { width: 5.5rem; }
           }
 
-          /* ≥ 480px: 2-column category/price, bigger upload */
+          /* ≥ 480px: category + price side by side, bigger upload */
           @media (min-width: 480px) {
-            .ad-root { --ap-upload: 8.5rem; --ap-panel-fs: 1.1rem; }
-            .ap-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .ap-stock-sub { overflow: visible; }
+            .aa-root {
+              --aa-py:     1.25rem;
+              --aa-gap:    0.875rem;
+              --aa-pad:    1.1rem;
+              --aa-panel:  1.05rem;
+              --aa-upload: 8.5rem;
+            }
+
+            .aa-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .aa-stock-sub { overflow: visible; }
           }
 
           /* ≥ 640px: inline action bar, chips keep a sensible width */
           @media (min-width: 640px) {
-            .ad-root { --ap-upload: 10rem; --ap-label-fs: 0.74rem; }
-
-            .ap-sizes {
-              grid-template-columns: repeat(var(--ap-chip-cols), minmax(0, 4.75rem));
+            .aa-root {
+              --aa-px:     1.5rem;
+              --aa-py:     1.5rem;
+              --aa-gap:    1rem;
+              --aa-pad:    1.25rem;
+              --aa-over:   0.74rem;
+              --aa-title:  2.4rem;
+              --aa-label:  0.72rem;
+              --aa-panel:  1.1rem;
+              --aa-upload: 10rem;
             }
 
-            .ap-actions { padding: 0.65rem 0.65rem 0.65rem 1rem; }
-            .ap-actions-note { display: block; }
-            .ap-submit { flex: 0 0 auto; min-width: 12rem; }
+            .aa-sizes {
+              grid-template-columns: repeat(var(--aa-chip-cols), minmax(0, 4.75rem));
+            }
 
-            .ap-stock-input { width: 6rem; }
+            .aa-actions { padding: 0.65rem 0.65rem 0.65rem 1rem; }
+            .aa-actions-note { display: block; }
+            .aa-submit { flex: 0 0 auto; min-width: 12rem; }
+
+            .aa-stock-input { width: 6rem; }
           }
 
-          /* ≥ 768px: title left, back button right; desktop control sizes */
+          /* ≥ 768px: image becomes a sidebar next to the form */
           @media (min-width: 768px) {
-            .ad-root {
-              --ap-ctl: 2.6rem;
-              --ap-fs: 0.92rem;
-              --ap-panel-fs: 1.15rem;
-              --ap-sticky-top: 5.75rem;
+            .aa-root {
+              --aa-py:     1.75rem;
+              --aa-ctl:    2.6rem;
+              --aa-fs:     0.95rem;
+              --aa-title:  2.55rem;
+              --aa-panel:  1.1rem;
+              --aa-aside:  250px;
+              --aa-sticky: 5.75rem;
             }
 
-            .ap-head {
-              flex-direction: row;
-              align-items: flex-start;
-              justify-content: space-between;
+            .aa-layout {
+              grid-template-columns: var(--aa-aside) minmax(0, 1fr);
             }
 
-            .ap-back { order: 2; }
-          }
-
-          /* ≥ 1024px: sidebar (image) + form column */
-          @media (min-width: 1024px) {
-            .ad-root {
-              --ap-fs: 0.93rem;
-              --ap-sticky-top: 6rem;
-            }
-
-            .ap-layout {
-              grid-template-columns: var(--ap-aside) minmax(0, 1fr);
-            }
-
-            .ap-aside {
+            .aa-aside {
               position: sticky;
-              top: var(--ap-sticky-top);
+              top: var(--aa-sticky);
             }
 
-            .ap-media-body {
+            .aa-media-body {
               flex-direction: column;
               align-items: stretch;
             }
 
-            .ap-upload { width: 100%; }
-            .ap-hint { flex: 0 1 auto; }
+            .aa-upload { width: 100%; }
+            .aa-hint { flex: 0 1 auto; }
 
-            .ap-actions { grid-column: 1 / -1; }
+            .aa-actions { grid-column: 1 / -1; }
+
+            /* the sizes row is cramped next to the sidebar: keep chips fluid */
+            .aa-sizes {
+              grid-template-columns: repeat(var(--aa-chip-cols), minmax(0, 1fr));
+            }
           }
 
-          /* ≥ 1280px */
+          /* ≥ 1024px: laptops */
+          @media (min-width: 1024px) {
+            .aa-root {
+              --aa-px:     2rem;
+              --aa-py:     2rem;
+              --aa-gap:    1.25rem;
+              --aa-pad:    1.4rem;
+              --aa-radius: 16px;
+              --aa-panel:  1.15rem;
+              --aa-aside:  300px;
+              --aa-sticky: 6rem;
+            }
+
+            .aa-sizes {
+              grid-template-columns: repeat(var(--aa-chip-cols), minmax(0, 5rem));
+            }
+          }
+
+          /* ≥ 1280px: desktops */
           @media (min-width: 1280px) {
-            .ad-root {
-              --ap-aside: 360px;
-              --ap-fs: 0.95rem;
-              --ap-panel-fs: 1.2rem;
-              --ap-sticky-top: 6.25rem;
+            .aa-root {
+              --aa-py:     2.25rem;
+              --aa-pad:    1.6rem;
+              --aa-fs:     0.97rem;
+              --aa-title:  2.8rem;
+              --aa-panel:  1.2rem;
+              --aa-aside:  340px;
+              --aa-sticky: 6.25rem;
             }
           }
 
           /* ≥ 1536px: large monitors */
           @media (min-width: 1536px) {
-            .ad-root {
-              --ap-max: 1360px;
-              --ap-aside: 400px;
-              --ap-ctl: 2.75rem;
-              --ap-fs: 1rem;
-              --ap-label-fs: 0.78rem;
-              --ap-panel-fs: 1.3rem;
+            .aa-root {
+              --aa-max:   1680px;
+              --aa-px:    2.5rem;
+              --aa-py:    2.5rem;
+              --aa-gap:   1.5rem;
+              --aa-pad:   1.85rem;
+              --aa-ctl:   2.75rem;
+              --aa-fs:    1rem;
+              --aa-over:  0.8rem;
+              --aa-label: 0.78rem;
+              --aa-title: 3rem;
+              --aa-panel: 1.3rem;
+              --aa-aside: 380px;
             }
 
-            .ap-chip { font-size: 0.95rem; }
-            .ap-stock-name { font-size: 0.98rem; }
+            .aa-chip { font-size: 0.95rem; }
+            .aa-stock-name { font-size: 0.98rem; }
+          }
+
+          /* ≥ 1920px: ultra-wide */
+          @media (min-width: 1920px) {
+            .aa-root { --aa-max: 1840px; }
           }
 
           /* ── Reduced motion ── */
           @media (prefers-reduced-motion: reduce) {
-            .ad-rise,
-            .ad-title-bar,
-            .ap-stock {
+            .aa-rise,
+            .aa-title-bar,
+            .aa-stock {
               animation: none !important;
               opacity: 1 !important;
               transform: none !important;
             }
 
-            .ap-back,
-            .ap-back svg,
-            .ap-field,
-            .ap-upload,
-            .ap-upload-overlay,
-            .ap-chip,
-            .ap-submit {
+            .aa-back,
+            .aa-back svg,
+            .aa-field,
+            .aa-upload,
+            .aa-upload-overlay,
+            .aa-chip,
+            .aa-submit {
               transition: none !important;
             }
           }
         `}</style>
 
-        <div className="ap-shell">
+        <div className="aa-shell">
           {/* Page heading + back button */}
-          <div className="ap-head ad-rise">
+          <div className="aa-head aa-rise">
+            <div className="aa-head-text">
+              <p className="aa-overline">Inventory</p>
+              <h1 className="aa-title">Add Product</h1>
+              <div className="aa-title-bar" />
+            </div>
+
             <button
               type="button"
               onClick={() => navigate("/admin/products")}
-              className="ap-back"
+              className="aa-back"
             >
               <svg
                 width="14"
@@ -1071,26 +1149,20 @@ const AddProduct = () => {
               </svg>
               Back
             </button>
-
-            <div>
-              <p className="ad-overline">Inventory</p>
-              <h1 className="ad-title">Add Product</h1>
-              <div className="ad-title-bar" />
-            </div>
           </div>
 
-          <div className="ap-layout">
+          <div className="aa-layout">
             {/* Image panel */}
             <aside
-              className="ad-panel ad-rise ap-aside"
+              className="aa-panel aa-rise aa-aside"
               style={{ animationDelay: "0.1s" }}
             >
-              <h2 className="ad-panel-title">Product Image</h2>
+              <h2 className="aa-panel-title">Product Image</h2>
 
-              <div className="ap-media-body">
+              <div className="aa-media-body">
                 <label
-                  className={`ap-upload ${
-                    images[0] ? "ap-upload--filled" : "ap-upload--empty"
+                  className={`aa-upload ${
+                    images[0] ? "aa-upload--filled" : "aa-upload--empty"
                   }`}
                 >
                   {images[0] ? (
@@ -1098,10 +1170,10 @@ const AddProduct = () => {
                       <img
                         src={imagePreview}
                         alt="Product preview"
-                        className="w-full h-full object-cover"
+                        className="aa-preview"
                       />
 
-                      <div className="ap-upload-overlay">
+                      <div className="aa-upload-overlay">
                         <svg
                           width="18"
                           height="18"
@@ -1120,7 +1192,7 @@ const AddProduct = () => {
                       </div>
                     </>
                   ) : (
-                    <div className="ap-upload-inner">
+                    <div className="aa-upload-inner">
                       <svg
                         width="24"
                         height="24"
@@ -1147,9 +1219,9 @@ const AddProduct = () => {
                   />
                 </label>
 
-                <p className="ap-hint">
+                <p className="aa-hint">
                   <strong>
-                    Main photo <span className="ap-req">*</span>
+                    Main photo <span className="aa-req">*</span>
                   </strong>
                   Any image file up to 5 MB. A square photo works best.
                 </p>
@@ -1157,24 +1229,24 @@ const AddProduct = () => {
             </aside>
 
             {/* Form column */}
-            <div className="ap-col">
+            <div className="aa-col">
               {/* Details */}
               <section
-                className="ad-panel ad-rise"
+                className="aa-panel aa-rise"
                 style={{ animationDelay: "0.15s" }}
               >
-                <h2 className="ad-panel-title">Product Details</h2>
+                <h2 className="aa-panel-title">Product Details</h2>
 
-                <div className="ap-fields">
+                <div className="aa-fields">
                   {/* Name */}
-                  <div className="ap-block">
-                    <label className="ap-label" htmlFor="ap-name">
-                      Product Name <span className="ap-req">*</span>
+                  <div className="aa-block">
+                    <label className="aa-label" htmlFor="aa-name">
+                      Product Name <span className="aa-req">*</span>
                     </label>
 
                     <input
-                      id="ap-name"
-                      className="ap-field"
+                      id="aa-name"
+                      className="aa-field"
                       value={product.name}
                       placeholder="e.g. Oversized Black Hoodie"
                       onChange={(e) =>
@@ -1184,14 +1256,14 @@ const AddProduct = () => {
                   </div>
 
                   {/* Description */}
-                  <div className="ap-block">
-                    <label className="ap-label" htmlFor="ap-desc">
-                      Description <span className="ap-req">*</span>
+                  <div className="aa-block">
+                    <label className="aa-label" htmlFor="aa-desc">
+                      Description <span className="aa-req">*</span>
                     </label>
 
                     <textarea
-                      id="ap-desc"
-                      className="ap-field"
+                      id="aa-desc"
+                      className="aa-field"
                       value={product.description}
                       placeholder="Describe the product..."
                       rows={4}
@@ -1202,15 +1274,15 @@ const AddProduct = () => {
                   </div>
 
                   {/* Category + Price */}
-                  <div className="ap-row">
-                    <div className="ap-block">
-                      <label className="ap-label" htmlFor="ap-cat">
+                  <div className="aa-row">
+                    <div className="aa-block">
+                      <label className="aa-label" htmlFor="aa-cat">
                         Category
                       </label>
 
                       <select
-                        id="ap-cat"
-                        className="ap-field"
+                        id="aa-cat"
+                        className="aa-field"
                         value={product.category}
                         onChange={(e) =>
                           setProduct({ ...product, category: e.target.value })
@@ -1224,14 +1296,14 @@ const AddProduct = () => {
                       </select>
                     </div>
 
-                    <div className="ap-block">
-                      <label className="ap-label" htmlFor="ap-price">
-                        Price (₹) <span className="ap-req">*</span>
+                    <div className="aa-block">
+                      <label className="aa-label" htmlFor="aa-price">
+                        Price (₹) <span className="aa-req">*</span>
                       </label>
 
                       <input
-                        id="ap-price"
-                        className="ap-field"
+                        id="aa-price"
+                        className="aa-field"
                         type="number"
                         inputMode="decimal"
                         min="0"
@@ -1249,12 +1321,12 @@ const AddProduct = () => {
 
               {/* Sizes + stock */}
               <section
-                className="ad-panel ad-rise"
+                className="aa-panel aa-rise"
                 style={{ animationDelay: "0.2s" }}
               >
-                <h2 className="ad-panel-title">Sizes &amp; Stock</h2>
+                <h2 className="aa-panel-title">Sizes &amp; Stock</h2>
 
-                <div className="ap-sizes">
+                <div className="aa-sizes">
                   {["S", "M", "L", "XL", "XXL"].map((size) => {
                     const isSelected = product.sizes.some(
                       (item) => item.size === size
@@ -1266,8 +1338,8 @@ const AddProduct = () => {
                         type="button"
                         aria-pressed={isSelected}
                         onClick={() => toggleSize(size)}
-                        className={`ap-chip ${
-                          isSelected ? "ap-chip--on" : "ap-chip--off"
+                        className={`aa-chip ${
+                          isSelected ? "aa-chip--on" : "aa-chip--off"
                         }`}
                       >
                         {size}
@@ -1277,21 +1349,21 @@ const AddProduct = () => {
                 </div>
 
                 {product.sizes.length > 0 && (
-                  <div className="ap-stock-grid">
+                  <div className="aa-stock-grid">
                     {product.sizes.map((item) => (
-                      <div key={item.size} className="ap-stock">
-                        <div className="ap-stock-info">
-                          <div className="ap-stock-badge">{item.size}</div>
+                      <div key={item.size} className="aa-stock">
+                        <div className="aa-stock-info">
+                          <div className="aa-stock-badge">{item.size}</div>
 
-                          <div className="ap-stock-text">
-                            <div className="ap-stock-name">Size {item.size}</div>
-                            <div className="ap-stock-sub">Available stock</div>
+                          <div className="aa-stock-text">
+                            <div className="aa-stock-name">Size {item.size}</div>
+                            <div className="aa-stock-sub">Available stock</div>
                           </div>
                         </div>
 
-                        <div className="ap-stock-qty">
+                        <div className="aa-stock-qty">
                           <input
-                            className="ap-field ap-stock-input"
+                            className="aa-field aa-stock-input"
                             type="number"
                             inputMode="numeric"
                             min="0"
@@ -1305,7 +1377,7 @@ const AddProduct = () => {
                             }
                           />
 
-                          <span className="ap-unit">pcs</span>
+                          <span className="aa-unit">pcs</span>
                         </div>
                       </div>
                     ))}
@@ -1315,16 +1387,16 @@ const AddProduct = () => {
             </div>
 
             {/* Sticky action bar */}
-            <div className="ap-actions ad-rise" style={{ animationDelay: "0.25s" }}>
-              <span className="ap-actions-note">
-                Fields marked <span className="ap-req">*</span> are required.
+            <div className="aa-actions aa-rise" style={{ animationDelay: "0.25s" }}>
+              <span className="aa-actions-note">
+                Fields marked <span className="aa-req">*</span> are required.
               </span>
 
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSaving}
-                className="ap-submit"
+                className="aa-submit"
               >
                 {isSaving ? (
                   <>
@@ -1336,7 +1408,7 @@ const AddProduct = () => {
                       stroke="currentColor"
                       strokeWidth="2.5"
                       strokeLinecap="round"
-                      style={{ animation: "spin 1s linear infinite" }}
+                      style={{ animation: "aa-spin 1s linear infinite" }}
                     >
                       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                     </svg>

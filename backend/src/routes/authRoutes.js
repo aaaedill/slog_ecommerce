@@ -1,3 +1,4 @@
+
 import express from "express";
 
 
@@ -5,6 +6,9 @@ import {
   register,
   verifyRegistrationOTP,
   resendRegistrationOTP,
+  requestPasswordReset,
+  verifyPasswordResetOTP,
+  resetPassword,
   login,
   logout,
   getMe
@@ -21,7 +25,10 @@ import {
 
 import {
   loginRateLimiter,
-  registerRateLimiter
+  registerRateLimiter,
+  requestPasswordResetRateLimiter,
+  verifyPasswordResetRateLimiter,
+  resetPasswordRateLimiter
 } from "../middleware/rateLimiters.js";
 
 
@@ -84,6 +91,74 @@ router.post(
 router.post(
   "/resend-otp",
   resendRegistrationOTP
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Forgot Password
+|--------------------------------------------------------------------------
+|
+| Forgot password remains public.
+|
+| The user submits their email address to request a
+| password-reset OTP.
+|
+| A dedicated rate limiter protects this endpoint.
+|
+|--------------------------------------------------------------------------
+*/
+
+router.post(
+  "/forgot-password",
+  requestPasswordResetRateLimiter,
+  requestPasswordReset
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Password Reset OTP Verification
+|--------------------------------------------------------------------------
+|
+| The user submits their email address and OTP.
+|
+| If verification succeeds, the controller issues a
+| short-lived password-reset authorization token.
+|
+| This endpoint remains public because the user is not
+| authenticated yet.
+|
+|--------------------------------------------------------------------------
+*/
+
+router.post(
+  "/verify-reset-otp",
+  verifyPasswordResetRateLimiter,
+  verifyPasswordResetOTP
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Reset Password
+|--------------------------------------------------------------------------
+|
+| The user submits the password-reset authorization token
+| and their new password.
+|
+| The controller validates the token and updates the
+| user's password.
+|
+| A dedicated rate limiter protects this endpoint.
+|
+|--------------------------------------------------------------------------
+*/
+
+router.post(
+  "/reset-password",
+  resetPasswordRateLimiter,
+  resetPassword
 );
 
 

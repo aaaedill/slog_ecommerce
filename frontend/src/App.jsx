@@ -25,6 +25,8 @@ import Orders from './pages/Orders'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
 import Wishlist from './pages/Wishlist'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 
 import Navbar from './components/Navbar'
@@ -57,7 +59,9 @@ const App = () => {
 
   const isAuthRoute =
     location.pathname === "/login" ||
-    location.pathname === "/register"
+    location.pathname === "/register" ||
+    location.pathname === "/forgot-password" ||
+    location.pathname === "/reset-password"
 
   const isHomeRoute =
     location.pathname === "/"
@@ -281,6 +285,24 @@ const App = () => {
               path="/register"
               element={
                 <Register />
+              }
+            />
+
+            {/* FORGOT PASSWORD */}
+
+            <Route
+              path="/forgot-password"
+              element={
+                <ForgotPassword />
+              }
+            />
+
+            {/* RESET PASSWORD */}
+
+            <Route
+              path="/reset-password"
+              element={
+                <ResetPassword />
               }
             />
 

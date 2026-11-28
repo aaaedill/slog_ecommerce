@@ -1,3 +1,4 @@
+
 /*
 |--------------------------------------------------------------------------
 | OTP SERVICE
@@ -161,6 +162,27 @@ const createBrevoClient = () => {
   return new BrevoClient({
     apiKey
   });
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| Helper: Escape HTML
+|--------------------------------------------------------------------------
+|
+| Escapes user-provided text before inserting it into
+| the password-reset email HTML.
+|
+|--------------------------------------------------------------------------
+*/
+
+const escapeHTML = (value) => {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 };
 
 
@@ -369,6 +391,247 @@ const sendEmailOTP = async ({
                 this verification,
                 you can safely ignore
                 this email.
+              </p>
+
+
+              <p
+                style="
+                  margin-top: 30px;
+                  color: #888888;
+                  font-size: 12px;
+                "
+              >
+                This is an automated message.
+                Please do not reply.
+              </p>
+
+            </div>
+
+          </body>
+        </html>
+      `
+    }
+  );
+
+  return true;
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| Send Password Reset OTP Email
+|--------------------------------------------------------------------------
+|
+| Sends a dedicated password-reset OTP through Brevo.
+|
+| This function is separate from sendEmailOTP()
+| so the existing registration email remains unchanged.
+|
+|--------------------------------------------------------------------------
+*/
+
+const sendPasswordResetOTP = async ({
+  email,
+  name,
+  otp
+}) => {
+  if (!email) {
+    throw new Error(
+      "Email address is required to send a password reset OTP."
+    );
+  }
+
+  if (
+    !otp ||
+    !/^\d{6}$/.test(
+      String(otp)
+    )
+  ) {
+    throw new Error(
+      "A valid six-digit OTP is required."
+    );
+  }
+
+  const senderEmail =
+    process.env.BREVO_SENDER_EMAIL;
+
+  const senderName =
+    process.env.BREVO_SENDER_NAME ||
+    "SLOG Fashion";
+
+  if (!senderEmail) {
+    throw new Error(
+      "BREVO_SENDER_EMAIL is not configured."
+    );
+  }
+
+  const brevoClient =
+    createBrevoClient();
+
+  const safeName =
+    escapeHTML(name || "Customer");
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Transactional Password Reset Email
+  |--------------------------------------------------------------------------
+  */
+
+  await brevoClient.transactionalEmails.sendTransacEmail(
+    {
+      subject:
+        "Reset your SLOG Fashion password",
+
+      sender: {
+        name: senderName,
+        email: senderEmail
+      },
+
+      to: [
+        {
+          email,
+          name:
+            name ||
+            "Customer"
+        }
+      ],
+
+      htmlContent: `
+        <!DOCTYPE html>
+
+        <html>
+          <head>
+            <meta charset="UTF-8" />
+
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1.0"
+            />
+
+            <title>
+              Reset your SLOG Fashion password
+            </title>
+          </head>
+
+
+          <body
+            style="
+              margin: 0;
+              padding: 0;
+              background: #f5f5f5;
+              font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+            "
+          >
+
+            <div
+              style="
+                max-width: 600px;
+                margin: 40px auto;
+                background: #ffffff;
+                padding: 40px 30px;
+                border-radius: 10px;
+                box-sizing: border-box;
+              "
+            >
+
+              <h2
+                style="
+                  margin-top: 0;
+                  color: #111111;
+                "
+              >
+                Reset your password
+              </h2>
+
+
+              <p
+                style="
+                  color: #444444;
+                  font-size: 16px;
+                  line-height: 1.6;
+                "
+              >
+                Hello ${safeName},
+              </p>
+
+
+              <p
+                style="
+                  color: #444444;
+                  font-size: 16px;
+                  line-height: 1.6;
+                "
+              >
+                We received a request to reset
+                the password for your
+                SLOG Fashion account.
+              </p>
+
+
+              <p
+                style="
+                  color: #444444;
+                  font-size: 16px;
+                  line-height: 1.6;
+                "
+              >
+                Use the six-digit verification
+                code below to continue resetting
+                your password.
+              </p>
+
+
+              <div
+                style="
+                  margin: 30px 0;
+                  padding: 20px;
+                  background: #f3f4f6;
+                  border-radius: 8px;
+                  text-align: center;
+                "
+              >
+
+                <div
+                  style="
+                    font-size: 32px;
+                    font-weight: bold;
+                    letter-spacing: 8px;
+                    color: #111111;
+                  "
+                >
+                  ${otp}
+                </div>
+
+              </div>
+
+
+              <p
+                style="
+                  color: #666666;
+                  font-size: 14px;
+                  line-height: 1.6;
+                "
+              >
+                This verification code will expire
+                in ${OTP_EXPIRY_MINUTES} minutes.
+              </p>
+
+
+              <p
+                style="
+                  color: #666666;
+                  font-size: 14px;
+                  line-height: 1.6;
+                "
+              >
+                If you did not request a password
+                reset, you can safely ignore this
+                email. Your current password will
+                remain unchanged.
               </p>
 
 
@@ -780,6 +1043,7 @@ export {
   createOTPData,
 
   sendEmailOTP,
+  sendPasswordResetOTP,
   sendSMSOTP,
 
   verifyOTP

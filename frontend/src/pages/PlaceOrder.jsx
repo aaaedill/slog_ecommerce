@@ -17,30 +17,54 @@ const glassToastStyle = {
     "0 8px 32px rgba(107,142,35,0.16), 0 1px 0 rgba(255,255,255,0.8) inset"
 };
 
+const emptyForm = {
+  name: "",
+  addressLine1: "",
+  addressLine2: "",
+  city: "",
+  state: "",
+  postCode: "",
+  phone: ""
+};
+
+const CodIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    className="w-5 h-5"
+  >
+    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <path d="M2 10h20" />
+  </svg>
+);
+
+const paymentOptions = [
+  { id: "phonepe", label: "PhonePe", img: phonepe },
+  { id: "gpay", label: "Google Pay", img: gpay },
+  { id: "cod", label: "Cash on Delivery", img: null }
+];
+
 const PlaceOrder = () => {
   const { getCartTotal, placeOrder } = useContext(ShopContext);
   const navigate = useNavigate();
   const [method, setMethod] = useState("cod");
-  const shipping = 50;
-  const total = getCartTotal() + shipping;
+  const [placing, setPlacing] = useState(false);
+  const [formData, setFormData] = useState(emptyForm);
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    street: "",
-    city: "",
-    state: "",
-    zipcode: "",
-    country: "",
-    phone: ""
-  });
+  const shipping = 50;
+  const subtotal = getCartTotal();
+  const total = subtotal + shipping;
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleOrder = async () => {
+    if (placing) return;
+
     const emptyField = Object.values(formData).some(
       (value) => value.trim() === ""
     );
@@ -55,7 +79,9 @@ const PlaceOrder = () => {
       return;
     }
 
+    setPlacing(true);
     const result = await placeOrder(formData, method);
+    setPlacing(false);
 
     if (!result?.success) {
       toast.error(result?.message || "Failed to place order", {
@@ -68,6 +94,8 @@ const PlaceOrder = () => {
       style: glassToastStyle
     });
 
+    // Clear the address form after a successful order
+    setFormData(emptyForm);
     navigate("/orders");
   };
 
@@ -83,6 +111,9 @@ const PlaceOrder = () => {
           font-family: 'Jost', sans-serif;
           color: var(--text-primary);
           background: var(--bg-primary);
+          min-height: 100vh;
+          min-height: 100dvh;
+          overflow-x: hidden;
         }
 
         .po-input {
@@ -94,6 +125,13 @@ const PlaceOrder = () => {
           outline: none;
           border-color: #6B8E23;
           box-shadow: 0 0 0 3px rgba(107, 142, 35, 0.14);
+        }
+
+        .po-textarea {
+          resize: vertical;
+          min-height: 7rem;
+          line-height: 1.55;
+          font-family: inherit;
         }
 
         .po-back-btn {
@@ -113,6 +151,8 @@ const PlaceOrder = () => {
         .po-pay-btn {
           border-width: 1px;
           border-left-width: 2px;
+          width: 100%;
+          min-width: 0;
           transition:
             background 0.25s ease,
             border-color 0.25s ease;
@@ -161,7 +201,8 @@ const PlaceOrder = () => {
           transition:
             background 0.25s ease,
             transform 0.2s ease,
-            box-shadow 0.25s ease;
+            box-shadow 0.25s ease,
+            opacity 0.2s ease;
           letter-spacing: 0.1em;
           text-transform: uppercase;
           font-size: 0.78rem !important;
@@ -175,6 +216,12 @@ const PlaceOrder = () => {
             0 1px 0 rgba(255, 255, 255, 0.3) inset;
         }
 
+        .po-cta:disabled {
+          opacity: 0.65;
+          cursor: not-allowed;
+          transform: none;
+        }
+
         .po-total-figure {
           font-weight: 300;
           letter-spacing: -0.01em;
@@ -186,6 +233,16 @@ const PlaceOrder = () => {
           letter-spacing: 0.16em;
           text-transform: uppercase;
           color: #4B5320;
+        }
+
+        /* Mobile sticky checkout bar */
+        .po-mobile-bar {
+          background: rgba(255, 255, 255, 0.82);
+          backdrop-filter: blur(20px) saturate(1.6);
+          -webkit-backdrop-filter: blur(20px) saturate(1.6);
+          border-top: 1px solid rgba(107, 142, 35, 0.18);
+          box-shadow: 0 -8px 28px rgba(107, 142, 35, 0.10);
+          padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
         }
 
         @keyframes po-blur-in {
@@ -206,21 +263,10 @@ const PlaceOrder = () => {
           animation: po-blur-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
-        .po-anim-1 {
-          animation-delay: 0.05s;
-        }
-
-        .po-anim-2 {
-          animation-delay: 0.12s;
-        }
-
-        .po-anim-3 {
-          animation-delay: 0.18s;
-        }
-
-        .po-anim-4 {
-          animation-delay: 0.24s;
-        }
+        .po-anim-1 { animation-delay: 0.05s; }
+        .po-anim-2 { animation-delay: 0.12s; }
+        .po-anim-3 { animation-delay: 0.18s; }
+        .po-anim-4 { animation-delay: 0.24s; }
 
         @media (prefers-reduced-motion: reduce) {
           .po-anim {
@@ -294,10 +340,20 @@ const PlaceOrder = () => {
           border-color: #A9C46C !important;
           box-shadow: 0 0 0 3px rgba(169, 196, 108, 0.18) !important;
         }
-      
-        /* ── RESPONSIVE ADDITIONS ── */
 
-        /* Touch screens: no stuck hover lift, comfortable back button */
+        html.dark-mode .po-mobile-bar {
+          background: rgba(0, 0, 0, 0.82) !important;
+          border-top-color: rgba(169, 196, 108, 0.20) !important;
+          box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45) !important;
+        }
+
+        html.dark-mode .po-accent {
+          color: #A9C46C !important;
+        }
+
+        /* ── RESPONSIVE ── */
+
+        /* Touch screens: no stuck hover lift, comfortable tap targets */
         @media (hover: none) {
           .po-cta:hover {
             transform: none;
@@ -308,13 +364,34 @@ const PlaceOrder = () => {
           .po-back-btn {
             min-height: 2.75rem;
           }
+          .po-pay-btn {
+            min-height: 3.25rem;
+          }
         }
-`}</style>
+
+        /* Very small phones (≤ 359px): tighten spacing */
+        @media (max-width: 359px) {
+          .po-pay-btn {
+            padding-left: 0.875rem;
+            padding-right: 0.875rem;
+            gap: 0.625rem;
+          }
+        }
+
+        /* Short landscape phones: don't let the sticky bar eat the screen */
+        @media (max-height: 480px) and (orientation: landscape) {
+          .po-mobile-bar {
+            padding-top: 0.5rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+          }
+        }
+      `}</style>
 
       {/* Back Button */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         <button
-          onClick={() => navigate(-1)}
+          type="button"
+          onClick={() => navigate("/")}
           className="po-back-btn flex items-center px-4 py-2 rounded-full border transition-all duration-200 cursor-pointer"
           style={{
             fontSize: "0.78rem",
@@ -337,138 +414,126 @@ const PlaceOrder = () => {
               strokeLinejoin="round"
             />
           </svg>
-          Back
+          Back to Home Page
         </button>
       </div>
 
       {/* Body */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-16 sm:pb-20">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 md:pt-10 pb-32 md:pb-16 lg:pb-20">
         {/* Page Header */}
         <div className="po-anim po-anim-1 mb-6 sm:mb-8">
-          <h1
-            className="text-2xl sm:text-3xl font-semibold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight break-words">
             Delivery{" "}
-            <span style={{ color: "#6B8E23" }}>&amp; Payment</span>
+            <span className="po-accent" style={{ color: "#6B8E23" }}>
+              &amp; Payment
+            </span>
           </h1>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_17rem] lg:grid-cols-[minmax(0,1fr)_21rem] gap-8 md:gap-8 lg:gap-12 items-start">
           {/* LEFT — Delivery Information */}
-          <div className="po-anim po-anim-2 flex-1 min-w-0 w-full">
-            <div>
-              <div
-                className="px-0 py-4 border-b"
-                style={{
-                  borderColor: "rgba(107, 142, 35, 0.12)"
-                }}
-              >
-                <span className="po-section-label">
-                  Delivery Information
-                </span>
-              </div>
-
-              <div className="px-0 py-6 flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    name="firstName"
-                    placeholder="First Name"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className={inputClass}
-                  />
-
-                  <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Last Name"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className={inputClass}
-                  />
-                </div>
-
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email Address"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={inputClass}
-                />
-
-                <input
-                  type="text"
-                  name="street"
-                  placeholder="Street Address"
-                  value={formData.street}
-                  onChange={handleChange}
-                  className={inputClass}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    name="city"
-                    placeholder="City"
-                    value={formData.city}
-                    onChange={handleChange}
-                    className={inputClass}
-                  />
-
-                  <input
-                    type="text"
-                    name="state"
-                    placeholder="State"
-                    value={formData.state}
-                    onChange={handleChange}
-                    className={inputClass}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    name="zipcode"
-                    placeholder="Zip Code"
-                    value={formData.zipcode}
-                    onChange={handleChange}
-                    className={inputClass}
-                  />
-
-                  <input
-                    type="text"
-                    name="country"
-                    placeholder="Country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    className={inputClass}
-                  />
-                </div>
-
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Phone Number"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className={inputClass}
-                />
-              </div>
+          <section className="po-anim po-anim-2 min-w-0 w-full">
+            <div
+              className="py-3 sm:py-4 border-b"
+              style={{ borderColor: "rgba(107, 142, 35, 0.12)" }}
+            >
+              <span className="po-section-label">Delivery Information</span>
             </div>
-          </div>
+
+            <div className="py-5 sm:py-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {/* Name */}
+              <input
+                type="text"
+                name="name"
+                placeholder="Name"
+                aria-label="Name"
+                autoComplete="name"
+                value={formData.name}
+                onChange={handleChange}
+                className={`${inputClass} sm:col-span-2`}
+              />
+
+              {/* Address Line 1 — house name */}
+              <input
+                type="text"
+                name="addressLine1"
+                placeholder="Address Line 1 (House Name)"
+                aria-label="Address Line 1, house name"
+                autoComplete="address-line1"
+                value={formData.addressLine1}
+                onChange={handleChange}
+                className={`${inputClass} sm:col-span-2`}
+              />
+
+              {/* Address Line 2 — full address incl. post office */}
+              <textarea
+                name="addressLine2"
+                rows={4}
+                placeholder="Address Line 2 (Full address — street, area, landmark, post office)"
+                aria-label="Address Line 2, full address including post office"
+                autoComplete="address-line2"
+                value={formData.addressLine2}
+                onChange={handleChange}
+                className={`${inputClass} po-textarea sm:col-span-2`}
+              />
+
+              {/* City / State */}
+              <input
+                type="text"
+                name="city"
+                placeholder="City"
+                aria-label="City"
+                autoComplete="address-level2"
+                value={formData.city}
+                onChange={handleChange}
+                className={inputClass}
+              />
+
+              <input
+                type="text"
+                name="state"
+                placeholder="State"
+                aria-label="State"
+                autoComplete="address-level1"
+                value={formData.state}
+                onChange={handleChange}
+                className={inputClass}
+              />
+
+              {/* Post Code / Phone */}
+              <input
+                type="text"
+                inputMode="numeric"
+                name="postCode"
+                placeholder="Post Code"
+                aria-label="Post code"
+                autoComplete="postal-code"
+                value={formData.postCode}
+                onChange={handleChange}
+                className={inputClass}
+              />
+
+              <input
+                type="tel"
+                inputMode="tel"
+                name="phone"
+                placeholder="Phone Number"
+                aria-label="Phone number"
+                autoComplete="tel"
+                value={formData.phone}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </div>
+          </section>
 
           {/* RIGHT — Summary + Payment */}
-          <div className="w-full md:w-72 lg:w-80 flex flex-col gap-4 flex-shrink-0">
+          <aside className="w-full min-w-0 flex flex-col gap-6 md:gap-7 md:sticky md:top-24">
             {/* Order Summary */}
-            <div className="po-anim po-anim-3 p-0">
-              <p className="po-section-label mb-5">
-                Order Summary
-              </p>
+            <div className="po-anim po-anim-3">
+              <p className="po-section-label mb-4 sm:mb-5">Order Summary</p>
 
-              <div className="flex justify-between items-baseline mb-3">
+              <div className="flex justify-between items-baseline gap-3 mb-3">
                 <span
                   style={{
                     fontSize: "0.85rem",
@@ -477,7 +542,6 @@ const PlaceOrder = () => {
                 >
                   Subtotal
                 </span>
-
                 <span
                   className="font-medium"
                   style={{
@@ -485,11 +549,11 @@ const PlaceOrder = () => {
                     color: "var(--text-primary)"
                   }}
                 >
-                  ₹{getCartTotal()}
+                  ₹{subtotal}
                 </span>
               </div>
 
-              <div className="flex justify-between items-baseline mb-3">
+              <div className="flex justify-between items-baseline gap-3 mb-3">
                 <span
                   style={{
                     fontSize: "0.85rem",
@@ -498,7 +562,6 @@ const PlaceOrder = () => {
                 >
                   Shipping
                 </span>
-
                 <span
                   className="font-medium"
                   style={{
@@ -518,7 +581,7 @@ const PlaceOrder = () => {
                 }}
               />
 
-              <div className="flex justify-between items-end">
+              <div className="flex justify-between items-end gap-3">
                 <span
                   style={{
                     fontSize: "0.85rem",
@@ -527,11 +590,10 @@ const PlaceOrder = () => {
                 >
                   Total
                 </span>
-
                 <span
-                  className="po-total-figure leading-none"
+                  className="po-total-figure po-accent leading-none"
                   style={{
-                    fontSize: "2.1rem",
+                    fontSize: "clamp(1.75rem, 6vw, 2.1rem)",
                     color: "#6B8E23"
                   }}
                 >
@@ -541,129 +603,72 @@ const PlaceOrder = () => {
             </div>
 
             {/* Payment Method */}
-            <div className="po-anim po-anim-4 p-0">
-              <p className="po-section-label mb-5">
-                Payment Method
-              </p>
+            <div className="po-anim po-anim-4">
+              <p className="po-section-label mb-4 sm:mb-5">Payment Method</p>
 
-              <div className="flex flex-col gap-3">
-                {/* PhonePe */}
-                <button
-                  onClick={() => setMethod("phonepe")}
-                  className={`po-pay-btn flex items-center gap-4 px-5 py-3.5 rounded-xl cursor-pointer text-left ${
-                    method === "phonepe" ? "selected" : ""
-                  }`}
-                >
-                  <div
-                    className={`po-radio w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
-                      method === "phonepe" ? "selected" : ""
-                    }`}
-                  >
-                    {method === "phonepe" && (
-                      <div className="po-radio-dot w-2 h-2 rounded-full" />
-                    )}
-                  </div>
-
-                  <img
-                    src={phonepe}
-                    alt="PhonePe"
-                    className="h-5 object-contain"
-                  />
-
-                  <span
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    PhonePe
-                  </span>
-                </button>
-
-                {/* GPay */}
-                <button
-                  onClick={() => setMethod("gpay")}
-                  className={`po-pay-btn flex items-center gap-4 px-5 py-3.5 rounded-xl cursor-pointer text-left ${
-                    method === "gpay" ? "selected" : ""
-                  }`}
-                >
-                  <div
-                    className={`po-radio w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
-                      method === "gpay" ? "selected" : ""
-                    }`}
-                  >
-                    {method === "gpay" && (
-                      <div className="po-radio-dot w-2 h-2 rounded-full" />
-                    )}
-                  </div>
-
-                  <img
-                    src={gpay}
-                    alt="GPay"
-                    className="h-5 object-contain"
-                  />
-
-                  <span
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    Google Pay
-                  </span>
-                </button>
-
-                {/* COD */}
-                <button
-                  onClick={() => setMethod("cod")}
-                  className={`po-pay-btn flex items-center gap-4 px-5 py-3.5 rounded-xl cursor-pointer text-left ${
-                    method === "cod" ? "selected" : ""
-                  }`}
-                >
-                  <div
-                    className={`po-radio w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
-                      method === "cod" ? "selected" : ""
-                    }`}
-                  >
-                    {method === "cod" && (
-                      <div className="po-radio-dot w-2 h-2 rounded-full" />
-                    )}
-                  </div>
-
-                  <div
-                    className="flex items-center justify-center"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="w-5 h-5"
+              <div
+                role="radiogroup"
+                aria-label="Payment method"
+                className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-3"
+              >
+                {paymentOptions.map((opt) => {
+                  const selected = method === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setMethod(opt.id)}
+                      className={`po-pay-btn flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3.5 rounded-xl cursor-pointer text-left ${
+                        selected ? "selected" : ""
+                      }`}
                     >
-                      <rect
-                        x="2"
-                        y="5"
-                        width="20"
-                        height="14"
-                        rx="2"
-                      />
-                      <path d="M2 10h20" />
-                    </svg>
-                  </div>
+                      <div
+                        className={`po-radio w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
+                          selected ? "selected" : ""
+                        }`}
+                      >
+                        {selected && (
+                          <div className="po-radio-dot w-2 h-2 rounded-full" />
+                        )}
+                      </div>
 
-                  <span
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    Cash on Delivery
-                  </span>
-                </button>
+                      {opt.img ? (
+                        <img
+                          src={opt.img}
+                          alt=""
+                          className="h-5 w-auto flex-shrink-0 object-contain"
+                        />
+                      ) : (
+                        <div
+                          className="flex items-center justify-center flex-shrink-0"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          <CodIcon />
+                        </div>
+                      )}
+
+                      <span
+                        className="text-sm font-medium min-w-0 leading-tight"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        {opt.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* CTA */}
+            {/* CTA — tablet / desktop */}
             <button
+              type="button"
               onClick={handleOrder}
-              className="po-cta po-anim po-anim-4 w-full py-4 rounded-xl font-medium cursor-pointer border-none"
+              disabled={placing}
+              className="po-cta po-anim po-anim-4 hidden md:block w-full py-4 rounded-xl font-medium cursor-pointer border-none"
             >
-              Place Order
+              {placing ? "Placing..." : "Place Order"}
             </button>
 
             {/* Secure note */}
@@ -674,12 +679,7 @@ const PlaceOrder = () => {
                 fontSize: "0.7rem"
               }}
             >
-              <svg
-                width="10"
-                height="12"
-                viewBox="0 0 10 12"
-                fill="none"
-              >
+              <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
                 <rect
                   x="0.6"
                   y="4.6"
@@ -689,7 +689,6 @@ const PlaceOrder = () => {
                   stroke="currentColor"
                   strokeWidth="1.1"
                 />
-
                 <path
                   d="M2.5 4.5V3A2.5 2.5 0 0 1 7.5 3v1.5"
                   stroke="currentColor"
@@ -697,10 +696,42 @@ const PlaceOrder = () => {
                   strokeLinecap="round"
                 />
               </svg>
-
               <span>Secured &amp; encrypted checkout</span>
             </div>
+          </aside>
+        </div>
+      </div>
+
+      {/* CTA — mobile sticky bar (total + Place Order always in reach) */}
+      <div className="po-mobile-bar md:hidden fixed bottom-0 inset-x-0 z-40 px-4 pt-3">
+        <div className="max-w-5xl mx-auto flex items-center gap-4">
+          <div className="flex flex-col min-w-0">
+            <span
+              style={{
+                fontSize: "0.65rem",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--text-secondary)"
+              }}
+            >
+              Total
+            </span>
+            <span
+              className="po-accent font-medium leading-tight truncate"
+              style={{ fontSize: "1.35rem", color: "#6B8E23" }}
+            >
+              ₹{total}
+            </span>
           </div>
+
+          <button
+            type="button"
+            onClick={handleOrder}
+            disabled={placing}
+            className="po-cta flex-1 py-3.5 rounded-xl font-medium cursor-pointer border-none"
+          >
+            {placing ? "Placing..." : "Place Order"}
+          </button>
         </div>
       </div>
     </div>

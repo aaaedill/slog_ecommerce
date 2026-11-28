@@ -35,6 +35,7 @@ const Login = () => {
 
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
 
@@ -414,8 +415,8 @@ const Login = () => {
               {
                 style:
                   glassToastStyle
-                }
-              );
+              }
+            );
           }
 
         } else if (parsedPendingWishlist) {
@@ -524,7 +525,6 @@ const Login = () => {
           align-items: center;
           justify-content: center;
 
-          /* Continuous main page background */
           background: var(--lgn-bg);
 
           padding: 5rem 3rem 6rem;
@@ -545,8 +545,6 @@ const Login = () => {
 
         /* ────────────────────────────────────────────────
            CONTENT WRAPPER
-           No card — just a max-width column of freely
-           floating elements.
         ──────────────────────────────────────────────── */
 
         .lgn-wrap {
@@ -591,8 +589,7 @@ const Login = () => {
 
 
         /* ────────────────────────────────────────────────
-           FORM — fields sit directly on the page, styled
-           like the filter-row glass pills on Collection
+           FORM
         ──────────────────────────────────────────────── */
 
         .lgn-form {
@@ -660,8 +657,80 @@ const Login = () => {
 
 
         /* ────────────────────────────────────────────────
-           SUBMIT BUTTON — solid olive pill, same weight
-           as the active category chip
+           PASSWORD SHOW / HIDE
+        ──────────────────────────────────────────────── */
+
+        .lgn-password-wrap {
+          position: relative;
+          width: 100%;
+        }
+
+        .lgn-password-input {
+          padding-right: 4.5rem;
+        }
+
+        .lgn-password-toggle {
+          position: absolute;
+          top: 50%;
+          right: 1.2rem;
+          transform: translateY(-50%);
+
+          border: none;
+          background: transparent;
+
+          color: var(--lgn-olive);
+          font-family: 'Jost', sans-serif;
+          font-size: 0.75rem;
+          font-weight: 500;
+
+          cursor: pointer;
+          padding: 0.3rem 0;
+
+          transition: color 0.2s ease;
+        }
+
+        .lgn-password-toggle:hover {
+          color: var(--lgn-olive-deep);
+        }
+
+        .lgn-password-toggle:focus-visible {
+          outline: 2px solid var(--lgn-olive);
+          outline-offset: 3px;
+          border-radius: 4px;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           FORGOT PASSWORD LINK
+        ──────────────────────────────────────────────── */
+
+        .lgn-forgot-wrap {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: -0.8rem;
+          margin-bottom: 1.2rem;
+        }
+
+        .lgn-forgot-link {
+          color: var(--lgn-olive);
+          font-size: 0.78rem;
+          font-weight: 500;
+          text-decoration: none;
+
+          transition: color 0.2s ease;
+        }
+
+        .lgn-forgot-link:hover {
+          color: var(--lgn-olive-deep);
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+
+
+
+        /* ────────────────────────────────────────────────
+           SUBMIT BUTTON
         ──────────────────────────────────────────────── */
 
         .lgn-btn {
@@ -743,8 +812,7 @@ const Login = () => {
 
 
         /* ────────────────────────────────────────────────
-           ENTRANCE ANIMATION — same blur-in keyframe used
-           on Collection's header / filter-row / cards
+           ENTRANCE ANIMATION
         ──────────────────────────────────────────────── */
 
         @keyframes lgn-blur-in {
@@ -792,8 +860,6 @@ const Login = () => {
 
         /* ────────────────────────────────────────────────
            DARK MODE
-           Customer dark mode uses one continuous black
-           page canvas.
         ──────────────────────────────────────────────── */
 
         html.dark-mode .lgn-page {
@@ -902,19 +968,65 @@ const Login = () => {
                 Password
               </label>
 
-              <input
-                type="password"
-                placeholder="Password"
-                className="lgn-input"
-                value={password}
-                onChange={(e) =>
-                  setPassword(
-                    e.target.value
-                  )
-                }
-                autoComplete="current-password"
-                required
-              />
+              <div className="lgn-password-wrap">
+
+                <input
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  placeholder="Password"
+                  className="lgn-input lgn-password-input"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(
+                      e.target.value
+                    )
+                  }
+                  autoComplete="current-password"
+                  required
+                />
+
+
+
+                <button
+                  type="button"
+                  className="lgn-password-toggle"
+                  onClick={() =>
+                    setShowPassword(
+                      (prev) => !prev
+                    )
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+
+                  {showPassword
+                    ? "Hide"
+                    : "Show"}
+
+                </button>
+
+              </div>
+
+            </div>
+
+
+
+            {/* FORGOT PASSWORD LINK */}
+
+            <div className="lgn-forgot-wrap">
+
+              <Link
+                to="/forgot-password"
+                className="lgn-forgot-link"
+              >
+                Forgot Password?
+              </Link>
 
             </div>
 

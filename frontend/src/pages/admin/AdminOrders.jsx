@@ -143,148 +143,155 @@ const ERROR_TOAST_MS = 6000;
    Inside each card, the email + status fields sit side by side
    whenever the card itself is wide enough (container query), so
    the card re-arranges based on its own width, not just the screen.
+
+   --ao-max and --ao-px match the navbar so edges line up.
 ───────────────────────────────────────────────────────────── */
 
 const THEME_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
-  .ad-root {
-    --ad-red:        #ff2d3f;
-    --ad-line:       rgba(255, 45, 63, 0.22);
-    --ad-line-hover: rgba(255, 45, 63, 0.6);
-    --ad-white:      #ffffff;
-    --ad-white-soft: rgba(255, 255, 255, 0.7);
+  .ao-root {
+    --ao-red:        #ff2d3f;
+    --ao-line:       rgba(255, 45, 63, 0.22);
+    --ao-line-hover: rgba(255, 45, 63, 0.6);
+    --ao-white:      #ffffff;
+    --ao-white-soft: rgba(255, 255, 255, 0.7);
 
     /* ── responsive scale (overridden per breakpoint below) ── */
-    --ad-max:        100%;
-    --ad-px:         0.625rem;
-    --ad-py:         0.75rem;
-    --ad-pb:         4rem;
-    --ad-sect:       1.5rem;
-    --ad-title:      clamp(1.9rem, 1.4rem + 2.6vw, 3.6rem);
-    --ad-over:       0.68rem;
-    --ad-sub:        0.85rem;
-    --ad-card-p:     1rem;
-    --ad-card-gap:   0.75rem;
-    --ad-card-id:    0.9rem;
-    --ad-tab-px:     0.9rem;
-    --ad-tab-py:     0.7rem;
-    --ad-tab-fs:     0.82rem;
-    --ad-btn-fs:     0.8rem;
-    --ad-btn-px:     0.9rem;
-    --ad-btn-py:     0.6rem;
-    --ad-th-fs:      0.68rem;
-    --ad-cell-px:    0.9rem;
-    --ad-cell-py:    1rem;
-    --ad-sel-w:      9.5rem;
-    --ad-radius:     14px;
+    --ao-max:        1400px;
+    --ao-px:         0.875rem;
+    --ao-py:         1rem;
+    --ao-sect:       1.25rem;
+    --ao-title:      1.9rem;
+    --ao-over:       0.68rem;
+    --ao-sub:        0.85rem;
+    --ao-card-p:     1rem;
+    --ao-card-gap:   0.75rem;
+    --ao-card-id:    0.9rem;
+    --ao-tab-px:     0.9rem;
+    --ao-tab-py:     0.7rem;
+    --ao-tab-fs:     0.82rem;
+    --ao-btn-fs:     0.8rem;
+    --ao-btn-px:     0.9rem;
+    --ao-btn-py:     0.6rem;
+    --ao-th-fs:      0.68rem;
+    --ao-cell-px:    0.9rem;
+    --ao-cell-py:    1rem;
+    --ao-sel-w:      9.5rem;
+    --ao-radius:     14px;
 
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
     width: 100%;
+    min-height: 100vh;
     background: #000000;
-    color: var(--ad-white);
+    color: var(--ao-white);
     font-family: 'Manrope', 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-  }
-
-  .ad-page {
     padding:
-      var(--ad-py)
-      max(var(--ad-px), env(safe-area-inset-right))
-      var(--ad-pb)
-      max(var(--ad-px), env(safe-area-inset-left));
+      var(--ao-py)
+      max(var(--ao-px), env(safe-area-inset-right))
+      calc(var(--ao-py) + 2rem + env(safe-area-inset-bottom))
+      max(var(--ao-px), env(safe-area-inset-left));
   }
 
-  .ad-wrap {
+  .ao-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ao-wrap {
     position: relative;
     width: 100%;
     min-width: 0;
-    max-width: var(--ad-max);
+    max-width: var(--ao-max);
     margin: 0 auto;
   }
 
+  .ao-mt { margin-top: 0.5rem; }
+
   /* ── Entrance ── */
 
-  .ad-rise {
+  .ao-rise {
     opacity: 0;
-    animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: ao-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  @keyframes ad-rise {
+  @keyframes ao-rise {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
   /* ── Header ── */
 
-  .ad-head {
+  .ao-head {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: var(--ad-sect);
+    margin-bottom: var(--ao-sect);
   }
 
-  .ad-head-text { min-width: 0; }
+  .ao-head-text { min-width: 0; }
 
-  .ad-overline {
+  .ao-overline {
     display: inline-flex;
     align-items: center;
-    gap: 0.65rem;
-    color: var(--ad-red);
-    font-size: var(--ad-over);
+    gap: 0.6rem;
+    color: var(--ao-red);
+    font-size: var(--ao-over);
     font-weight: 700;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.4rem;
   }
 
-  .ad-overline::before {
+  .ao-overline::before {
     content: '';
-    width: 24px;
+    width: 1.75rem;
     height: 2px;
-    background: var(--ad-red);
+    background: var(--ao-red);
   }
 
-  .ad-title {
+  .ao-title {
     margin: 0;
-    color: var(--ad-white);
+    color: var(--ao-white);
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.05;
-    font-size: var(--ad-title);
+    font-size: var(--ao-title);
   }
 
-  .ad-subtitle {
+  .ao-subtitle {
     margin: 0.65rem 0 0;
-    color: var(--ad-white-soft);
-    font-size: var(--ad-sub);
+    color: var(--ao-white-soft);
+    font-size: var(--ao-sub);
     font-weight: 500;
   }
 
-  .ad-title-bar {
-    margin-top: 0.9rem;
+  .ao-title-bar {
+    margin-top: 0.85rem;
     height: 2px;
-    width: 72px;
+    width: 5rem;
     border-radius: 2px;
-    background: var(--ad-red);
+    background: var(--ao-red);
     transform-origin: left center;
-    animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+    animation: ao-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
   }
 
-  @keyframes ad-draw {
+  @keyframes ao-draw {
     from { transform: scaleX(0); }
     to   { transform: scaleX(1); }
   }
 
   /* refresh button: icon + label, icon-only on very small phones */
-  .ad-refresh {
+  .ao-refresh {
     flex: 0 0 auto;
     gap: 0.5rem;
   }
 
-  .ad-refresh svg {
+  .ao-refresh svg {
     flex: 0 0 auto;
     width: 15px;
     height: 15px;
@@ -292,41 +299,41 @@ const THEME_CSS = `
 
   /* ── Panel ── */
 
-  .ad-panel {
+  .ao-panel {
     position: relative;
     background: transparent;
-    border: 1px solid var(--ad-line);
-    border-radius: var(--ad-radius);
+    border: 1px solid var(--ao-line);
+    border-radius: var(--ao-radius);
     transition: border-color 0.3s ease;
   }
 
-  .ad-panel:hover {
-    border-color: var(--ad-line-hover);
+  .ao-panel:hover {
+    border-color: var(--ao-line-hover);
   }
 
   /* ── Tabs: two equal tiles on phones, inline from 480px ── */
 
-  .ad-tabs {
+  .ao-tabs {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.6rem;
-    margin-bottom: var(--ad-sect);
+    margin-bottom: var(--ao-sect);
   }
 
-  .ad-tab {
+  .ao-tab {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.6rem;
     min-width: 0;
     min-height: 2.75rem;
-    padding: var(--ad-tab-py) var(--ad-tab-px);
+    padding: var(--ao-tab-py) var(--ao-tab-px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 10px;
     background: transparent;
     color: rgba(255, 255, 255, 0.7);
     font-family: inherit;
-    font-size: var(--ad-tab-fs);
+    font-size: var(--ao-tab-fs);
     font-weight: 700;
     cursor: pointer;
     transition:
@@ -336,19 +343,19 @@ const THEME_CSS = `
       box-shadow 0.25s ease;
   }
 
-  .ad-tab:hover {
+  .ao-tab:hover {
     color: #ffffff;
     border-color: rgba(255, 45, 63, 0.6);
   }
 
-  .ad-tab--active {
+  .ao-tab--active {
     color: #ffffff;
     background: rgba(255, 45, 63, 0.16);
     border-color: #ff2d3f;
     box-shadow: 0 0 16px rgba(255, 45, 63, 0.12);
   }
 
-  .ad-tab-count {
+  .ao-tab-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -362,97 +369,90 @@ const THEME_CSS = `
     font-weight: 800;
   }
 
-  .ad-tab--active .ad-tab-count {
+  .ao-tab--active .ao-tab-count {
     background: #ff2d3f;
   }
 
   /* ── Table (≥ 1024px) ── */
 
-  .ad-table {
+  .ao-table {
     width: 100%;
     border-collapse: collapse;
   }
 
-  .ad-th {
-    padding: calc(var(--ad-cell-py) * 0.95) var(--ad-cell-px);
+  .ao-th {
+    padding: calc(var(--ao-cell-py) * 0.95) var(--ao-cell-px);
     text-align: left;
-    color: var(--ad-white-soft);
-    font-size: var(--ad-th-fs);
+    color: var(--ao-white-soft);
+    font-size: var(--ao-th-fs);
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     white-space: nowrap;
   }
 
-  .ad-thead-row {
-    border-bottom: 1px solid var(--ad-line);
+  .ao-thead-row {
+    border-bottom: 1px solid var(--ao-line);
   }
 
-  .ad-td {
-    padding: var(--ad-cell-py) var(--ad-cell-px);
+  .ao-td {
+    padding: var(--ao-cell-py) var(--ao-cell-px);
     vertical-align: middle;
   }
 
   /* column widths: email takes the flexible space */
-  .ad-th:nth-child(1),
-  .ad-td:nth-child(1) { width: 22%; }
+  .ao-th:nth-child(1),
+  .ao-td:nth-child(1) { width: 22%; }
 
-  .ad-th:nth-child(2),
-  .ad-td:nth-child(2) { width: 34%; }
+  .ao-th:nth-child(2),
+  .ao-td:nth-child(2) { width: 34%; }
 
-  .ad-th:nth-child(3),
-  .ad-td:nth-child(3) { width: 24%; }
+  .ao-th:nth-child(3),
+  .ao-td:nth-child(3) { width: 24%; }
 
-  .ad-th:nth-child(4),
-  .ad-td:nth-child(4) { width: 20%; }
+  .ao-th:nth-child(4),
+  .ao-td:nth-child(4) { width: 20%; }
 
-  .ad-row {
+  .ao-row {
     position: relative;
     background: transparent;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     transition: background 0.25s ease;
   }
 
-  .ad-row:hover {
+  .ao-row:hover {
     background: rgba(255, 255, 255, 0.04);
   }
 
-  .ad-row:last-child {
+  .ao-row:last-child {
     border-bottom: none;
   }
 
-  .ad-row td:first-child {
-    box-shadow: inset 0 0 0 0 var(--ad-red);
+  .ao-row td:first-child {
+    box-shadow: inset 0 0 0 0 var(--ao-red);
     transition: box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .ad-row:hover td:first-child {
-    box-shadow: inset 3px 0 0 0 var(--ad-red);
+  .ao-row:hover td:first-child {
+    box-shadow: inset 3px 0 0 0 var(--ao-red);
   }
 
-  .ad-cell-id {
-    color: var(--ad-white);
+  .ao-cell-id {
+    color: var(--ao-white);
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.9rem;
     font-weight: 600;
     overflow-wrap: anywhere;
   }
 
-  .ad-cell-date {
+  .ao-cell-date {
     margin-top: 0.3rem;
-    color: var(--ad-white-soft);
+    color: var(--ao-white-soft);
     font-size: 0.78rem;
     font-weight: 500;
   }
 
-  .ad-cell-text {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.88rem;
-    font-weight: 500;
-    line-height: 1.5;
-  }
-
-  .ad-cell-email {
+  .ao-cell-email {
     color: rgba(255, 255, 255, 0.85);
     font-size: 0.84rem;
     font-weight: 500;
@@ -460,21 +460,14 @@ const THEME_CSS = `
     overflow-wrap: anywhere;
   }
 
-  .ad-cell-amount {
-    color: var(--ad-white);
-    font-size: 0.98rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .ad-muted {
-    color: var(--ad-white-soft);
+  .ao-muted {
+    color: var(--ao-white-soft);
     font-size: 0.8rem;
     font-weight: 500;
   }
 
-  .ad-label {
-    color: var(--ad-white-soft);
+  .ao-label {
+    color: var(--ao-white-soft);
     font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -483,14 +476,14 @@ const THEME_CSS = `
   }
 
   /* status / action stacks inside table cells */
-  .ad-status-stack {
+  .ao-status-stack {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
 
-  .ad-actions-stack {
+  .ao-actions-stack {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -499,7 +492,7 @@ const THEME_CSS = `
 
   /* ── Status badge ── */
 
-  .ad-badge {
+  .ao-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
@@ -511,7 +504,7 @@ const THEME_CSS = `
     white-space: nowrap;
   }
 
-  .ad-badge-dot {
+  .ao-badge-dot {
     flex: 0 0 auto;
     width: 7px;
     height: 7px;
@@ -521,7 +514,7 @@ const THEME_CSS = `
 
   /* ── Select ── */
 
-  .ad-select {
+  .ao-select {
     appearance: none;
     -webkit-appearance: none;
     font-family: inherit;
@@ -532,7 +525,7 @@ const THEME_CSS = `
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ff2d3f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
-    border: 1px solid var(--ad-line);
+    border: 1px solid var(--ao-line);
     border-radius: 10px;
     min-height: 2.5rem;
     padding: 0.55rem 2rem 0.55rem 0.8rem;
@@ -540,92 +533,92 @@ const THEME_CSS = `
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
   }
 
-  .ad-select--table { width: var(--ad-sel-w); max-width: 100%; }
+  .ao-select--table { width: var(--ao-sel-w); max-width: 100%; }
 
-  .ad-select--card { width: 100%; }
+  .ao-select--card { width: 100%; }
 
-  .ad-select:hover:not(:disabled) {
-    border-color: var(--ad-line-hover);
+  .ao-select:hover:not(:disabled) {
+    border-color: var(--ao-line-hover);
   }
 
-  .ad-select:focus-visible {
-    border-color: var(--ad-red);
+  .ao-select:focus-visible {
+    border-color: var(--ao-red);
     box-shadow: 0 0 0 3px rgba(255, 45, 63, 0.25);
   }
 
-  .ad-select option {
+  .ao-select option {
     background: #000000;
     color: #ffffff;
   }
 
   /* ── Buttons ── */
 
-  .ad-btn {
+  .ao-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-height: 2.5rem;
     font-family: inherit;
-    font-size: var(--ad-btn-fs);
+    font-size: var(--ao-btn-fs);
     font-weight: 700;
     letter-spacing: 0.02em;
-    padding: var(--ad-btn-py) var(--ad-btn-px);
+    padding: var(--ao-btn-py) var(--ao-btn-px);
     border-radius: 10px;
     background: transparent;
     white-space: nowrap;
     transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   }
 
-  .ad-btn--cancel {
+  .ao-btn--cancel {
     color: #ff2d3f;
     border: 1px solid rgba(255, 45, 63, 0.6);
   }
 
-  .ad-btn--cancel:hover:not(:disabled) {
+  .ao-btn--cancel:hover:not(:disabled) {
     background: #ff2d3f;
     color: #ffffff;
     border-color: #ff2d3f;
     box-shadow: 0 0 18px rgba(255, 45, 63, 0.4);
   }
 
-  .ad-btn--ghost {
+  .ao-btn--ghost {
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
-  .ad-btn--ghost:hover:not(:disabled) {
+  .ao-btn--ghost:hover:not(:disabled) {
     background: #ffffff;
     color: #000000;
     border-color: #ffffff;
   }
 
-  .ad-btn--details {
+  .ao-btn--details {
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
-  .ad-btn--details:hover:not(:disabled) {
+  .ao-btn--details:hover:not(:disabled) {
     background: #ffffff;
     color: #000000;
     border-color: #ffffff;
   }
 
-  .ad-btn:focus-visible,
-  .ad-tab:focus-visible {
+  .ao-btn:focus-visible,
+  .ao-tab:focus-visible {
     outline: 2px solid #ffffff;
     outline-offset: 2px;
   }
 
-  .ad-btn:disabled {
+  .ao-btn:disabled {
     cursor: not-allowed;
     opacity: 0.4;
   }
 
   /* ── Glass toasts ── */
 
-  .ad-toast-stack {
+  .ao-toast-stack {
     position: fixed;
-    top: max(12px, env(safe-area-inset-top));
+    top: calc(max(12px, env(safe-area-inset-top)) + 4rem);
     left: max(12px, env(safe-area-inset-left));
     right: max(12px, env(safe-area-inset-right));
     z-index: 1000;
@@ -636,7 +629,7 @@ const THEME_CSS = `
     pointer-events: none;
   }
 
-  .ad-toast {
+  .ao-toast {
     --toast-accent: 255, 255, 255;
     position: relative;
     overflow: hidden;
@@ -660,11 +653,11 @@ const THEME_CSS = `
       0 0 30px rgba(var(--toast-accent), 0.14),
       inset 0 1px 0 rgba(255, 255, 255, 0.35),
       inset 0 -1px 0 rgba(255, 255, 255, 0.05);
-    animation: ad-toast-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: ao-toast-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   /* soft specular highlight across the top of the glass */
-  .ad-toast::before {
+  .ao-toast::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -672,15 +665,15 @@ const THEME_CSS = `
     pointer-events: none;
   }
 
-  .ad-toast--success { --toast-accent: 255, 255, 255; }
-  .ad-toast--error   { --toast-accent: 255, 45, 63; border-color: rgba(255, 45, 63, 0.5); }
+  .ao-toast--success { --toast-accent: 255, 255, 255; }
+  .ao-toast--error   { --toast-accent: 255, 45, 63; border-color: rgba(255, 45, 63, 0.5); }
 
-  @keyframes ad-toast-in {
+  @keyframes ao-toast-in {
     from { opacity: 0; transform: translate3d(36px, -6px, 0) scale(0.96); }
     to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   }
 
-  .ad-toast-icon {
+  .ao-toast-icon {
     position: relative;
     flex: 0 0 auto;
     display: inline-flex;
@@ -695,19 +688,19 @@ const THEME_CSS = `
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 
-  .ad-toast--error .ad-toast-icon {
+  .ao-toast--error .ao-toast-icon {
     color: #ff5563;
     background: rgba(255, 45, 63, 0.18);
   }
 
-  .ad-toast-body {
+  .ao-toast-body {
     position: relative;
     flex: 1 1 auto;
     min-width: 0;
     padding-top: 1px;
   }
 
-  .ad-toast-title {
+  .ao-toast-title {
     margin: 0;
     font-size: 0.88rem;
     font-weight: 800;
@@ -715,7 +708,7 @@ const THEME_CSS = `
     color: #ffffff;
   }
 
-  .ad-toast-text {
+  .ao-toast-text {
     margin: 0.2rem 0 0;
     font-size: 0.82rem;
     font-weight: 500;
@@ -724,14 +717,14 @@ const THEME_CSS = `
     overflow-wrap: anywhere;
   }
 
-  .ad-toast-close {
+  .ao-toast-close {
     position: relative;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border: none;
     border-radius: 8px;
     background: transparent;
@@ -740,17 +733,17 @@ const THEME_CSS = `
     transition: background 0.2s ease, color 0.2s ease;
   }
 
-  .ad-toast-close:hover {
+  .ao-toast-close:hover {
     background: rgba(255, 255, 255, 0.14);
     color: #ffffff;
   }
 
-  .ad-toast-close:focus-visible {
+  .ao-toast-close:focus-visible {
     outline: 2px solid #ffffff;
     outline-offset: 1px;
   }
 
-  .ad-toast-progress {
+  .ao-toast-progress {
     position: absolute;
     left: 0;
     bottom: 0;
@@ -759,17 +752,17 @@ const THEME_CSS = `
     background: rgba(var(--toast-accent), 0.85);
     box-shadow: 0 0 10px rgba(var(--toast-accent), 0.6);
     transform-origin: left center;
-    animation: ad-toast-timer linear forwards;
+    animation: ao-toast-timer linear forwards;
   }
 
-  @keyframes ad-toast-timer {
+  @keyframes ao-toast-timer {
     from { transform: scaleX(1); }
     to   { transform: scaleX(0); }
   }
 
   /* ── Glass confirm dialog: bottom sheet on phones, centred card from 521px ── */
 
-  .ad-modal-backdrop {
+  .ao-modal-backdrop {
     position: fixed;
     inset: 0;
     z-index: 1100;
@@ -780,19 +773,19 @@ const THEME_CSS = `
     background: rgba(0, 0, 0, 0.55);
     -webkit-backdrop-filter: blur(10px) saturate(120%);
     backdrop-filter: blur(10px) saturate(120%);
-    animation: ad-fade 0.25s ease both;
+    animation: ao-fade 0.25s ease both;
   }
 
-  @keyframes ad-fade {
+  @keyframes ao-fade {
     from { opacity: 0; }
     to   { opacity: 1; }
   }
 
-  .ad-modal {
+  .ao-modal {
     position: relative;
-    overflow: hidden;
     width: 100%;
     max-width: 100%;
+    max-height: 92vh;
     max-height: 92dvh;
     overflow-y: auto;
     padding: 1.5rem 1.15rem calc(1.25rem + env(safe-area-inset-bottom));
@@ -812,10 +805,10 @@ const THEME_CSS = `
       0 0 50px rgba(255, 45, 63, 0.18),
       inset 0 1px 0 rgba(255, 255, 255, 0.4),
       inset 0 -1px 0 rgba(255, 255, 255, 0.06);
-    animation: ad-sheet-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: ao-sheet-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
-  .ad-modal::before {
+  .ao-modal::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -823,17 +816,17 @@ const THEME_CSS = `
     pointer-events: none;
   }
 
-  @keyframes ad-sheet-in {
+  @keyframes ao-sheet-in {
     from { opacity: 0; transform: translateY(40px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  @keyframes ad-modal-in {
+  @keyframes ao-modal-in {
     from { opacity: 0; transform: translateY(16px) scale(0.95); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  .ad-modal-icon {
+  .ao-modal-icon {
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -848,7 +841,7 @@ const THEME_CSS = `
     box-shadow: 0 0 24px rgba(255, 45, 63, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 
-  .ad-modal-title {
+  .ao-modal-title {
     position: relative;
     margin: 0;
     font-size: 1.15rem;
@@ -857,7 +850,7 @@ const THEME_CSS = `
     color: #ffffff;
   }
 
-  .ad-modal-text {
+  .ao-modal-text {
     position: relative;
     margin: 0.55rem 0 0;
     font-size: 0.88rem;
@@ -866,14 +859,14 @@ const THEME_CSS = `
     color: rgba(255, 255, 255, 0.75);
   }
 
-  .ad-modal-text strong {
+  .ao-modal-text strong {
     color: #ffffff;
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     font-weight: 600;
     overflow-wrap: anywhere;
   }
 
-  .ad-modal-actions {
+  .ao-modal-actions {
     position: relative;
     display: flex;
     flex-direction: column-reverse;
@@ -881,13 +874,13 @@ const THEME_CSS = `
     margin-top: 1.35rem;
   }
 
-  .ad-modal-actions .ad-btn {
+  .ao-modal-actions .ao-btn {
     flex: 1 1 0;
     min-height: 2.9rem;
     padding: 0.7rem 1rem;
   }
 
-  .ad-btn--glass {
+  .ao-btn--glass {
     color: #ffffff;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -896,12 +889,12 @@ const THEME_CSS = `
     cursor: pointer;
   }
 
-  .ad-btn--glass:hover {
+  .ao-btn--glass:hover {
     background: rgba(255, 255, 255, 0.18);
     border-color: rgba(255, 255, 255, 0.55);
   }
 
-  .ad-btn--danger {
+  .ao-btn--danger {
     color: #ffffff;
     background: rgba(255, 45, 63, 0.78);
     border: 1px solid rgba(255, 120, 132, 0.7);
@@ -909,77 +902,84 @@ const THEME_CSS = `
     cursor: pointer;
   }
 
-  .ad-btn--danger:hover {
+  .ao-btn--danger:hover {
     background: #ff2d3f;
     box-shadow: 0 0 28px rgba(255, 45, 63, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
 
   /* ── Empty / loading ── */
 
-  .ad-empty {
+  .ao-empty {
     padding: 2.5rem 1.25rem;
     text-align: center;
   }
 
-  .ad-empty-icon {
+  .ao-empty-icon {
     font-size: 2.25rem;
     margin-bottom: 0.85rem;
   }
 
-  .ad-empty-title {
+  .ao-empty-title {
     margin: 0;
-    color: var(--ad-white);
+    color: var(--ao-white);
     font-size: 1.1rem;
     font-weight: 700;
   }
 
-  .ad-empty-text {
-    color: var(--ad-white-soft);
+  .ao-empty-text {
+    color: var(--ao-white-soft);
     font-size: 0.88rem;
     font-weight: 500;
   }
 
-  .ad-loader {
+  .ao-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .ao-loader {
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    border: 2px solid var(--ad-line);
-    border-top-color: var(--ad-red);
-    animation: ad-spin 0.8s linear infinite;
+    border: 2px solid var(--ao-line);
+    border-top-color: var(--ao-red);
+    animation: ao-spin 0.8s linear infinite;
   }
 
-  @keyframes ad-spin {
+  @keyframes ao-spin {
     to { transform: rotate(360deg); }
   }
 
   /* ── Order cards (below 1024px) ── */
 
-  .admin-orders-mobile {
+  .ao-cards {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--ad-card-gap);
+    gap: var(--ao-card-gap);
   }
 
-  .admin-orders-desktop { display: none; }
+  .ao-desktop { display: none; }
 
   /* the cell is the "container": cards respond to their own width */
-  .ad-card-cell {
+  .ao-card-cell {
     min-width: 0;
     display: flex;
     container-type: inline-size;
   }
 
-  .ad-card {
+  .ao-card {
     flex: 1 1 auto;
     width: 100%;
     min-width: 0;
-    padding: var(--ad-card-p);
+    padding: var(--ao-card-p);
     display: flex;
     flex-direction: column;
     gap: 0.95rem;
   }
 
-  .ad-card-top {
+  .ao-card-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -987,16 +987,16 @@ const THEME_CSS = `
     flex-wrap: wrap;
   }
 
-  .ad-card-id {
-    color: var(--ad-white);
+  .ao-card-id {
+    color: var(--ao-white);
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: var(--ad-card-id);
+    font-size: var(--ao-card-id);
     font-weight: 600;
     overflow-wrap: anywhere;
   }
 
   /* email + status fields: stacked in narrow cards, side by side in wide ones */
-  .ad-card-fields {
+  .ao-card-fields {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 0.95rem;
@@ -1004,16 +1004,16 @@ const THEME_CSS = `
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  .ad-card-field { min-width: 0; }
+  .ao-card-field { min-width: 0; }
 
-  .ad-card-actions {
+  .ao-card-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.55rem;
     margin-top: auto;
   }
 
-  .ad-card-actions .ad-btn {
+  .ao-card-actions .ao-btn {
     min-width: 0;
     padding-left: 0.6rem;
     padding-right: 0.6rem;
@@ -1023,181 +1023,182 @@ const THEME_CSS = `
   }
 
   @container (min-width: 25rem) {
-    .ad-card-fields--two {
+    .ao-card-fields--two {
       grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
       gap: 1.1rem;
     }
   }
 
   @container (max-width: 16.5rem) {
-    .ad-card-actions { grid-template-columns: minmax(0, 1fr); }
+    .ao-card-actions { grid-template-columns: minmax(0, 1fr); }
   }
 
   /* ── Scrollbar (table overflow safety net) ── */
 
-  .admin-orders-desktop::-webkit-scrollbar {
+  .ao-desktop::-webkit-scrollbar {
     height: 6px;
   }
 
-  .admin-orders-desktop::-webkit-scrollbar-thumb {
-    background: var(--ad-line-hover);
+  .ao-desktop::-webkit-scrollbar-thumb {
+    background: var(--ao-line-hover);
     border-radius: 6px;
   }
 
   /* ═══════════ Responsive scale ═══════════ */
 
-  /* < 400px: refresh becomes an icon-only square */
-  @media (max-width: 399px) {
-    .ad-refresh {
+  /* < 375px: refresh becomes an icon-only square, tabs tighten */
+  @media (max-width: 374px) {
+    .ao-head { align-items: flex-start; }
+
+    .ao-refresh {
       width: 2.75rem;
       min-height: 2.75rem;
       padding: 0;
     }
 
-    .ad-refresh-label { display: none; }
+    .ao-refresh-label { display: none; }
+
+    .ao-tab { padding-left: 0.5rem; padding-right: 0.5rem; gap: 0.4rem; }
   }
 
-  /* < 360px: very small phones */
-  @media (max-width: 359px) {
-    .ad-head { align-items: flex-start; }
-    .ad-tab { padding-left: 0.5rem; padding-right: 0.5rem; gap: 0.4rem; }
-  }
-
-  /* ≥ 360px: standard phones */
-  @media (min-width: 360px) {
-    .ad-root {
-      --ad-px: 0.75rem;
-      --ad-card-p: 1.1rem;
+  /* ≥ 375px: iPhone-size phones */
+  @media (min-width: 375px) {
+    .ao-root {
+      --ao-px: 1rem;
+      --ao-py: 1.1rem;
+      --ao-title: 2.05rem;
+      --ao-card-p: 1.1rem;
     }
   }
 
   /* ≥ 480px: large phones / landscape */
   @media (min-width: 480px) {
-    .ad-root {
-      --ad-px: 1rem;
-      --ad-py: 1rem;
-      --ad-pb: 4.5rem;
-      --ad-over: 0.72rem;
-      --ad-sub: 0.9rem;
-      --ad-card-p: 1.25rem;
-      --ad-card-id: 0.95rem;
-      --ad-tab-px: 1.25rem;
-      --ad-btn-fs: 0.82rem;
+    .ao-root {
+      --ao-py: 1.25rem;
+      --ao-sect: 1.4rem;
+      --ao-over: 0.72rem;
+      --ao-sub: 0.9rem;
+      --ao-card-p: 1.25rem;
+      --ao-card-id: 0.95rem;
+      --ao-tab-px: 1.25rem;
+      --ao-btn-fs: 0.82rem;
     }
 
     /* tabs hug their content instead of filling the row */
-    .ad-tabs {
+    .ao-tabs {
       display: flex;
       flex-wrap: wrap;
       gap: 0.65rem;
     }
   }
 
-  /* ≥ 521px: confirm dialog becomes a centred card */
+  /* ≥ 521px: confirm dialog becomes a centred card, toasts dock top-right */
   @media (min-width: 521px) {
-    .ad-modal-backdrop {
+    .ao-modal-backdrop {
       align-items: center;
       padding: 20px;
     }
 
-    .ad-modal {
+    .ao-modal {
       max-width: 420px;
       padding: 1.75rem 1.6rem 1.5rem;
       border-radius: 22px;
-      animation: ad-modal-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation: ao-modal-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
-    .ad-modal-icon { width: 52px; height: 52px; }
-    .ad-modal-title { font-size: 1.25rem; }
-    .ad-modal-text { font-size: 0.9rem; }
-    .ad-modal-actions { flex-direction: row; }
+    .ao-modal-icon { width: 52px; height: 52px; }
+    .ao-modal-title { font-size: 1.25rem; }
+    .ao-modal-text { font-size: 0.9rem; }
+    .ao-modal-actions { flex-direction: row; }
 
-    /* toasts dock to the top-right corner */
-    .ad-toast-stack {
+    .ao-toast-stack {
       left: auto;
       right: 16px;
-      top: 16px;
+      top: calc(max(16px, env(safe-area-inset-top)) + 4.5rem);
       width: min(380px, calc(100vw - 32px));
     }
   }
 
   /* ≥ 640px: tablets (portrait) → two columns of cards */
   @media (min-width: 640px) {
-    .ad-root {
-      --ad-px: 1.5rem;
-      --ad-py: 1.25rem;
-      --ad-sect: 1.75rem;
-      --ad-card-gap: 1rem;
-      --ad-card-p: 1.25rem;
-      --ad-radius: 16px;
-      --ad-tab-fs: 0.86rem;
+    .ao-root {
+      --ao-px: 1.5rem;
+      --ao-py: 1.5rem;
+      --ao-sect: 1.6rem;
+      --ao-title: 2.4rem;
+      --ao-card-gap: 1rem;
+      --ao-card-p: 1.25rem;
+      --ao-radius: 16px;
+      --ao-tab-fs: 0.86rem;
     }
 
-    .admin-orders-mobile {
+    .ao-cards {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .ad-empty { padding: 3.25rem 1.5rem; }
-    .ad-empty-icon { font-size: 2.6rem; }
-    .ad-empty-title { font-size: 1.2rem; }
+    .ao-empty { padding: 3.25rem 1.5rem; }
+    .ao-empty-icon { font-size: 2.6rem; }
+    .ao-empty-title { font-size: 1.2rem; }
   }
 
   /* ≥ 768px: tablets (landscape) */
   @media (min-width: 768px) {
-    .ad-root {
-      --ad-px: 2rem;
-      --ad-py: 1.75rem;
-      --ad-pb: 5rem;
-      --ad-card-gap: 1.15rem;
-      --ad-card-p: 1.4rem;
-      --ad-sub: 0.95rem;
+    .ao-root {
+      --ao-py: 1.75rem;
+      --ao-sect: 1.75rem;
+      --ao-title: 2.55rem;
+      --ao-card-gap: 1.15rem;
+      --ao-card-p: 1.4rem;
+      --ao-sub: 0.95rem;
     }
 
-    .ad-toast-stack { top: 20px; right: 20px; width: min(390px, calc(100vw - 40px)); }
+    .ao-toast-stack {
+      right: 20px;
+      width: min(390px, calc(100vw - 40px));
+    }
   }
 
   /* ≥ 1024px: laptops → table layout */
   @media (min-width: 1024px) {
-    .ad-root {
-      --ad-max: 72rem;
-      --ad-px: 2.25rem;
-      --ad-py: 2rem;
-      --ad-cell-px: 1rem;
-      --ad-cell-py: 1.05rem;
-      --ad-th-fs: 0.7rem;
-      --ad-sel-w: 10rem;
+    .ao-root {
+      --ao-px: 2rem;
+      --ao-py: 2rem;
+      --ao-sect: 2rem;
+      --ao-cell-px: 1rem;
+      --ao-cell-py: 1.05rem;
+      --ao-th-fs: 0.7rem;
+      --ao-sel-w: 10rem;
     }
 
-    .admin-orders-mobile  { display: none; }
-    .admin-orders-desktop { display: block; }
+    .ao-cards   { display: none; }
+    .ao-desktop { display: block; }
   }
 
   /* ≥ 1280px: desktops → actions sit side by side, select widens */
   @media (min-width: 1280px) {
-    .ad-root {
-      --ad-max: 82rem;
-      --ad-px: 3rem;
-      --ad-py: 2.5rem;
-      --ad-cell-px: 1.25rem;
-      --ad-cell-py: 1.15rem;
-      --ad-th-fs: 0.74rem;
-      --ad-sel-w: 10.5rem;
-      --ad-btn-px: 1.1rem;
+    .ao-root {
+      --ao-py: 2.25rem;
+      --ao-title: 2.8rem;
+      --ao-cell-px: 1.25rem;
+      --ao-cell-py: 1.15rem;
+      --ao-th-fs: 0.74rem;
+      --ao-sel-w: 10.5rem;
+      --ao-btn-px: 1.1rem;
     }
 
-    .ad-th:nth-child(1),
-    .ad-td:nth-child(1) { width: 18%; }
+    .ao-th:nth-child(1),
+    .ao-td:nth-child(1) { width: 18%; }
 
-    .ad-th:nth-child(2),
-    .ad-td:nth-child(2) { width: 30%; }
+    .ao-th:nth-child(2),
+    .ao-td:nth-child(2) { width: 30%; }
 
-    .ad-th:nth-child(3),
-    .ad-td:nth-child(3) { width: 22%; }
+    .ao-th:nth-child(3),
+    .ao-td:nth-child(3) { width: 22%; }
 
-    .ad-th:nth-child(4),
-    .ad-td:nth-child(4) { width: 30%; }
+    .ao-th:nth-child(4),
+    .ao-td:nth-child(4) { width: 30%; }
 
-    .ad-actions-stack {
+    .ao-actions-stack {
       flex-direction: row;
       flex-wrap: wrap;
       align-items: center;
@@ -1206,74 +1207,78 @@ const THEME_CSS = `
 
   /* ≥ 1536px: large monitors */
   @media (min-width: 1536px) {
-    .ad-root {
-      --ad-max: 92rem;
-      --ad-px: 3.5rem;
-      --ad-cell-px: 1.5rem;
-      --ad-cell-py: 1.3rem;
-      --ad-btn-fs: 0.88rem;
-      --ad-tab-fs: 0.92rem;
-      --ad-sel-w: 11.5rem;
+    .ao-root {
+      --ao-max: 1680px;
+      --ao-px: 2.5rem;
+      --ao-py: 2.5rem;
+      --ao-sect: 2.5rem;
+      --ao-over: 0.8rem;
+      --ao-title: 3rem;
+      --ao-cell-px: 1.5rem;
+      --ao-cell-py: 1.3rem;
+      --ao-btn-fs: 0.88rem;
+      --ao-tab-fs: 0.92rem;
+      --ao-sel-w: 11.5rem;
     }
 
-    .ad-cell-id { font-size: 0.98rem; }
-    .ad-cell-email { font-size: 0.92rem; }
-    .ad-badge { font-size: 0.8rem; }
+    .ao-cell-id { font-size: 0.98rem; }
+    .ao-cell-email { font-size: 0.92rem; }
+    .ao-badge { font-size: 0.8rem; }
   }
 
   /* ≥ 1920px: ultra-wide */
   @media (min-width: 1920px) {
-    .ad-root {
-      --ad-max: 104rem;
+    .ao-root {
+      --ao-max: 1840px;
     }
   }
 
   /* ── Short landscape screens (phones turned sideways) ── */
 
   @media (max-height: 500px) and (orientation: landscape) {
-    .ad-modal-backdrop {
+    .ao-modal-backdrop {
       align-items: center;
       padding: 12px;
     }
 
-    .ad-modal {
+    .ao-modal {
       max-width: 460px;
       padding: 1rem 1.25rem;
       border-radius: 18px;
     }
 
-    .ad-modal-icon { display: none; }
-    .ad-modal-actions { flex-direction: row; margin-top: 1rem; }
-    .ad-modal-actions .ad-btn { min-height: 2.6rem; }
+    .ao-modal-icon { display: none; }
+    .ao-modal-actions { flex-direction: row; margin-top: 1rem; }
+    .ao-modal-actions .ao-btn { min-height: 2.6rem; }
   }
 
   /* ── Reduced motion ── */
 
   @media (prefers-reduced-motion: reduce) {
-    .ad-rise,
-    .ad-title-bar,
-    .ad-toast,
-    .ad-modal,
-    .ad-modal-backdrop {
+    .ao-rise,
+    .ao-title-bar,
+    .ao-toast,
+    .ao-modal,
+    .ao-modal-backdrop {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
     }
 
-    .ad-loader {
+    .ao-loader {
       animation-duration: 2s;
     }
 
-    .ad-toast-progress {
+    .ao-toast-progress {
       display: none;
     }
 
-    .ad-row,
-    .ad-row td:first-child,
-    .ad-btn,
-    .ad-select,
-    .ad-panel,
-    .ad-tab {
+    .ao-row,
+    .ao-row td:first-child,
+    .ao-btn,
+    .ao-select,
+    .ao-panel,
+    .ao-tab {
       transition: none !important;
     }
   }
@@ -1672,14 +1677,14 @@ const AdminOrders = () => {
 
     return (
       <span
-        className="ad-badge"
+        className="ao-badge"
         style={{
           background: statusStyle.background,
           color: statusStyle.color,
           border: statusStyle.border
         }}
       >
-        <span className="ad-badge-dot" />
+        <span className="ao-badge-dot" />
 
         {status || "Order Placed"}
       </span>
@@ -1703,12 +1708,12 @@ const AdminOrders = () => {
       order.status === "Cancelled";
 
     return (
-      <div className="ad-status-stack">
+      <div className="ao-status-stack">
 
         {renderStatusBadge(order.status)}
 
         <select
-          className="ad-select ad-select--table"
+          className="ao-select ao-select--table"
           value={order.status || "Order Placed"}
           disabled={
             isCancelled ||
@@ -1747,7 +1752,7 @@ const AdminOrders = () => {
         </select>
 
         {isUpdating && (
-          <span className="ad-muted">
+          <span className="ao-muted">
             Updating...
           </span>
         )}
@@ -1775,11 +1780,11 @@ const AdminOrders = () => {
       canCancelOrder(order.status);
 
     return (
-      <div className="ad-actions-stack">
+      <div className="ao-actions-stack">
 
         <button
           type="button"
-          className="ad-btn ad-btn--details"
+          className="ao-btn ao-btn--details"
           onClick={() =>
             handleViewDetails(order.id)
           }
@@ -1796,7 +1801,7 @@ const AdminOrders = () => {
 
         <button
           type="button"
-          className="ad-btn ad-btn--cancel"
+          className="ao-btn ao-btn--cancel"
           onClick={() =>
             handleCancelOrder(order.id)
           }
@@ -1836,11 +1841,11 @@ const AdminOrders = () => {
 
     return (
       <div
-        className={`ad-toast ad-toast--${type}`}
+        className={`ao-toast ao-toast--${type}`}
         role={isError ? "alert" : "status"}
       >
 
-        <span className="ad-toast-icon" aria-hidden="true">
+        <span className="ao-toast-icon" aria-hidden="true">
           <svg
             viewBox="0 0 24 24"
             width="18"
@@ -1863,16 +1868,16 @@ const AdminOrders = () => {
           </svg>
         </span>
 
-        <div className="ad-toast-body">
-          <p className="ad-toast-title">
+        <div className="ao-toast-body">
+          <p className="ao-toast-title">
             {isError ? "Something went wrong" : "Success"}
           </p>
-          <p className="ad-toast-text">{message}</p>
+          <p className="ao-toast-text">{message}</p>
         </div>
 
         <button
           type="button"
-          className="ad-toast-close"
+          className="ao-toast-close"
           onClick={onClose}
           aria-label="Dismiss notification"
         >
@@ -1891,7 +1896,7 @@ const AdminOrders = () => {
         </button>
 
         <span
-          className="ad-toast-progress"
+          className="ao-toast-progress"
           style={{ animationDuration: `${duration}ms` }}
         />
 
@@ -1913,15 +1918,15 @@ const AdminOrders = () => {
 
   if (loading) {
     return (
-      <div className="ad-root min-h-screen flex items-center justify-center p-8">
+      <div className="ao-root ao-center">
 
         <style>{THEME_CSS}</style>
 
-        <div className="flex flex-col items-center gap-4 ad-rise">
+        <div className="ao-loading ao-rise">
 
-          <div className="ad-loader" />
+          <div className="ao-loader" />
 
-          <p className="ad-empty-text">
+          <p className="ao-empty-text">
             Loading orders...
           </p>
 
@@ -1937,13 +1942,13 @@ const AdminOrders = () => {
   ───────────────────────────────────────────────────────── */
 
   return (
-    <div className="ad-root ad-page min-h-screen flex justify-center items-start">
+    <div className="ao-root">
 
       <style>{THEME_CSS}</style>
 
       {/* GLASS TOASTS */}
 
-      <div className="ad-toast-stack" aria-live="polite">
+      <div className="ao-toast-stack" aria-live="polite">
 
         {successMessage &&
           renderToast(
@@ -1968,19 +1973,19 @@ const AdminOrders = () => {
 
       {confirmOrder && (
         <div
-          className="ad-modal-backdrop"
+          className="ao-modal-backdrop"
           onClick={() => setConfirmOrderId(null)}
         >
           <div
-            className="ad-modal"
+            className="ao-modal"
             role="alertdialog"
             aria-modal="true"
-            aria-labelledby="ad-confirm-title"
-            aria-describedby="ad-confirm-text"
+            aria-labelledby="ao-confirm-title"
+            aria-describedby="ao-confirm-text"
             onClick={(event) => event.stopPropagation()}
           >
 
-            <span className="ad-modal-icon" aria-hidden="true">
+            <span className="ao-modal-icon" aria-hidden="true">
               <svg
                 viewBox="0 0 24 24"
                 width="24"
@@ -1997,21 +2002,21 @@ const AdminOrders = () => {
               </svg>
             </span>
 
-            <h3 id="ad-confirm-title" className="ad-modal-title">
+            <h3 id="ao-confirm-title" className="ao-modal-title">
               Cancel this order?
             </h3>
 
-            <p id="ad-confirm-text" className="ad-modal-text">
+            <p id="ao-confirm-text" className="ao-modal-text">
               Are you sure you want to cancel order{" "}
               <strong>#{confirmOrder.orderId || confirmOrder.id}</strong>?
               It will move to the Cancelled tab.
             </p>
 
-            <div className="ad-modal-actions">
+            <div className="ao-modal-actions">
 
               <button
                 type="button"
-                className="ad-btn ad-btn--glass"
+                className="ao-btn ao-btn--glass"
                 onClick={() => setConfirmOrderId(null)}
                 autoFocus
               >
@@ -2020,7 +2025,7 @@ const AdminOrders = () => {
 
               <button
                 type="button"
-                className="ad-btn ad-btn--danger"
+                className="ao-btn ao-btn--danger"
                 onClick={confirmCancelOrder}
               >
                 Yes, cancel
@@ -2032,29 +2037,29 @@ const AdminOrders = () => {
         </div>
       )}
 
-      <div className="ad-wrap">
+      <div className="ao-wrap">
 
         {/* ───────────────────────────────────────────────────
             HEADER
         ─────────────────────────────────────────────────── */}
 
-        <div className="ad-head ad-rise">
+        <div className="ao-head ao-rise">
 
-          <div className="ad-head-text">
+          <div className="ao-head-text">
 
-            <p className="ad-overline">
+            <p className="ao-overline">
               Management
             </p>
 
-            <h1 className="ad-title">
+            <h1 className="ao-title">
               Orders
             </h1>
 
-            <p className="ad-subtitle">
+            <p className="ao-subtitle">
               Manage and track customer orders
             </p>
 
-            <div className="ad-title-bar" />
+            <div className="ao-title-bar" />
 
           </div>
 
@@ -2062,7 +2067,7 @@ const AdminOrders = () => {
             type="button"
             onClick={fetchOrders}
             disabled={loading}
-            className="ad-btn ad-btn--ghost ad-refresh"
+            className="ao-btn ao-btn--ghost ao-refresh"
             aria-label="Refresh orders"
             title="Refresh"
             style={{
@@ -2085,7 +2090,7 @@ const AdminOrders = () => {
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
 
-            <span className="ad-refresh-label">
+            <span className="ao-refresh-label">
               Refresh
             </span>
           </button>
@@ -2100,13 +2105,13 @@ const AdminOrders = () => {
             ORDER TABS
         ─────────────────────────────────────────────────── */}
 
-        <div className="ad-tabs ad-rise">
+        <div className="ao-tabs ao-rise">
 
           <button
             type="button"
-            className={`ad-tab ${
+            className={`ao-tab ${
               activeTab === "orders"
-                ? "ad-tab--active"
+                ? "ao-tab--active"
                 : ""
             }`}
             onClick={() => setActiveTab("orders")}
@@ -2114,7 +2119,7 @@ const AdminOrders = () => {
           >
             Orders
 
-            <span className="ad-tab-count">
+            <span className="ao-tab-count">
               {activeOrders.length}
             </span>
           </button>
@@ -2122,9 +2127,9 @@ const AdminOrders = () => {
 
           <button
             type="button"
-            className={`ad-tab ${
+            className={`ao-tab ${
               activeTab === "cancelled"
-                ? "ad-tab--active"
+                ? "ao-tab--active"
                 : ""
             }`}
             onClick={() => setActiveTab("cancelled")}
@@ -2132,7 +2137,7 @@ const AdminOrders = () => {
           >
             Cancelled
 
-            <span className="ad-tab-count">
+            <span className="ao-tab-count">
               {cancelledOrders.length}
             </span>
           </button>
@@ -2147,25 +2152,25 @@ const AdminOrders = () => {
         {displayedOrders.length === 0 ? (
 
           <div
-            className="ad-panel ad-rise ad-empty"
+            className="ao-panel ao-rise ao-empty"
             style={{
               animationDelay: "0.15s"
             }}
           >
 
-            <div className="ad-empty-icon">
+            <div className="ao-empty-icon">
               {activeTab === "cancelled"
                 ? "↩"
                 : "📦"}
             </div>
 
-            <h2 className="ad-empty-title">
+            <h2 className="ao-empty-title">
               {activeTab === "cancelled"
                 ? "No cancelled orders"
                 : "No orders found"}
             </h2>
 
-            <p className="ad-empty-text mt-2">
+            <p className="ao-empty-text ao-mt">
               {activeTab === "cancelled"
                 ? "Cancelled orders will appear here."
                 : "Customer orders will appear here."}
@@ -2181,7 +2186,7 @@ const AdminOrders = () => {
                 ORDER CARDS (below 1024px: 1 column, then 2)
             ─────────────────────────────────────────────── */}
 
-            <div className="admin-orders-mobile">
+            <div className="ao-cards">
 
               {displayedOrders.map((order, i) => {
 
@@ -2197,11 +2202,11 @@ const AdminOrders = () => {
 
                   <div
                     key={order.id}
-                    className="ad-card-cell"
+                    className="ao-card-cell"
                   >
 
                     <div
-                      className="ad-panel ad-rise ad-card"
+                      className="ao-panel ao-rise ao-card"
                       style={{
                         animationDelay: `${Math.min(i, 8) * 0.05}s`
                       }}
@@ -2209,16 +2214,16 @@ const AdminOrders = () => {
 
                       {/* ORDER ID AND STATUS */}
 
-                      <div className="ad-card-top">
+                      <div className="ao-card-top">
 
                         <div style={{ minWidth: 0 }}>
 
-                          <div className="ad-card-id">
+                          <div className="ao-card-id">
                             #
                             {order.orderId || order.id}
                           </div>
 
-                          <div className="ad-cell-date">
+                          <div className="ao-cell-date">
                             {formatDate(
                               order.createdAt ||
                               order.date
@@ -2236,22 +2241,22 @@ const AdminOrders = () => {
                           (side by side when the card is wide enough) */}
 
                       <div
-                        className={`ad-card-fields ${
+                        className={`ao-card-fields ${
                           activeTab === "orders"
-                            ? "ad-card-fields--two"
+                            ? "ao-card-fields--two"
                             : ""
                         }`}
                       >
 
                         {/* CUSTOMER EMAIL */}
 
-                        <div className="ad-card-field">
+                        <div className="ao-card-field">
 
-                          <div className="ad-label">
+                          <div className="ao-label">
                             Customer Email
                           </div>
 
-                          <div className="ad-cell-email">
+                          <div className="ao-cell-email">
                             {order.email || "—"}
                           </div>
 
@@ -2262,14 +2267,14 @@ const AdminOrders = () => {
 
                         {activeTab === "orders" && (
 
-                          <div className="ad-card-field">
+                          <div className="ao-card-field">
 
-                            <div className="ad-label">
+                            <div className="ao-label">
                               Update Status
                             </div>
 
                             <select
-                              className="ad-select ad-select--card"
+                              className="ao-select ao-select--card"
                               value={
                                 order.status ||
                                 "Order Placed"
@@ -2310,7 +2315,7 @@ const AdminOrders = () => {
                             </select>
 
                             {isUpdating && (
-                              <p className="ad-muted mt-2">
+                              <p className="ao-muted ao-mt">
                                 Updating...
                               </p>
                             )}
@@ -2324,11 +2329,11 @@ const AdminOrders = () => {
 
                       {/* ACTIONS */}
 
-                      <div className="ad-card-actions">
+                      <div className="ao-card-actions">
 
                         <button
                           type="button"
-                          className="ad-btn ad-btn--details"
+                          className="ao-btn ao-btn--details"
                           onClick={() =>
                             handleViewDetails(order.id)
                           }
@@ -2350,7 +2355,7 @@ const AdminOrders = () => {
 
                         <button
                           type="button"
-                          className="ad-btn ad-btn--cancel"
+                          className="ao-btn ao-btn--cancel"
                           onClick={() =>
                             handleCancelOrder(order.id)
                           }
@@ -2390,32 +2395,32 @@ const AdminOrders = () => {
             ─────────────────────────────────────────────── */}
 
             <div
-              className="admin-orders-desktop ad-panel ad-rise"
+              className="ao-desktop ao-panel ao-rise"
               style={{
                 overflowX: "auto",
                 animationDelay: "0.15s"
               }}
             >
 
-              <table className="ad-table">
+              <table className="ao-table">
 
                 <thead>
 
-                  <tr className="ad-thead-row">
+                  <tr className="ao-thead-row">
 
-                    <th className="ad-th">
+                    <th className="ao-th">
                       Order
                     </th>
 
-                    <th className="ad-th">
+                    <th className="ao-th">
                       Customer Email
                     </th>
 
-                    <th className="ad-th">
+                    <th className="ao-th">
                       Status
                     </th>
 
-                    <th className="ad-th">
+                    <th className="ao-th">
                       Actions
                     </th>
 
@@ -2432,19 +2437,19 @@ const AdminOrders = () => {
 
                       <tr
                         key={order.id}
-                        className="ad-row"
+                        className="ao-row"
                       >
 
                         {/* ORDER ID AND DATE */}
 
-                        <td className="ad-td">
+                        <td className="ao-td">
 
-                          <div className="ad-cell-id">
+                          <div className="ao-cell-id">
                             #
                             {order.orderId || order.id}
                           </div>
 
-                          <div className="ad-cell-date">
+                          <div className="ao-cell-date">
                             {formatDate(
                               order.createdAt ||
                               order.date
@@ -2456,9 +2461,9 @@ const AdminOrders = () => {
 
                         {/* CUSTOMER EMAIL */}
 
-                        <td className="ad-td">
+                        <td className="ao-td">
 
-                          <span className="ad-cell-email">
+                          <span className="ao-cell-email">
                             {order.email || "—"}
                           </span>
 
@@ -2467,7 +2472,7 @@ const AdminOrders = () => {
 
                         {/* STATUS */}
 
-                        <td className="ad-td">
+                        <td className="ao-td">
 
                           {activeTab === "orders"
                             ? renderStatusSelect(order)
@@ -2478,7 +2483,7 @@ const AdminOrders = () => {
 
                         {/* ACTIONS */}
 
-                        <td className="ad-td">
+                        <td className="ao-td">
 
                           {renderOrderActions(order)}
 

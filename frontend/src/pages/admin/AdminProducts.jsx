@@ -1058,8 +1058,8 @@ const AdminProducts = () => {
 
           /* ── Responsive scale ── */
 
-          /* ≥ 400px: large phones */
-          @media (min-width: 400px) {
+          /* ≥ 375px: large phones */
+          @media (min-width: 375px) {
             .ap-root {
               --ap-px:    1rem;
               --ap-py:    1.1rem;

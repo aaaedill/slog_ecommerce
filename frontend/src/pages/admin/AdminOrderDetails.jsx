@@ -171,6 +171,7 @@ const getCustomerAddress = (address) => {
     address.state,
     address.zipcode,
     address.postalCode,
+    address.postCode,
     address.country,
     address.phone
   ].filter(Boolean);
@@ -179,48 +180,50 @@ const getCustomerAddress = (address) => {
 
 /* ─────────────────────────────────────────────────────────────
    SHARED STYLES
-   MATCHES ADMIN ORDERS PAGE
+   MATCHES THE OTHER ADMIN PAGES
 
    Responsive layout map
-   ─ < 640px      one column, every panel stacked
-   ─ 640–1023px   customer + address side by side, payment + total
-                  side by side, progress becomes a horizontal stepper
+   ─ < 640px      one column, panels stacked in reading order:
+                  progress → products → payment → total → customer → address
+   ─ 640–1023px   progress, products, payment + total span the full row;
+                  customer + address sit side by side
    ─ ≥ 1024px     two columns: products + payment/total on the left,
                   progress + customer + address in a side column
 
    Inside the panels, fields / product rows / the progress stepper
    re-arrange based on the panel's own width (container queries).
+
+   --od-max and --od-px match the navbar so edges line up.
 ───────────────────────────────────────────────────────────── */
 
 const THEME_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
-  .ad-root {
-    --ad-red:        #ff2d3f;
-    --ad-line:       rgba(255, 45, 63, 0.22);
-    --ad-line-hover: rgba(255, 45, 63, 0.6);
-    --ad-white:      #ffffff;
-    --ad-white-soft: rgba(255, 255, 255, 0.7);
+  .od-root {
+    --od-red:        #ff2d3f;
+    --od-line:       rgba(255, 45, 63, 0.22);
+    --od-line-hover: rgba(255, 45, 63, 0.6);
+    --od-white:      #ffffff;
+    --od-white-soft: rgba(255, 255, 255, 0.7);
 
     /* ── responsive scale (overridden per breakpoint below) ── */
-    --ad-max:        100%;
-    --ad-px:         0.625rem;
-    --ad-py:         0.75rem;
-    --ad-pb:         4rem;
-    --ad-sect:       1.5rem;
-    --ad-title:      clamp(1.9rem, 1.4rem + 2.6vw, 3.4rem);
-    --ad-over:       0.68rem;
-    --ad-sub:        0.85rem;
-    --ad-radius:     14px;
-    --ad-btn-fs:     0.8rem;
-    --ad-btn-px:     1rem;
-    --ad-btn-py:     0.6rem;
+    --od-max:        1400px;
+    --od-px:         0.875rem;
+    --od-py:         1rem;
+    --od-sect:       1.25rem;
+    --od-title:      1.9rem;
+    --od-over:       0.68rem;
+    --od-sub:        0.85rem;
+    --od-radius:     14px;
+    --od-btn-fs:     0.8rem;
+    --od-btn-px:     1rem;
+    --od-btn-py:     0.6rem;
 
-    --od-gap:        0.875rem;
-    --od-pad:        1.05rem;
+    --od-gap:        0.75rem;
+    --od-pad:        0.95rem;
     --od-title-mb:   1rem;
-    --od-id-fs:      clamp(1.15rem, 0.9rem + 1.6vw, 1.8rem);
-    --od-panel-fs:   clamp(1rem, 0.92rem + 0.45vw, 1.25rem);
+    --od-id-fs:      1.3rem;
+    --od-panel-fs:   1rem;
     --od-value-fs:   0.9rem;
     --od-label-fs:   0.68rem;
     --od-prod-fs:    0.92rem;
@@ -231,38 +234,44 @@ const THEME_CSS = `
     --od-row-py:     0.95rem;
 
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
     width: 100%;
+    min-height: 100vh;
     background: #000000;
-    color: var(--ad-white);
+    color: var(--od-white);
     font-family: 'Manrope', 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-  }
-
-  .ad-page {
     padding:
-      var(--ad-py)
-      max(var(--ad-px), env(safe-area-inset-right))
-      var(--ad-pb)
-      max(var(--ad-px), env(safe-area-inset-left));
+      var(--od-py)
+      max(var(--od-px), env(safe-area-inset-right))
+      calc(var(--od-py) + 2rem + env(safe-area-inset-bottom))
+      max(var(--od-px), env(safe-area-inset-left));
   }
 
-  .ad-wrap {
+  .od-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .od-wrap {
     position: relative;
     width: 100%;
     min-width: 0;
-    max-width: var(--ad-max);
+    max-width: var(--od-max);
     margin: 0 auto;
   }
 
+  .od-mt { margin-top: 0.5rem; }
+
   /* ── Entrance ── */
 
-  .ad-rise {
+  .od-rise {
     opacity: 0;
-    animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: od-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  @keyframes ad-rise {
+  @keyframes od-rise {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
   }
@@ -275,98 +284,99 @@ const THEME_CSS = `
     align-items: flex-end;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: var(--ad-sect);
+    margin-bottom: var(--od-sect);
   }
 
   .od-head-text { min-width: 0; }
 
-  .ad-overline {
+  .od-overline {
     display: inline-flex;
     align-items: center;
-    gap: 0.65rem;
-    color: var(--ad-red);
-    font-size: var(--ad-over);
+    gap: 0.6rem;
+    color: var(--od-red);
+    font-size: var(--od-over);
     font-weight: 700;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.4rem;
   }
 
-  .ad-overline::before {
+  .od-overline::before {
     content: '';
-    width: 24px;
+    width: 1.75rem;
     height: 2px;
-    background: var(--ad-red);
+    background: var(--od-red);
   }
 
-  .ad-title {
+  .od-title {
     margin: 0;
-    color: var(--ad-white);
+    color: var(--od-white);
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.05;
-    font-size: var(--ad-title);
+    font-size: var(--od-title);
     overflow-wrap: anywhere;
   }
 
-  .ad-subtitle {
+  .od-subtitle {
     margin: 0.65rem 0 0;
-    color: var(--ad-white-soft);
-    font-size: var(--ad-sub);
+    color: var(--od-white-soft);
+    font-size: var(--od-sub);
     font-weight: 500;
   }
 
-  .ad-title-bar {
-    margin-top: 0.9rem;
+  .od-title-bar {
+    margin-top: 0.85rem;
     height: 2px;
-    width: 72px;
+    width: 5rem;
     border-radius: 2px;
-    background: var(--ad-red);
+    background: var(--od-red);
     transform-origin: left center;
-    animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+    animation: od-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
   }
 
-  @keyframes ad-draw {
+  @keyframes od-draw {
     from { transform: scaleX(0); }
     to   { transform: scaleX(1); }
   }
 
   /* ── Panel ── */
 
-  .ad-panel {
+  .od-panel {
     position: relative;
     min-width: 0;
     container-type: inline-size;
     background: transparent;
-    border: 1px solid var(--ad-line);
-    border-radius: var(--ad-radius);
+    border: 1px solid var(--od-line);
+    border-radius: var(--od-radius);
     transition: border-color 0.3s ease;
   }
 
-  .ad-panel:hover {
-    border-color: var(--ad-line-hover);
+  .od-panel:hover {
+    border-color: var(--od-line-hover);
   }
 
   .od-pad { padding: var(--od-pad); }
 
-  .ad-panel-title {
+  .od-panel-title {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.6rem;
     margin: 0 0 var(--od-title-mb);
-    color: var(--ad-white);
+    color: var(--od-white);
     font-weight: 700;
     letter-spacing: -0.015em;
+    line-height: 1.2;
     font-size: var(--od-panel-fs);
   }
 
-  .ad-panel-title::before {
+  .od-panel-title::before {
     content: '';
     flex: 0 0 auto;
     width: 3px;
     height: 1.1em;
     border-radius: 2px;
-    background: var(--ad-red);
+    background: var(--od-red);
   }
 
   .od-panel-head {
@@ -378,20 +388,20 @@ const THEME_CSS = `
     margin-bottom: calc(var(--od-title-mb) * 0.5);
   }
 
-  .od-panel-head .ad-panel-title { margin: 0; }
+  .od-panel-head .od-panel-title { margin: 0; }
 
   /* ── Labels ── */
 
-  .ad-label {
+  .od-label {
     margin: 0 0 0.35rem;
-    color: var(--ad-white-soft);
+    color: var(--od-white-soft);
     font-size: var(--od-label-fs);
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
-  .ad-detail-value {
+  .od-detail-value {
     margin: 0;
     color: rgba(255, 255, 255, 0.9);
     font-size: var(--od-value-fs);
@@ -400,16 +410,16 @@ const THEME_CSS = `
     overflow-wrap: anywhere;
   }
 
-  .ad-muted {
+  .od-muted {
     margin: 0;
-    color: var(--ad-white-soft);
+    color: var(--od-white-soft);
     font-size: 0.8rem;
     font-weight: 500;
   }
 
-  .ad-cell-amount {
+  .od-cell-amount {
     margin: 0;
-    color: var(--ad-white);
+    color: var(--od-white);
     font-size: 0.98rem;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
@@ -417,7 +427,7 @@ const THEME_CSS = `
 
   /* ── Status badge ── */
 
-  .ad-badge {
+  .od-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
@@ -429,7 +439,7 @@ const THEME_CSS = `
     white-space: nowrap;
   }
 
-  .ad-badge-dot {
+  .od-badge-dot {
     flex: 0 0 auto;
     width: 7px;
     height: 7px;
@@ -439,17 +449,17 @@ const THEME_CSS = `
 
   /* ── Buttons ── */
 
-  .ad-btn {
+  .od-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
     min-height: 2.5rem;
     font-family: inherit;
-    font-size: var(--ad-btn-fs);
+    font-size: var(--od-btn-fs);
     font-weight: 700;
     letter-spacing: 0.02em;
-    padding: var(--ad-btn-py) var(--ad-btn-px);
+    padding: var(--od-btn-py) var(--od-btn-px);
     border-radius: 10px;
     background: transparent;
     white-space: nowrap;
@@ -461,42 +471,42 @@ const THEME_CSS = `
       box-shadow 0.25s ease;
   }
 
-  .ad-btn--cancel {
+  .od-btn--cancel {
     color: #ff2d3f;
     border: 1px solid rgba(255, 45, 63, 0.6);
   }
 
-  .ad-btn--cancel:hover:not(:disabled) {
+  .od-btn--cancel:hover:not(:disabled) {
     background: #ff2d3f;
     color: #ffffff;
     border-color: #ff2d3f;
     box-shadow: 0 0 18px rgba(255, 45, 63, 0.4);
   }
 
-  .ad-btn--ghost {
+  .od-btn--ghost {
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
-  .ad-btn--ghost:hover:not(:disabled) {
+  .od-btn--ghost:hover:not(:disabled) {
     background: #ffffff;
     color: #000000;
     border-color: #ffffff;
   }
 
-  .ad-btn:focus-visible {
+  .od-btn:focus-visible {
     outline: 2px solid #ffffff;
     outline-offset: 2px;
   }
 
-  .ad-btn:disabled {
+  .od-btn:disabled {
     cursor: not-allowed;
     opacity: 0.45;
   }
 
   /* ── Alerts ── */
 
-  .ad-alert {
+  .od-alert {
     margin-bottom: var(--od-gap);
     padding: 0.8rem 1rem;
     border-radius: 12px;
@@ -504,16 +514,16 @@ const THEME_CSS = `
     font-weight: 600;
     line-height: 1.5;
     overflow-wrap: anywhere;
-    animation: ad-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: od-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  .ad-alert--success {
+  .od-alert--success {
     color: #ffffff;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.3);
   }
 
-  .ad-alert--error {
+  .od-alert--error {
     color: #ffffff;
     background: rgba(255, 45, 63, 0.16);
     border: 1px solid rgba(255, 45, 63, 0.6);
@@ -529,9 +539,16 @@ const THEME_CSS = `
     gap: var(--od-gap);
   }
 
-  /* below 1024px the two columns dissolve into one flowing grid */
+  /* below 1024px the two columns dissolve into one flowing grid,
+     ordered so the products come right after the progress */
   .od-aside,
   .od-main { display: contents; }
+
+  .od-progress { order: 1; }
+  .od-products { order: 2; }
+  .od-pair     { order: 3; }
+  .od-customer { order: 4; }
+  .od-address  { order: 5; }
 
   .od-pair {
     display: grid;
@@ -590,7 +607,7 @@ const THEME_CSS = `
 
   /* ── Product image ── */
 
-  .ad-product-image {
+  .od-product-image {
     grid-area: img;
     width: var(--od-img-w);
     height: var(--od-img-h);
@@ -599,6 +616,14 @@ const THEME_CSS = `
     border: 1px solid rgba(255, 45, 63, 0.25);
     background: rgba(255, 255, 255, 0.04);
     flex-shrink: 0;
+  }
+
+  .od-product-image--ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.6rem;
   }
 
   /* ── Product row ── */
@@ -615,6 +640,8 @@ const THEME_CSS = `
     padding: var(--od-row-py) 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
+
+  .od-product-row:first-child { padding-top: 0.25rem; }
 
   .od-product-row:last-child {
     border-bottom: none;
@@ -651,6 +678,7 @@ const THEME_CSS = `
     gap: 0.15rem 0.6rem;
   }
 
+  /* wide products panel: price moves to its own right-hand column */
   @container (min-width: 32rem) {
     .od-product-row {
       grid-template-columns: auto minmax(0, 1fr) auto;
@@ -713,19 +741,19 @@ const THEME_CSS = `
 
   /* ── Timeline: vertical by default, horizontal stepper in wide panels ── */
 
-  .ad-timeline {
+  .od-timeline {
     display: flex;
     flex-direction: column;
   }
 
-  .ad-timeline-item {
+  .od-timeline-item {
     display: flex;
     align-items: flex-start;
     gap: 13px;
     min-height: 48px;
   }
 
-  .ad-timeline-marker {
+  .od-timeline-marker {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -733,7 +761,7 @@ const THEME_CSS = `
     flex-shrink: 0;
   }
 
-  .ad-timeline-dot {
+  .od-timeline-dot {
     flex: 0 0 auto;
     width: 12px;
     height: 12px;
@@ -742,28 +770,28 @@ const THEME_CSS = `
     background: #000000;
   }
 
-  .ad-timeline-dot--active {
-    border-color: var(--ad-red);
-    background: var(--ad-red);
+  .od-timeline-dot--active {
+    border-color: var(--od-red);
+    background: var(--od-red);
     box-shadow: 0 0 12px rgba(255, 45, 63, 0.5);
   }
 
-  .ad-timeline-line {
+  .od-timeline-line {
     width: 1px;
     height: 30px;
     background: rgba(255, 255, 255, 0.15);
   }
 
-  .ad-timeline-line--active {
-    background: var(--ad-red);
+  .od-timeline-line--active {
+    background: var(--od-red);
   }
 
-  .ad-timeline-body {
+  .od-timeline-body {
     padding-bottom: 15px;
     min-width: 0;
   }
 
-  .ad-timeline-label {
+  .od-timeline-label {
     margin: 0;
     font-size: 0.88rem;
     line-height: 1.3;
@@ -777,12 +805,12 @@ const THEME_CSS = `
   }
 
   @container (min-width: 34rem) {
-    .ad-timeline {
+    .od-timeline {
       flex-direction: row;
       gap: 0.25rem;
     }
 
-    .ad-timeline-item {
+    .od-timeline-item {
       flex: 1 1 0;
       min-width: 0;
       flex-direction: column;
@@ -791,13 +819,13 @@ const THEME_CSS = `
       min-height: 0;
     }
 
-    .ad-timeline-marker {
+    .od-timeline-marker {
       flex-direction: row;
       width: 100%;
       height: 14px;
     }
 
-    .ad-timeline-line {
+    .od-timeline-line {
       flex: 1 1 auto;
       width: auto;
       min-width: 0;
@@ -805,8 +833,8 @@ const THEME_CSS = `
       margin: 0 0.5rem;
     }
 
-    .ad-timeline-body { padding-bottom: 0; }
-    .ad-timeline-label { font-size: 0.84rem; }
+    .od-timeline-body { padding-bottom: 0; }
+    .od-timeline-label { font-size: 0.84rem; }
   }
 
   /* ── Footer ── */
@@ -840,31 +868,38 @@ const THEME_CSS = `
     margin-top: 1.5rem;
   }
 
-  .ad-empty-title {
+  .od-empty-title {
     margin: 0;
-    color: var(--ad-white);
+    color: var(--od-white);
     font-size: 1.2rem;
     font-weight: 700;
   }
 
-  .ad-empty-text {
+  .od-empty-text {
     margin: 0;
-    color: var(--ad-white-soft);
+    color: var(--od-white-soft);
     font-size: 0.92rem;
     font-weight: 500;
     overflow-wrap: anywhere;
   }
 
-  .ad-loader {
+  .od-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .od-loader {
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    border: 2px solid var(--ad-line);
-    border-top-color: var(--ad-red);
-    animation: ad-spin 0.8s linear infinite;
+    border: 2px solid var(--od-line);
+    border-top-color: var(--od-red);
+    animation: od-spin 0.8s linear infinite;
   }
 
-  @keyframes ad-spin {
+  @keyframes od-spin {
     to { transform: rotate(360deg); }
   }
 
@@ -873,60 +908,71 @@ const THEME_CSS = `
   /* < 480px: buttons that sit alone in a row fill the row */
   @media (max-width: 479px) {
     .od-summary-side { width: 100%; }
-    .od-summary-side .ad-btn { width: 100%; }
-    .od-foot .ad-btn { width: 100%; }
-    .od-head .ad-btn { width: 100%; }
+    .od-summary-side .od-btn { width: 100%; }
+    .od-head .od-btn { width: 100%; }
     .od-empty-actions { flex-direction: column; }
-    .od-empty-actions .ad-btn { width: 100%; }
+    .od-empty-actions .od-btn { width: 100%; }
     .od-foot { flex-direction: column-reverse; align-items: stretch; }
-    .od-foot .ad-muted { text-align: center; }
+    .od-foot .od-btn { width: 100%; }
+    .od-foot .od-muted { text-align: center; }
   }
 
-  /* ≥ 360px: standard phones */
-  @media (min-width: 360px) {
-    .ad-root {
-      --ad-px: 0.75rem;
-      --od-pad: 1.15rem;
+  /* ≥ 375px: iPhone-size phones */
+  @media (min-width: 375px) {
+    .od-root {
+      --od-px: 1rem;
+      --od-py: 1.1rem;
+      --od-title: 2.05rem;
+      --od-pad: 1.1rem;
+      --od-id-fs: 1.4rem;
     }
   }
 
   /* ≥ 480px: large phones / landscape */
   @media (min-width: 480px) {
-    .ad-root {
-      --ad-px: 1rem;
-      --ad-py: 1rem;
-      --ad-pb: 4.5rem;
-      --ad-over: 0.72rem;
-      --ad-sub: 0.9rem;
-      --od-gap: 1rem;
+    .od-root {
+      --od-py: 1.25rem;
+      --od-sect: 1.4rem;
+      --od-over: 0.72rem;
+      --od-sub: 0.9rem;
+      --od-gap: 0.875rem;
       --od-pad: 1.25rem;
       --od-title-mb: 1.15rem;
+      --od-panel-fs: 1.05rem;
+      --od-id-fs: 1.5rem;
       --od-value-fs: 0.92rem;
       --od-prod-fs: 0.95rem;
       --od-img-w: 4.5rem;
       --od-img-h: 5.6rem;
       --od-row-gap: 1rem;
-      --ad-btn-fs: 0.82rem;
+      --od-btn-fs: 0.82rem;
     }
   }
 
   /* ≥ 640px: tablets (portrait) */
   @media (min-width: 640px) {
-    .ad-root {
-      --ad-px: 1.5rem;
-      --ad-py: 1.25rem;
-      --ad-sect: 1.75rem;
-      --ad-radius: 16px;
-      --od-gap: 1.15rem;
+    .od-root {
+      --od-px: 1.5rem;
+      --od-py: 1.5rem;
+      --od-sect: 1.6rem;
+      --od-over: 0.74rem;
+      --od-title: 2.4rem;
+      --od-radius: 16px;
+      --od-gap: 1rem;
       --od-pad: 1.4rem;
       --od-title-mb: 1.25rem;
+      --od-panel-fs: 1.1rem;
+      --od-id-fs: 1.6rem;
       --od-label-fs: 0.7rem;
     }
 
     .od-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
-    /* progress + products take the full row; the pair block too */
-    .od-span { grid-column: 1 / -1; }
+    /* progress, products and the payment/total pair take the full row;
+       customer + address share one row */
+    .od-progress,
+    .od-products,
+    .od-pair { grid-column: 1 / -1; }
 
     .od-summary-side {
       align-items: flex-end;
@@ -938,13 +984,14 @@ const THEME_CSS = `
 
   /* ≥ 768px: tablets (landscape) */
   @media (min-width: 768px) {
-    .ad-root {
-      --ad-px: 2rem;
-      --ad-py: 1.75rem;
-      --ad-pb: 5rem;
-      --ad-sub: 0.95rem;
-      --od-gap: 1.25rem;
+    .od-root {
+      --od-py: 1.75rem;
+      --od-sect: 1.75rem;
+      --od-title: 2.55rem;
+      --od-sub: 0.95rem;
+      --od-gap: 1.15rem;
       --od-pad: 1.5rem;
+      --od-id-fs: 1.7rem;
       --od-img-w: 5.25rem;
       --od-img-h: 6.5rem;
     }
@@ -952,10 +999,10 @@ const THEME_CSS = `
 
   /* ≥ 1024px: laptops → main column + side column */
   @media (min-width: 1024px) {
-    .ad-root {
-      --ad-max: 72rem;
-      --ad-px: 2.25rem;
-      --ad-py: 2rem;
+    .od-root {
+      --od-px: 2rem;
+      --od-py: 2rem;
+      --od-sect: 2rem;
       --od-gap: 1.25rem;
       --od-total-fs: 1.5rem;
     }
@@ -976,17 +1023,19 @@ const THEME_CSS = `
     .od-main  { grid-column: 1; grid-row: 1; }
     .od-aside { grid-column: 2; grid-row: 1; }
 
-    .od-span { grid-column: auto; }
+    .od-progress,
+    .od-products,
+    .od-pair { grid-column: auto; }
   }
 
   /* ≥ 1280px: desktops */
   @media (min-width: 1280px) {
-    .ad-root {
-      --ad-max: 82rem;
-      --ad-px: 3rem;
-      --ad-py: 2.5rem;
+    .od-root {
+      --od-py: 2.25rem;
+      --od-title: 2.8rem;
       --od-gap: 1.4rem;
       --od-pad: 1.65rem;
+      --od-panel-fs: 1.15rem;
       --od-value-fs: 0.95rem;
       --od-prod-fs: 1rem;
       --od-img-w: 6rem;
@@ -999,46 +1048,52 @@ const THEME_CSS = `
 
   /* ≥ 1536px: large monitors */
   @media (min-width: 1536px) {
-    .ad-root {
-      --ad-max: 92rem;
-      --ad-px: 3.5rem;
+    .od-root {
+      --od-max: 1680px;
+      --od-px: 2.5rem;
+      --od-py: 2.5rem;
+      --od-sect: 2.5rem;
+      --od-over: 0.8rem;
+      --od-title: 3rem;
       --od-gap: 1.5rem;
       --od-pad: 1.85rem;
+      --od-panel-fs: 1.25rem;
+      --od-id-fs: 1.9rem;
       --od-value-fs: 1rem;
       --od-label-fs: 0.74rem;
       --od-prod-fs: 1.05rem;
       --od-total-fs: 1.7rem;
       --od-img-w: 6.5rem;
       --od-img-h: 8rem;
-      --ad-btn-fs: 0.88rem;
+      --od-btn-fs: 0.88rem;
     }
 
     .od-layout { grid-template-columns: minmax(0, 1fr) minmax(24rem, 28rem); }
-    .ad-badge { font-size: 0.82rem; }
+    .od-badge { font-size: 0.82rem; }
   }
 
   /* ≥ 1920px: ultra-wide */
   @media (min-width: 1920px) {
-    .ad-root { --ad-max: 104rem; }
+    .od-root { --od-max: 1840px; }
   }
 
   /* ── Reduced motion ── */
 
   @media (prefers-reduced-motion: reduce) {
-    .ad-rise,
-    .ad-title-bar,
-    .ad-alert {
+    .od-rise,
+    .od-title-bar,
+    .od-alert {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
     }
 
-    .ad-loader {
+    .od-loader {
       animation-duration: 2s;
     }
 
-    .ad-panel,
-    .ad-btn {
+    .od-panel,
+    .od-btn {
       transition: none !important;
     }
   }
@@ -1261,15 +1316,15 @@ const AdminOrderDetails = () => {
 
     return (
 
-      <div className="ad-root min-h-screen flex items-center justify-center p-8">
+      <div className="od-root od-center">
 
         <style>{THEME_CSS}</style>
 
-        <div className="flex flex-col items-center gap-4 ad-rise">
+        <div className="od-loading od-rise">
 
-          <div className="ad-loader" />
+          <div className="od-loader" />
 
-          <p className="ad-empty-text">
+          <p className="od-empty-text">
             Loading order details...
           </p>
 
@@ -1290,41 +1345,41 @@ const AdminOrderDetails = () => {
 
     return (
 
-      <div className="ad-root ad-page min-h-screen flex justify-center items-start">
+      <div className="od-root">
 
         <style>{THEME_CSS}</style>
 
-        <div className="ad-wrap">
+        <div className="od-wrap">
 
-          <div className="od-head ad-rise">
+          <div className="od-head od-rise">
 
             <div className="od-head-text">
 
-              <p className="ad-overline">
+              <p className="od-overline">
                 Management
               </p>
 
-              <h1 className="ad-title">
+              <h1 className="od-title">
                 Order Details
               </h1>
 
-              <div className="ad-title-bar" />
+              <div className="od-title-bar" />
 
             </div>
 
           </div>
 
-          <div className="ad-panel ad-rise od-empty">
+          <div className="od-panel od-rise od-empty">
 
             <div className="od-empty-icon">
               📦
             </div>
 
-            <h2 className="ad-empty-title">
+            <h2 className="od-empty-title">
               Order not found
             </h2>
 
-            <p className="ad-empty-text mt-2">
+            <p className="od-empty-text od-mt">
               {error || "The requested order could not be found."}
             </p>
 
@@ -1332,7 +1387,7 @@ const AdminOrderDetails = () => {
 
               <button
                 type="button"
-                className="ad-btn ad-btn--ghost"
+                className="od-btn od-btn--ghost"
                 onClick={() => navigate("/admin/orders")}
               >
                 Back to Orders
@@ -1340,7 +1395,7 @@ const AdminOrderDetails = () => {
 
               <button
                 type="button"
-                className="ad-btn ad-btn--cancel"
+                className="od-btn od-btn--cancel"
                 onClick={fetchOrder}
               >
                 Try Again
@@ -1396,40 +1451,40 @@ const AdminOrderDetails = () => {
 
   return (
 
-    <div className="ad-root ad-page min-h-screen flex justify-center items-start">
+    <div className="od-root">
 
       <style>{THEME_CSS}</style>
 
-      <div className="ad-wrap">
+      <div className="od-wrap">
 
         {/* ───────────────────────────────────────────────────
             HEADER
         ─────────────────────────────────────────────────── */}
 
-        <div className="od-head ad-rise">
+        <div className="od-head od-rise">
 
           <div className="od-head-text">
 
-            <p className="ad-overline">
+            <p className="od-overline">
               Management
             </p>
 
-            <h1 className="ad-title">
+            <h1 className="od-title">
               Order Details
             </h1>
 
-            <p className="ad-subtitle">
+            <p className="od-subtitle">
               Complete information about this customer order
             </p>
 
-            <div className="ad-title-bar" />
+            <div className="od-title-bar" />
 
           </div>
 
           <button
             type="button"
             onClick={() => navigate("/admin/orders")}
-            className="ad-btn ad-btn--ghost"
+            className="od-btn od-btn--ghost"
           >
             ← Back to Orders
           </button>
@@ -1443,7 +1498,7 @@ const AdminOrderDetails = () => {
 
         {successMessage && (
 
-          <div className="ad-alert ad-alert--success" role="status">
+          <div className="od-alert od-alert--success" role="status">
             {successMessage}
           </div>
 
@@ -1456,7 +1511,7 @@ const AdminOrderDetails = () => {
 
         {error && (
 
-          <div className="ad-alert ad-alert--error" role="alert">
+          <div className="od-alert od-alert--error" role="alert">
             {error}
           </div>
 
@@ -1468,7 +1523,7 @@ const AdminOrderDetails = () => {
         ─────────────────────────────────────────────────── */}
 
         <div
-          className="ad-panel ad-rise od-pad od-section"
+          className="od-panel od-rise od-pad od-section"
           style={{
             animationDelay: "0.1s"
           }}
@@ -1478,7 +1533,7 @@ const AdminOrderDetails = () => {
 
             <div className="od-summary-main">
 
-              <p className="ad-label">
+              <p className="od-label">
                 Order ID
               </p>
 
@@ -1486,7 +1541,7 @@ const AdminOrderDetails = () => {
                 #{order.orderId || order.id}
               </h2>
 
-              <p className="ad-muted mt-2">
+              <p className="od-muted od-mt">
                 Placed on {formatDateTime(
                   order.createdAt || order.date
                 )}
@@ -1497,7 +1552,7 @@ const AdminOrderDetails = () => {
             <div className="od-summary-side">
 
               <span
-                className="ad-badge"
+                className="od-badge"
                 style={{
                   background: statusStyle.background,
                   color: statusStyle.color,
@@ -1505,7 +1560,7 @@ const AdminOrderDetails = () => {
                 }}
               >
 
-                <span className="ad-badge-dot" />
+                <span className="od-badge-dot" />
 
                 {order.status || "Order Placed"}
 
@@ -1515,7 +1570,7 @@ const AdminOrderDetails = () => {
 
                 <button
                   type="button"
-                  className="ad-btn ad-btn--cancel"
+                  className="od-btn od-btn--cancel"
                   onClick={handleCancelOrder}
                   disabled={cancelling}
                 >
@@ -1528,7 +1583,7 @@ const AdminOrderDetails = () => {
 
               {isCancelled && (
 
-                <span className="ad-muted">
+                <span className="od-muted">
                   This order has been cancelled.
                 </span>
 
@@ -1536,7 +1591,7 @@ const AdminOrderDetails = () => {
 
               {!canCancel && !isCancelled && (
 
-                <span className="ad-muted">
+                <span className="od-muted">
                   Cancellation is unavailable after shipping.
                 </span>
 
@@ -1563,13 +1618,13 @@ const AdminOrderDetails = () => {
             {/* ORDER STATUS TIMELINE */}
 
             <div
-              className="ad-panel ad-rise od-pad od-span"
+              className="od-panel od-rise od-pad od-progress"
               style={{
                 animationDelay: "0.15s"
               }}
             >
 
-              <h2 className="ad-panel-title">
+              <h2 className="od-panel-title">
                 Order Progress
               </h2>
 
@@ -1578,7 +1633,7 @@ const AdminOrderDetails = () => {
                 <div className="od-cancelled">
 
                   <span
-                    className="ad-badge"
+                    className="od-badge"
                     style={{
                       background: statusStyle.background,
                       color: statusStyle.color,
@@ -1587,13 +1642,13 @@ const AdminOrderDetails = () => {
                     }}
                   >
 
-                    <span className="ad-badge-dot" />
+                    <span className="od-badge-dot" />
 
                     Cancelled
 
                   </span>
 
-                  <span className="ad-muted">
+                  <span className="od-muted">
                     This order will not proceed further.
                   </span>
 
@@ -1601,7 +1656,7 @@ const AdminOrderDetails = () => {
 
               ) : (
 
-                <div className="ad-timeline">
+                <div className="od-timeline">
 
                   {ORDER_STATUSES.map(
                     (status, index) => {
@@ -1616,15 +1671,15 @@ const AdminOrderDetails = () => {
 
                         <div
                           key={status}
-                          className="ad-timeline-item"
+                          className="od-timeline-item"
                         >
 
-                          <div className="ad-timeline-marker">
+                          <div className="od-timeline-marker">
 
                             <div
-                              className={`ad-timeline-dot ${
+                              className={`od-timeline-dot ${
                                 isActive
-                                  ? "ad-timeline-dot--active"
+                                  ? "od-timeline-dot--active"
                                   : ""
                               }`}
                             />
@@ -1632,9 +1687,9 @@ const AdminOrderDetails = () => {
                             {!isLast && (
 
                               <div
-                                className={`ad-timeline-line ${
+                                className={`od-timeline-line ${
                                   currentStatusIndex > index
-                                    ? "ad-timeline-line--active"
+                                    ? "od-timeline-line--active"
                                     : ""
                                 }`}
                               />
@@ -1643,10 +1698,10 @@ const AdminOrderDetails = () => {
 
                           </div>
 
-                          <div className="ad-timeline-body">
+                          <div className="od-timeline-body">
 
                             <p
-                              className="ad-timeline-label"
+                              className="od-timeline-label"
                               style={{
                                 color: isActive
                                   ? "#ffffff"
@@ -1663,7 +1718,7 @@ const AdminOrderDetails = () => {
                             {order.status === status && (
 
                               <p
-                                className="ad-muted"
+                                className="od-muted"
                                 style={{
                                   marginTop: "3px"
                                 }}
@@ -1692,13 +1747,13 @@ const AdminOrderDetails = () => {
             {/* CUSTOMER INFORMATION */}
 
             <div
-              className="ad-panel ad-rise od-pad"
+              className="od-panel od-rise od-pad od-customer"
               style={{
                 animationDelay: "0.2s"
               }}
             >
 
-              <h2 className="ad-panel-title">
+              <h2 className="od-panel-title">
                 Customer Information
               </h2>
 
@@ -1706,11 +1761,11 @@ const AdminOrderDetails = () => {
 
                 <div className="od-field od-field--wide">
 
-                  <p className="ad-label">
+                  <p className="od-label">
                     Customer Email
                   </p>
 
-                  <p className="ad-detail-value">
+                  <p className="od-detail-value">
                     {order.email || "No email provided"}
                   </p>
 
@@ -1718,23 +1773,23 @@ const AdminOrderDetails = () => {
 
                 <div className="od-field">
 
-                  <p className="ad-label">
+                  <p className="od-label">
                     Phone Number
                   </p>
 
-                  <p className="ad-detail-value">
-                    {order.phone || "No phone provided"}
+                  <p className="od-detail-value">
+                    {order.phone || order.address?.phone || "No phone provided"}
                   </p>
 
                 </div>
 
                 <div className="od-field">
 
-                  <p className="ad-label">
+                  <p className="od-label">
                     Customer ID
                   </p>
 
-                  <p className="ad-detail-value">
+                  <p className="od-detail-value">
                     {order.userId || "—"}
                   </p>
 
@@ -1748,13 +1803,13 @@ const AdminOrderDetails = () => {
             {/* DELIVERY ADDRESS */}
 
             <div
-              className="ad-panel ad-rise od-pad"
+              className="od-panel od-rise od-pad od-address"
               style={{
                 animationDelay: "0.22s"
               }}
             >
 
-              <h2 className="ad-panel-title">
+              <h2 className="od-panel-title">
                 Delivery Address
               </h2>
 
@@ -1767,7 +1822,7 @@ const AdminOrderDetails = () => {
 
                       <p
                         key={`${line}-${index}`}
-                        className="ad-detail-value"
+                        className="od-detail-value"
                       >
                         {line}
                       </p>
@@ -1779,7 +1834,7 @@ const AdminOrderDetails = () => {
 
               ) : (
 
-                <p className="ad-muted">
+                <p className="od-muted">
                   Delivery address is not available.
                 </p>
 
@@ -1797,7 +1852,7 @@ const AdminOrderDetails = () => {
             {/* ORDERED PRODUCTS */}
 
             <div
-              className="ad-panel ad-rise od-pad od-span"
+              className="od-panel od-rise od-pad od-products"
               style={{
                 animationDelay: "0.25s"
               }}
@@ -1805,11 +1860,11 @@ const AdminOrderDetails = () => {
 
               <div className="od-panel-head">
 
-                <h2 className="ad-panel-title">
+                <h2 className="od-panel-title">
                   Ordered Products
                 </h2>
 
-                <span className="ad-muted">
+                <span className="od-muted">
                   {orderItems.length} product
                   {orderItems.length !== 1 ? "s" : ""}
                 </span>
@@ -1835,7 +1890,7 @@ const AdminOrderDetails = () => {
                           <img
                             src={item.image}
                             alt={item.name || "Product"}
-                            className="ad-product-image"
+                            className="od-product-image"
                             loading="lazy"
                             onError={(event) => {
                               event.currentTarget.style.visibility = "hidden";
@@ -1844,13 +1899,7 @@ const AdminOrderDetails = () => {
 
                         ) : (
 
-                          <div
-                            className="ad-product-image flex items-center justify-center"
-                            style={{
-                              color: "rgba(255,255,255,0.4)",
-                              fontSize: "1.6rem"
-                            }}
-                          >
+                          <div className="od-product-image od-product-image--ph">
                             📦
                           </div>
 
@@ -1867,17 +1916,17 @@ const AdminOrderDetails = () => {
 
                           <div className="od-product-meta">
 
-                            <span className="ad-muted">
+                            <span className="od-muted">
                               Size: {item.size || "—"}
                             </span>
 
-                            <span className="ad-muted">
+                            <span className="od-muted">
                               Quantity: {item.quantity || 1}
                             </span>
 
                           </div>
 
-                          <p className="ad-muted mt-2">
+                          <p className="od-muted od-mt">
                             Product ID: {item.productId || "—"}
                           </p>
 
@@ -1888,14 +1937,14 @@ const AdminOrderDetails = () => {
 
                         <div className="od-product-price">
 
-                          <p className="ad-cell-amount">
+                          <p className="od-cell-amount">
                             {formatCurrency(
                               Number(item.price || 0) *
                               Number(item.quantity || 1)
                             )}
                           </p>
 
-                          <p className="ad-muted">
+                          <p className="od-muted">
                             {formatCurrency(item.price)} each
                           </p>
 
@@ -1911,7 +1960,7 @@ const AdminOrderDetails = () => {
 
               ) : (
 
-                <p className="ad-muted">
+                <p className="od-muted">
                   No product information available.
                 </p>
 
@@ -1923,7 +1972,7 @@ const AdminOrderDetails = () => {
             {/* PAYMENT + ORDER TOTAL */}
 
             <div
-              className="od-pair od-span ad-rise"
+              className="od-pair od-rise"
               style={{
                 animationDelay: "0.3s"
               }}
@@ -1931,9 +1980,9 @@ const AdminOrderDetails = () => {
 
               {/* PAYMENT INFORMATION */}
 
-              <div className="ad-panel od-pad">
+              <div className="od-panel od-pad">
 
-                <h2 className="ad-panel-title">
+                <h2 className="od-panel-title">
                   Payment Information
                 </h2>
 
@@ -1941,18 +1990,18 @@ const AdminOrderDetails = () => {
 
                   <div style={{ minWidth: 0 }}>
 
-                    <p className="ad-label">
+                    <p className="od-label">
                       Payment Method
                     </p>
 
-                    <p className="ad-detail-value">
+                    <p className="od-detail-value">
                       {order.paymentMethod || "—"}
                     </p>
 
                   </div>
 
                   <span
-                    className="ad-badge"
+                    className="od-badge"
                     style={{
                       background: "rgba(255,255,255,0.06)",
                       color: "#ffffff",
@@ -1969,19 +2018,19 @@ const AdminOrderDetails = () => {
 
               {/* ORDER TOTAL */}
 
-              <div className="ad-panel od-pad">
+              <div className="od-panel od-pad">
 
-                <h2 className="ad-panel-title">
+                <h2 className="od-panel-title">
                   Order Summary
                 </h2>
 
                 <div className="od-total-row">
 
-                  <span className="ad-muted">
+                  <span className="od-muted">
                     Total Items
                   </span>
 
-                  <span className="ad-detail-value">
+                  <span className="od-detail-value">
                     {orderItems.reduce(
                       (total, item) =>
                         total + Number(item.quantity || 0),
@@ -2021,19 +2070,19 @@ const AdminOrderDetails = () => {
         ─────────────────────────────────────────────────── */}
 
         <div
-          className="od-foot ad-rise"
+          className="od-foot od-rise"
           style={{
             animationDelay: "0.35s"
           }}
         >
 
-          <p className="ad-muted">
+          <p className="od-muted">
             Last updated: {formatDateTime(order.updatedAt)}
           </p>
 
           <button
             type="button"
-            className="ad-btn ad-btn--ghost"
+            className="od-btn od-btn--ghost"
             onClick={() => navigate("/admin/orders")}
           >
             ← Back to Orders

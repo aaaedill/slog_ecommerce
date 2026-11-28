@@ -611,8 +611,8 @@ const AdminUsers = () => {
 
           /* ── Responsive scale ── */
 
-          /* ≥ 400px: large phones */
-          @media (min-width: 400px) {
+          /* ≥ 375px: large phones */
+          @media (min-width: 375px) {
             .au-root {
               --au-px:     1rem;
               --au-py:     1.1rem;

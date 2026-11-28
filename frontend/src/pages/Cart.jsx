@@ -120,22 +120,24 @@ const Cart = () => {
           --hn-blue:         #6B8E23;
           --hn-blue-light:   #A9C46C;
           --hn-blue-deep:    #4B5320;
-          --hn-ink:          #10131F;
-          --hn-ink-muted:    rgba(16,19,31,0.55);
-          --hn-ink-faint:    rgba(16,19,31,0.30);
+
+          /* Text colours follow the site theme, same as the Product page */
+          --hn-ink:          var(--text-primary);
+          --hn-ink-muted:    var(--text-secondary);
+          --hn-ink-faint:    var(--text-secondary);
 
           --hn-glass-bg:     transparent;
           --hn-glass-bg2:    rgba(255,255,255,0.85);
-          --hn-glass-border: rgba(107,142,35,0.16);
+          --hn-glass-border: rgba(107,142,35,0.18);
           --hn-glass-shine:  rgba(255,255,255,0.85);
 
           --col-dg-bg:        transparent;
           --col-dg-bg2:       transparent;
-          --col-dg-border:    rgba(169,196,108,0.22);
+          --col-dg-border:    rgba(107,142,35,0.18);
           --col-dg-shine:     rgba(169,196,108,0.14);
-          --col-dg-ink:       #E7EFD6;
-          --col-dg-ink-muted: rgba(231,239,214,0.72);
-          --col-dg-ink-faint: rgba(231,239,214,0.38);
+          --col-dg-ink:       var(--text-primary);
+          --col-dg-ink-muted: var(--text-secondary);
+          --col-dg-ink-faint: var(--text-secondary);
 
           font-family:
             'Jost', sans-serif;
@@ -1106,6 +1108,17 @@ const Cart = () => {
 
 
 
+        /* ── SMALL UPPERCASE LABELS (same olive as Product page category) ── */
+
+        .cart-panel-header span,
+        .cart-summary-label,
+        .cart-topbar-count {
+          color:
+            #4B5320;
+        }
+
+
+
         /* ── DARK MODE ── */
 
         html.dark-mode .cart-root {
@@ -1165,6 +1178,15 @@ const Cart = () => {
 
           color:
             #F8FAFC;
+        }
+
+
+
+        html.dark-mode .cart-panel-header span,
+        html.dark-mode .cart-summary-label,
+        html.dark-mode .cart-topbar-count {
+          color:
+            #A9C46C;
         }
 
 

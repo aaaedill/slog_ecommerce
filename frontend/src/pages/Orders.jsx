@@ -1,3 +1,4 @@
+
 import { useContext, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { Title } from "../components/Title";
@@ -9,6 +10,7 @@ const Orders = () => {
   const navigate = useNavigate();
 
   const [cancellingOrderId, setCancellingOrderId] = useState(null);
+  const [activeTab, setActiveTab] = useState("orders");
 
   const glassToastStyle = {
     background: "rgba(255,255,255,0.55)",
@@ -22,6 +24,27 @@ const Orders = () => {
       "0 8px 32px rgba(107,142,35,0.16), 0 1px 0 rgba(255,255,255,0.8) inset"
   };
 
+  // Separate active and cancelled orders.
+
+  const cancelledOrders = orders
+    ? orders.filter(
+        (order) =>
+          String(order.status || "").toLowerCase() === "cancelled"
+      )
+    : [];
+
+  const activeOrders = orders
+    ? orders.filter(
+        (order) =>
+          String(order.status || "").toLowerCase() !== "cancelled"
+      )
+    : [];
+
+  const displayedOrders =
+    activeTab === "cancelled"
+      ? cancelledOrders
+      : activeOrders;
+
   const runCancel = async (id) => {
     setCancellingOrderId(String(id));
 
@@ -32,6 +55,7 @@ const Orders = () => {
        * ShopContext.cancelOrder() returns a result object.
        * Only show success when the actual API cancellation succeeded.
        */
+
       if (result?.success) {
         toast.success("Order cancelled successfully", {
           style: glassToastStyle
@@ -44,6 +68,7 @@ const Orders = () => {
       }
     } catch (error) {
       console.log(error);
+
       toast.error("Failed to cancel order", {
         style: glassToastStyle
       });
@@ -320,6 +345,50 @@ const Orders = () => {
             opacity 0.2s ease;
         }
 
+        /* Orders Tabs */
+
+        .orders-tab {
+          position: relative;
+          font-family: 'Jost', sans-serif;
+          font-size: 0.82rem;
+          font-weight: 500;
+          letter-spacing: 0.04em;
+          padding: 0.85rem 1.4rem;
+          color: var(--text-secondary);
+          background: transparent;
+          border: none;
+          border-bottom: 2px solid transparent;
+          cursor: pointer;
+          transition:
+            color 0.2s ease,
+            border-color 0.2s ease;
+        }
+
+        .orders-tab:hover {
+          color: #6B8E23;
+        }
+
+        .orders-tab.active {
+          color: #6B8E23;
+          font-weight: 600;
+          border-bottom-color: #6B8E23;
+        }
+
+        .orders-tab-count {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 21px;
+          height: 21px;
+          padding: 0 6px;
+          margin-left: 7px;
+          border-radius: 100px;
+          background: rgba(107,142,35,0.10);
+          color: #6B8E23;
+          font-size: 0.68rem;
+          font-weight: 600;
+        }
+
         @media (max-width: 640px) {
           .order-item-row {
             grid-template-columns: 64px 1fr;
@@ -328,6 +397,11 @@ const Orders = () => {
           .order-item-price {
             grid-column: 2;
             margin-top: -0.5rem;
+          }
+
+          .orders-tab {
+            padding: 0.8rem 1rem;
+            font-size: 0.76rem;
           }
         }
 
@@ -381,11 +455,32 @@ const Orders = () => {
         html.dark-mode .status-delivered .status-dot {
           background: #4ade80 !important;
         }
+
+        html.dark-mode .orders-tab {
+          color: rgba(255,255,255,0.55);
+        }
+
+        html.dark-mode .orders-tab:hover {
+          color: #A9C46C;
+        }
+
+        html.dark-mode .orders-tab.active {
+          color: #A9C46C;
+          border-bottom-color: #A9C46C;
+        }
+
+        html.dark-mode .orders-tab-count {
+          background: rgba(169,196,108,0.13);
+          color: #A9C46C;
+        }
       `}</style>
 
       {/* Root */}
+
       <div className="font-outfit orders-root min-h-screen mt-5">
+
         {/* Top Bar */}
+
         <div
           className="flex items-center justify-between px-10 py-4 border-b"
           style={{
@@ -418,8 +513,11 @@ const Orders = () => {
         </div>
 
         {/* Body */}
+
         <div className="max-w-5xl mx-auto px-6 py-10 pb-20">
+
           {/* Back Button */}
+
           <div className="mb-6">
             <button
               onClick={() => navigate(-1)}
@@ -467,178 +565,251 @@ const Orders = () => {
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-10">
-              {orders.map((order) => {
-                const isPlaced = order.status === "Order Placed";
-                const isDelivered = order.status === "Delivered";
+            <>
+              {/* Orders Tabs */}
 
-                const statusClass = isDelivered
-                  ? "status-delivered"
-                  : isPlaced
-                    ? "status-placed"
-                    : "status-default";
+              <div
+                className="flex items-center gap-2 border-b mb-8"
+                style={{
+                  borderColor: "rgba(107,142,35,0.18)"
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("orders")}
+                  className={`orders-tab ${
+                    activeTab === "orders" ? "active" : ""
+                  }`}
+                >
+                  Orders
 
-                const isCancelling =
-                  cancellingOrderId === String(order.id);
+                  <span className="orders-tab-count">
+                    {activeOrders.length}
+                  </span>
+                </button>
 
-                return (
-                  <div
-                    key={order.id}
-                    className="order-card"
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("cancelled")}
+                  className={`orders-tab ${
+                    activeTab === "cancelled" ? "active" : ""
+                  }`}
+                >
+                  Cancelled
+
+                  <span className="orders-tab-count">
+                    {cancelledOrders.length}
+                  </span>
+                </button>
+              </div>
+
+              {/* Selected Tab Content */}
+
+              {displayedOrders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-28 gap-3 text-center">
+                  <p
+                    className="font-medium text-2xl"
+                    style={{ color: "var(--text-secondary)" }}
                   >
-                    {/* Order Header */}
-                    <div
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4 border-b"
-                      style={{
-                        background: "transparent",
-                        borderColor: "rgba(107,142,35,0.12)"
-                      }}
-                    >
-                      <div>
-                        <p
-                          className="font-medium leading-snug"
-                          style={{
-                            fontSize: "0.95rem",
-                            color: "var(--text-primary)"
-                          }}
-                        >
-                          Order ·{" "}
-                          <span style={{ color: "#6B8E23" }}>
-                            {order.id}
-                          </span>
-                        </p>
+                    {activeTab === "cancelled"
+                      ? "No cancelled orders"
+                      : "No active orders"}
+                  </p>
 
-                        <p
-                          className="font-medium tracking-widest uppercase mt-0.5"
-                          style={{
-                            fontSize: "0.65rem",
-                            color: "var(--text-secondary)"
-                          }}
-                        >
-                          {order.date}
-                        </p>
-                      </div>
+                  <p
+                    className="text-xs tracking-widest uppercase"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {activeTab === "cancelled"
+                      ? "Your cancelled orders will appear here"
+                      : "Your active orders will appear here"}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-10">
 
-                      <span
-                        className={`order-status-pill ${statusClass}`}
-                      >
-                        <span className="status-dot" />
-                        {order.status}
-                      </span>
-                    </div>
+                  {displayedOrders.map((order) => {
+                    const isPlaced = order.status === "Order Placed";
+                    const isDelivered = order.status === "Delivered";
+                    const isShipped = order.status === "Shipped";
+                    const isCancelled =
+                      String(order.status || "").toLowerCase() === "cancelled";
 
-                    {/* Items */}
-                    {order.items.map((item, index) => (
+                    const statusClass = isDelivered
+                      ? "status-delivered"
+                      : isPlaced
+                        ? "status-placed"
+                        : "status-default";
+
+                    const isCancelling =
+                      cancellingOrderId === String(order.id);
+
+                    return (
                       <div
-                        key={index}
-                        className="order-item-row"
+                        key={order.id}
+                        className="order-card"
                       >
+                        {/* Order Header */}
+
                         <div
-                          className="thumb-wrap flex-shrink-0"
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4 border-b"
                           style={{
-                            width: 80,
-                            height: 100,
-                            background: "var(--bg-card)"
+                            background: "transparent",
+                            borderColor: "rgba(107,142,35,0.12)"
                           }}
                         >
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="thumb-img w-full h-full object-cover block"
-                          />
+                          <div>
+                            <p
+                              className="font-medium leading-snug"
+                              style={{
+                                fontSize: "0.95rem",
+                                color: "var(--text-primary)"
+                              }}
+                            >
+                              Order ·{" "}
+                              <span style={{ color: "#6B8E23" }}>
+                                {order.id}
+                              </span>
+                            </p>
+
+                            <p
+                              className="font-medium tracking-widest uppercase mt-0.5"
+                              style={{
+                                fontSize: "0.65rem",
+                                color: "var(--text-secondary)"
+                              }}
+                            >
+                              {order.date}
+                            </p>
+                          </div>
+
+                          <span
+                            className={`order-status-pill ${statusClass}`}
+                          >
+                            <span className="status-dot" />
+                            {order.status}
+                          </span>
                         </div>
 
-                        <div>
+                        {/* Items */}
+
+                        {order.items.map((item, index) => (
+                          <div
+                            key={index}
+                            className="order-item-row"
+                          >
+                            <div
+                              className="thumb-wrap flex-shrink-0"
+                              style={{
+                                width: 80,
+                                height: 100,
+                                background: "var(--bg-card)"
+                              }}
+                            >
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="thumb-img w-full h-full object-cover block"
+                              />
+                            </div>
+
+                            <div>
+                              <p
+                                className="font-medium mb-1 leading-snug"
+                                style={{
+                                  fontSize: "1rem",
+                                  color: "var(--text-primary)"
+                                }}
+                              >
+                                {item.name}
+                              </p>
+                            </div>
+
+                            <p
+                              className="order-item-price font-semibold"
+                              style={{
+                                fontSize: "0.85rem",
+                                color: "#6B8E23",
+                                whiteSpace: "nowrap"
+                              }}
+                            >
+                              ₹{item.price * item.quantity}
+                            </p>
+                          </div>
+                        ))}
+
+                        {/* Footer total */}
+
+                        <div
+                          className="flex items-end justify-between py-5 border-t"
+                          style={{
+                            background: "#10131F",
+                            borderColor: "rgba(169,196,108,0.18)"
+                          }}
+                        >
                           <p
-                            className="font-medium mb-1 leading-snug"
+                            className="font-medium tracking-widest uppercase"
                             style={{
-                              fontSize: "1rem",
-                              color: "var(--text-primary)"
+                              fontSize: "0.65rem",
+                              color: "rgba(255,255,255,0.4)"
                             }}
                           >
-                            {item.name}
+                            Order Total
                           </p>
+
+                          <div className="flex items-center">
+                            <p
+                              className="font-bold leading-none"
+                              style={{
+                                fontSize: "1.9rem",
+                                color: "#FFFFFF"
+                              }}
+                            >
+                              ₹{order.total}
+                            </p>
+
+                            {!isDelivered &&
+                              !isShipped &&
+                              !isCancelled &&
+                              activeTab === "orders" && (
+                                <button
+                                  onClick={() => handleCancel(order.id)}
+                                  disabled={
+                                    isCancelling ||
+                                    cancellingOrderId !== null
+                                  }
+                                  className="order-cancel-btn"
+                                  style={{
+                                    marginLeft: "20px",
+                                    background: isCancelling
+                                      ? "#9f1239"
+                                      : "#dc2626",
+                                    color: "white",
+                                    padding: "6px 14px",
+                                    fontSize: "12px",
+                                    borderRadius: "100px",
+                                    border: "none",
+                                    cursor:
+                                      isCancelling ||
+                                      cancellingOrderId !== null
+                                        ? "not-allowed"
+                                        : "pointer",
+                                    opacity: isCancelling ? 0.7 : 1
+                                  }}
+                                >
+                                  {isCancelling
+                                    ? "Cancelling..."
+                                    : "Cancel"}
+                                </button>
+                              )}
+                          </div>
                         </div>
-
-                        <p
-                          className="order-item-price font-semibold"
-                          style={{
-                            fontSize: "0.85rem",
-                            color: "#6B8E23",
-                            whiteSpace: "nowrap"
-                          }}
-                        >
-                          ₹{item.price * item.quantity}
-                        </p>
                       </div>
-                    ))}
-
-                    {/* Footer total */}
-                    <div
-                      className="flex items-end justify-between py-5 border-t"
-                      style={{
-                        background: "#10131F",
-                        borderColor: "rgba(169,196,108,0.18)"
-                      }}
-                    >
-                      <p
-                        className="font-medium tracking-widest uppercase"
-                        style={{
-                          fontSize: "0.65rem",
-                          color: "rgba(255,255,255,0.4)"
-                        }}
-                      >
-                        Order Total
-                      </p>
-
-                      <div className="flex items-center">
-                        <p
-                          className="font-bold leading-none"
-                          style={{
-                            fontSize: "1.9rem",
-                            color: "#FFFFFF"
-                          }}
-                        >
-                          ₹{order.total}
-                        </p>
-
-                        {!isDelivered && (
-                          <button
-                            onClick={() => handleCancel(order.id)}
-                            disabled={
-                              isCancelling ||
-                              cancellingOrderId !== null
-                            }
-                            className="order-cancel-btn"
-                            style={{
-                              marginLeft: "20px",
-                              background: isCancelling
-                                ? "#9f1239"
-                                : "#dc2626",
-                              color: "white",
-                              padding: "6px 14px",
-                              fontSize: "12px",
-                              borderRadius: "100px",
-                              border: "none",
-                              cursor:
-                                isCancelling ||
-                                cancellingOrderId !== null
-                                  ? "not-allowed"
-                                  : "pointer",
-                              opacity: isCancelling ? 0.7 : 1
-                            }}
-                          >
-                            {isCancelling
-                              ? "Cancelling..."
-                              : "Cancel"}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

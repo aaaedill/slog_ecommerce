@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Prata&display=swap');
 @import "tailwindcss";
 
@@ -383,9 +384,9 @@ disturbing functional controls.
 ========================================================= */
 
 html.dark-mode {
-color-scheme: dark;
+  color-scheme: only dark !important;
 }
 
 html:not(.dark-mode) {
-color-scheme: light;
+  color-scheme: only light !important;
 }

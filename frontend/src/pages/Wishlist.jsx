@@ -3,6 +3,32 @@ import { Link, useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { toast } from "react-toastify";
 
+/* Back button (same glass pill as the Cart page) */
+
+const BackButton = ({ onClick }) => (
+  <div className="wl-back-wrap">
+    <button type="button" className="wl-back-btn" onClick={onClick}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 19l-7-7 7-7"
+        />
+      </svg>
+      Back
+    </button>
+  </div>
+);
+
 const Wishlist = () => {
   const navigate = useNavigate();
 
@@ -20,10 +46,13 @@ const Wishlist = () => {
   const [addingProductId, setAddingProductId] = useState(null);
   const [removingProductId, setRemovingProductId] = useState(null);
   const [isClearing, setIsClearing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const fetchedUserRef = useRef(null);
 
   const userId = user?.id ?? user?._id ?? null;
+
+  const goBack = () => navigate(-1);
 
   /* ── Fetch wishlist when the signed-in user changes ── */
 
@@ -43,6 +72,22 @@ const Wishlist = () => {
       fetchWishlist();
     }
   }, [userId, fetchWishlist]);
+
+  /* ── Close the confirmation with Escape ── */
+
+  useEffect(() => {
+    if (!confirmOpen) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape" && !isClearing) {
+        setConfirmOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [confirmOpen, isClearing]);
 
   /* ── Helpers ── */
 
@@ -188,7 +233,7 @@ const Wishlist = () => {
 
   /* ── Clear all products ── */
 
-  const handleClearWishlist = async () => {
+  const handleClearWishlist = () => {
     if (!user) {
       navigate("/login");
       return;
@@ -203,11 +248,12 @@ const Wishlist = () => {
       return;
     }
 
-    const confirmed = window.confirm(
-      "Are you sure you want to clear your entire wishlist?"
-    );
+    // Opens the glass confirmation instead of window.confirm
+    setConfirmOpen(true);
+  };
 
-    if (!confirmed) {
+  const confirmClearWishlist = async () => {
+    if (isClearing) {
       return;
     }
 
@@ -228,6 +274,7 @@ const Wishlist = () => {
       toast.error("Could not clear your wishlist. Please try again.");
     } finally {
       setIsClearing(false);
+      setConfirmOpen(false);
     }
   };
 
@@ -300,32 +347,36 @@ const Wishlist = () => {
       <main className="wl-root">
         <style>{wishlistStyles}</style>
 
-        <section className="wl-empty-state">
-          <div className="wl-empty-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z" />
-            </svg>
-          </div>
+        <div className="wl-container">
+          <BackButton onClick={goBack} />
 
-          <p className="wl-eyebrow">YOUR PERSONAL EDIT</p>
+          <section className="wl-empty-state">
+            <div className="wl-empty-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z" />
+              </svg>
+            </div>
 
-          <h1 className="wl-empty-title">
-            Your wishlist awaits.
-          </h1>
+            <p className="wl-eyebrow">YOUR PERSONAL EDIT</p>
 
-          <p className="wl-empty-description">
-            Sign in to save your favourite pieces and keep them
-            together in one place.
-          </p>
+            <h1 className="wl-empty-title">
+              Your wishlist awaits.
+            </h1>
 
-          <Link to="/login" className="wl-primary-btn">
-            Sign in to continue
-          </Link>
+            <p className="wl-empty-description">
+              Sign in to save your favourite pieces and keep them
+              together in one place.
+            </p>
 
-          <Link to="/collection" className="wl-text-link">
-            Explore the collection
-          </Link>
-        </section>
+            <Link to="/login" className="wl-primary-btn">
+              Sign in to continue
+            </Link>
+
+            <Link to="/collection" className="wl-text-link">
+              Explore the collection
+            </Link>
+          </section>
+        </div>
       </main>
     );
   }
@@ -337,11 +388,15 @@ const Wishlist = () => {
       <main className="wl-root">
         <style>{wishlistStyles}</style>
 
-        <section className="wl-loading-state">
-          <span className="wl-spinner" aria-hidden="true" />
+        <div className="wl-container">
+          <BackButton onClick={goBack} />
 
-          <p>Loading your wishlist...</p>
-        </section>
+          <section className="wl-loading-state">
+            <span className="wl-spinner" aria-hidden="true" />
+
+            <p>Loading your wishlist...</p>
+          </section>
+        </div>
       </main>
     );
   }
@@ -353,28 +408,32 @@ const Wishlist = () => {
       <main className="wl-root">
         <style>{wishlistStyles}</style>
 
-        <section className="wl-empty-state">
-          <div className="wl-empty-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z" />
-            </svg>
-          </div>
+        <div className="wl-container">
+          <BackButton onClick={goBack} />
 
-          <p className="wl-eyebrow">YOUR PERSONAL EDIT</p>
+          <section className="wl-empty-state">
+            <div className="wl-empty-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z" />
+              </svg>
+            </div>
 
-          <h1 className="wl-empty-title">
-            Nothing saved. Yet.
-          </h1>
+            <p className="wl-eyebrow">YOUR PERSONAL EDIT</p>
 
-          <p className="wl-empty-description">
-            When a piece catches your eye, tap the heart to save
-            it here. Your next favourite might be waiting.
-          </p>
+            <h1 className="wl-empty-title">
+              Nothing saved. Yet.
+            </h1>
 
-          <Link to="/collection" className="wl-primary-btn">
-            Explore the collection
-          </Link>
-        </section>
+            <p className="wl-empty-description">
+              When a piece catches your eye, tap the heart to save
+              it here. Your next favourite might be waiting.
+            </p>
+
+            <Link to="/collection" className="wl-primary-btn">
+              Explore the collection
+            </Link>
+          </section>
+        </div>
       </main>
     );
   }
@@ -386,6 +445,8 @@ const Wishlist = () => {
       <style>{wishlistStyles}</style>
 
       <div className="wl-container">
+        <BackButton onClick={goBack} />
+
         {/* Page heading */}
 
         <header className="wl-header">
@@ -666,14 +727,69 @@ const Wishlist = () => {
           </p>
         </footer>
       </div>
+
+      {/* Liquid glass confirmation (replaces window.confirm) */}
+
+      {confirmOpen && (
+        <div
+          className="wl-modal-overlay"
+          onClick={() => {
+            if (!isClearing) setConfirmOpen(false);
+          }}
+        >
+          <div
+            className="wl-modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="wl-modal-title"
+            aria-describedby="wl-modal-text"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <span className="wl-modal-label">Clear wishlist</span>
+
+            <h2 id="wl-modal-title" className="wl-modal-title">
+              Remove all saved items?
+            </h2>
+
+            <p id="wl-modal-text" className="wl-modal-text">
+              This will remove all {wishlistProducts.length}{" "}
+              {wishlistProducts.length === 1 ? "item" : "items"} from your
+              wishlist. This can't be undone.
+            </p>
+
+            <div className="wl-modal-actions">
+              <button
+                type="button"
+                className="wl-modal-cancel"
+                onClick={() => setConfirmOpen(false)}
+                disabled={isClearing}
+                autoFocus
+              >
+                Keep items
+              </button>
+
+              <button
+                type="button"
+                className="wl-modal-confirm"
+                onClick={confirmClearWishlist}
+                disabled={isClearing}
+              >
+                {isClearing ? "Clearing..." : "Clear all"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
 
 const wishlistStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap');
+
   .wl-root {
     --wl-text: #2A2E1E;
-    --wl-muted: #656B50;
+    --wl-muted: #4A5035;
     --wl-accent: #56701C;
     --wl-accent-hover: #405516;
     --wl-border: rgba(75, 83, 32, 0.22);
@@ -683,15 +799,21 @@ const wishlistStyles = `
 
     min-height: 70vh;
     width: 100%;
-    padding: 120px clamp(18px, 5vw, 72px) 72px;
+    margin-top: 1rem;
+    padding: 24px clamp(18px, 5vw, 72px) 72px;
 
     background: var(--bg-primary, #F1F4E8);
     color: var(--wl-text);
 
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Jost', sans-serif;
     transition:
       background-color 0.25s ease,
       color 0.25s ease;
+  }
+
+  .wl-root *,
+  .wl-modal-overlay * {
+    font-family: 'Jost', sans-serif;
   }
 
   html.dark-mode .wl-root {
@@ -712,6 +834,50 @@ const wishlistStyles = `
     width: 100%;
     max-width: 1240px;
     margin: 0 auto;
+  }
+
+  /* ══════════ Back button (Cart style) ══════════ */
+
+  .wl-back-wrap {
+    margin-bottom: 28px;
+  }
+
+  .wl-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(107, 142, 35, 0.16);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    box-shadow: 0 2px 12px rgba(107, 142, 35, 0.06);
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: rgba(16, 19, 31, 0.7);
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .wl-back-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    color: #4B5320;
+  }
+
+  html.dark-mode .wl-back-btn {
+    background: transparent;
+    border-color: rgba(169, 196, 108, 0.22);
+    box-shadow: none;
+    color: rgba(248, 250, 252, 0.65);
+  }
+
+  html.dark-mode .wl-back-btn:hover {
+    background: rgba(169, 196, 108, 0.08);
+    color: #A9C46C;
   }
 
   .wl-header {
@@ -736,11 +902,11 @@ const wishlistStyles = `
   .wl-empty-title {
     margin: 0;
     color: var(--wl-text);
-    font-family: 'Prata', Georgia, serif;
+    font-family: 'Jost', sans-serif;
     font-size: clamp(2.2rem, 4vw, 3.6rem);
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1.15;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.02em;
   }
 
   .wl-subtitle {
@@ -874,9 +1040,9 @@ const wishlistStyles = `
   .wl-product-name {
     display: inline-block;
     color: var(--wl-text);
-    font-family: 'Prata', Georgia, serif;
+    font-family: 'Jost', sans-serif;
     font-size: clamp(1.25rem, 2vw, 1.75rem);
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1.4;
     text-decoration: none;
     transition: color 0.2s ease;
@@ -1115,9 +1281,8 @@ const wishlistStyles = `
   .wl-footer-note {
     margin: 0;
     color: var(--wl-muted);
-    font-family: 'Prata', Georgia, serif;
+    font-family: 'Jost', sans-serif;
     font-size: 0.9rem;
-    font-style: italic;
   }
 
   /* ══════════ Empty and loading states ══════════ */
@@ -1125,12 +1290,12 @@ const wishlistStyles = `
   .wl-empty-state,
   .wl-loading-state {
     display: flex;
-    min-height: 52vh;
+    min-height: 44vh;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 36px 16px;
+    padding: 24px 16px;
   }
 
   .wl-empty-icon {
@@ -1227,11 +1392,187 @@ const wishlistStyles = `
     }
   }
 
+  /* ══════════ Liquid glass confirmation ══════════ */
+
+  .wl-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(16, 19, 31, 0.28);
+    backdrop-filter: blur(10px) saturate(1.2);
+    -webkit-backdrop-filter: blur(10px) saturate(1.2);
+    animation: wl-fade 0.25s ease both;
+  }
+
+  .wl-modal {
+    width: min(420px, 100%);
+    padding: 32px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(28px) saturate(1.8);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8);
+    box-shadow:
+      0 24px 60px rgba(16, 19, 31, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 0 rgba(107, 142, 35, 0.12);
+    color: #10131F;
+    animation: wl-modal-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .wl-modal-label {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(16, 19, 31, 0.55);
+  }
+
+  .wl-modal-title {
+    margin: 0 0 10px;
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #10131F;
+  }
+
+  .wl-modal-text {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: rgba(16, 19, 31, 0.75);
+  }
+
+  .wl-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .wl-modal-cancel,
+  .wl-modal-confirm {
+    flex: 1;
+    padding: 13px 16px;
+    border-radius: 100px;
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      background 0.25s ease,
+      transform 0.2s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .wl-modal-cancel {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(107, 142, 35, 0.22);
+    color: #4B5320;
+  }
+
+  .wl-modal-cancel:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  .wl-modal-confirm {
+    background: #A6503B;
+    border: 1px solid transparent;
+    color: #FFFFFF;
+    box-shadow: 0 8px 24px rgba(166, 80, 59, 0.25);
+  }
+
+  .wl-modal-confirm:hover:not(:disabled) {
+    background: #8E412F;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(166, 80, 59, 0.32);
+  }
+
+  .wl-modal-cancel:disabled,
+  .wl-modal-confirm:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  html.dark-mode .wl-modal-overlay {
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  html.dark-mode .wl-modal {
+    background: rgba(18, 22, 10, 0.5);
+    border-color: rgba(169, 196, 108, 0.26);
+    box-shadow:
+      0 24px 60px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(169, 196, 108, 0.18),
+      inset 0 -1px 0 rgba(169, 196, 108, 0.06);
+    color: #F8FAFC;
+  }
+
+  html.dark-mode .wl-modal-label {
+    color: rgba(248, 250, 252, 0.42);
+  }
+
+  html.dark-mode .wl-modal-title {
+    color: #F8FAFC;
+  }
+
+  html.dark-mode .wl-modal-text {
+    color: rgba(248, 250, 252, 0.68);
+  }
+
+  html.dark-mode .wl-modal-cancel {
+    background: transparent;
+    border-color: rgba(169, 196, 108, 0.28);
+    color: #A9C46C;
+  }
+
+  html.dark-mode .wl-modal-cancel:hover:not(:disabled) {
+    background: rgba(169, 196, 108, 0.1);
+  }
+
+  html.dark-mode .wl-modal-confirm {
+    background: #E0907A;
+    color: #1A0C08;
+    box-shadow: 0 8px 24px rgba(224, 144, 122, 0.2);
+  }
+
+  html.dark-mode .wl-modal-confirm:hover:not(:disabled) {
+    background: #EBA591;
+  }
+
+  @keyframes wl-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes wl-modal-in {
+    from {
+      opacity: 0;
+      filter: blur(8px);
+      transform: translateY(14px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0) scale(1);
+    }
+  }
+
   /* ══════════ Responsive ══════════ */
 
   @media (max-width: 700px) {
     .wl-root {
-      padding: 98px 18px 48px;
+      padding: 18px 18px 48px;
+    }
+
+    .wl-back-wrap {
+      margin-bottom: 20px;
     }
 
     .wl-header {
@@ -1311,6 +1652,10 @@ const wishlistStyles = `
       align-items: flex-start;
       flex-direction: column;
     }
+
+    .wl-modal {
+      padding: 24px;
+    }
   }
 
   @media (max-width: 390px) {
@@ -1341,7 +1686,9 @@ const wishlistStyles = `
   @media (prefers-reduced-motion: reduce) {
     .wl-root *,
     .wl-root *::before,
-    .wl-root *::after {
+    .wl-root *::after,
+    .wl-modal-overlay,
+    .wl-modal {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;

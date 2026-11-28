@@ -21,7 +21,7 @@ import API_URL from "../../config/api";
 const ToastContainer = ({ toasts }) => (
   <div style={{
     position: "fixed",
-    top: "clamp(72px, 10vw, 100px)",
+    top: "calc(env(safe-area-inset-top, 0px) + clamp(72px, 10vw, 100px))",
     left: "50%",
     transform: "translateX(-50%)",
     zIndex: 9999,
@@ -48,6 +48,7 @@ const ToastContainer = ({ toasts }) => (
         backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
         borderRadius: "14px",
         color: "#ffffff", fontSize: "clamp(13px, 2.4vw, 14px)", fontWeight: 600,
+        lineHeight: 1.35,
         fontFamily: "'Manrope', 'Inter', system-ui, sans-serif",
         pointerEvents: "auto",
         animation: t.leaving
@@ -621,238 +622,185 @@ const EditProduct = () => {
 
       <ToastContainer toasts={toasts} />
 
-      <div className="ad-root min-h-screen flex justify-center items-start">
+      <div className="ae-root">
 
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
-          .ad-root {
-            --ad-red:        #ff2d3f;
-            --ad-line:       rgba(255, 45, 63, 0.22);
-            --ad-line-hover: rgba(255, 45, 63, 0.6);
-            --ad-white:      #ffffff;
-            --ad-white-soft: rgba(255, 255, 255, 0.7);
+          .ae-root {
+            --ae-red:        #ff2d3f;
+            --ae-line:       rgba(255, 45, 63, 0.22);
+            --ae-line-hover: rgba(255, 45, 63, 0.6);
+            --ae-white:      #ffffff;
+            --ae-white-soft: rgba(255, 255, 255, 0.7);
 
-            /* ── responsive scale (overridden per breakpoint below) ── */
-            --ad-max:        100%;
-            --ad-px:         0.625rem;
-            --ad-py:         0.75rem;
-            --ad-pb:         4rem;
-            --ad-panel-p:    1rem;
-            --ad-panel-r:    14px;
-            --ad-gap:        1rem;
-            --ad-gap-lg:     1.25rem;
-            --ad-sect:       1.25rem;
-            --ad-title:      1.85rem;
-            --ad-over:       0.68rem;
-            --ad-panel-fs:   1.05rem;
-            --ad-label-fs:   0.68rem;
-            --ad-field-fs:   1rem;
-            --ad-field-px:   0.85rem;
-            --ad-field-py:   0.7rem;
-            --ad-img:        5.5rem;
-            --ad-chip-px:    0.9rem;
-            --ad-chip-py:    0.5rem;
-            --ad-chip-fs:    0.8rem;
-            --ad-btn-px:     1.25rem;
-            --ad-btn-py:     0.8rem;
-            --ad-btn-fs:     0.92rem;
-            --ad-stock-min:  7.25rem;
+            /* responsive scale (overridden per breakpoint below).
+               --ae-max and --ae-px match the navbar so edges line up. */
+            --ae-max:       1400px;
+            --ae-px:        0.875rem;
+            --ae-py:        1rem;
+            --ae-gap:       0.75rem;
+            --ae-pad:       0.9rem;
+            --ae-radius:    14px;
+            --ae-ctl:       2.75rem;
+            --ae-fs:        1rem;
+            --ae-label:     0.68rem;
+            --ae-over:      0.68rem;
+            --ae-title:     1.9rem;
+            --ae-panel:     1rem;
+            --ae-upload:    7rem;
+            --ae-aside:     250px;
+            --ae-sticky:    5.5rem;
+            --ae-chip-cols: 5;
 
             position: relative;
-            overflow: hidden;
-            width: 100%;
+            overflow-x: hidden;
+            min-height: 100vh;
             background: #000000;
-            color: var(--ad-white);
+            color: var(--ae-white);
             font-family: 'Manrope', 'Inter', system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
             padding:
-              var(--ad-py)
-              max(var(--ad-px), env(safe-area-inset-right))
-              var(--ad-pb)
-              max(var(--ad-px), env(safe-area-inset-left));
+              var(--ae-py)
+              max(var(--ae-px), env(safe-area-inset-right))
+              calc(var(--ae-py) + 1rem + env(safe-area-inset-bottom))
+              max(var(--ae-px), env(safe-area-inset-left));
           }
 
-          @keyframes spin { to { transform: rotate(360deg); } }
-
-          /* ── Layout skeleton ── */
-          .ep-wrap {
-            position: relative;
+          .ae-shell {
             width: 100%;
-            max-width: var(--ad-max);
+            max-width: var(--ae-max);
             margin: 0 auto;
-          }
-
-          /* header: back + title (stack on phones, one row from 640) */
-          .ep-head {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: var(--ad-sect);
-          }
-
-          .ep-head-text { min-width: 0; }
-
-          /* two-column body on laptops: image card | fields */
-          .ep-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: var(--ad-gap-lg);
-          }
-
-          .ep-aside { min-width: 0; }
-
-          .ep-main { min-width: 0; }
-
-          .ep-media {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: var(--ad-gap);
-          }
-
-          .ep-media-info {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.6rem;
             min-width: 0;
           }
 
-          .ep-hint {
-            margin: 0;
-            color: var(--ad-white-soft);
-            font-size: 0.78rem;
-            font-weight: 500;
-            line-height: 1.5;
-          }
-
-          /* category + price */
-          .ep-two {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: var(--ad-gap);
-          }
-
-          /* size chips: share the row evenly on phones */
-          .ep-chips {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 0.4rem;
-          }
-
-          /* stock cards: auto-fit so columns grow with available width */
-          .ep-stocks {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(var(--ad-stock-min), 1fr));
-            gap: 0.65rem;
-          }
-
-          /* actions */
-          .ep-actions {
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 0.65rem;
-          }
-
-          .ep-field-block { margin-bottom: var(--ad-sect); }
+          @keyframes ae-spin { to { transform: rotate(360deg); } }
 
           /* ── Entrance ── */
-          .ad-rise {
+          .ae-rise {
             opacity: 0;
-            animation: ad-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: ae-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
-          @keyframes ad-rise {
+          @keyframes ae-rise {
             from { opacity: 0; transform: translateY(14px); }
             to   { opacity: 1; transform: translateY(0); }
           }
 
-          /* ── Heading ── */
-          .ad-overline {
+          /* ── Page header: title left, Back button right ── */
+          .ae-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: var(--ae-gap);
+            margin-bottom: calc(var(--ae-gap) * 1.5);
+          }
+
+          .ae-head-text { min-width: 0; }
+
+          .ae-overline {
             display: inline-flex;
             align-items: center;
-            gap: 0.65rem;
-            color: var(--ad-red);
-            font-size: var(--ad-over);
+            gap: 0.6rem;
+            color: var(--ae-red);
+            font-size: var(--ae-over);
             font-weight: 700;
             letter-spacing: 0.22em;
             text-transform: uppercase;
-            margin: 0 0 0.5rem;
+            margin-bottom: 0.4rem;
           }
 
-          .ad-overline::before {
+          .ae-overline::before {
             content: '';
-            width: 24px;
+            width: 1.75rem;
             height: 2px;
-            background: var(--ad-red);
+            background: var(--ae-red);
           }
 
-          .ad-title {
-            margin: 0;
-            color: var(--ad-white);
+          .ae-title {
+            color: var(--ae-white);
             font-weight: 800;
             letter-spacing: -0.03em;
             line-height: 1.05;
-            font-size: var(--ad-title);
+            font-size: var(--ae-title);
+            overflow-wrap: anywhere;
           }
 
-          .ad-title-bar {
+          .ae-title-bar {
             margin-top: 0.85rem;
             height: 2px;
-            width: 72px;
+            width: 5rem;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--ae-red);
             transform-origin: left center;
-            animation: ad-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+            animation: ae-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
           }
 
-          @keyframes ad-draw {
+          @keyframes ae-draw {
             from { transform: scaleX(0); }
             to   { transform: scaleX(1); }
           }
 
+          /* ── Page grid:
+                phones / small tablets: one column (image, details, sizes)
+                ≥ 768px: image sidebar + form column ── */
+          .ae-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: var(--ae-gap);
+            align-items: start;
+          }
+
+          .ae-col {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: var(--ae-gap);
+            min-width: 0;
+          }
+
           /* ── Panel ── */
-          .ad-panel {
+          .ae-panel {
             position: relative;
+            min-width: 0;
             background: transparent;
-            border: 1px solid var(--ad-line);
-            border-radius: var(--ad-panel-r);
-            padding: var(--ad-panel-p);
+            border: 1px solid var(--ae-line);
+            border-radius: var(--ae-radius);
+            padding: var(--ae-pad);
             transition: border-color 0.3s ease;
           }
 
-          .ad-panel:hover,
-          .ad-panel:focus-within {
-            border-color: var(--ad-line-hover);
+          .ae-panel:hover,
+          .ae-panel:focus-within {
+            border-color: var(--ae-line-hover);
           }
 
-          .ad-panel-title {
+          .ae-panel-title {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
-            margin: 0 0 var(--ad-sect);
-            color: var(--ad-white);
+            gap: 0.6rem;
+            margin-bottom: calc(var(--ae-pad) * 1.1);
+            color: var(--ae-white);
             font-weight: 700;
             letter-spacing: -0.015em;
-            font-size: var(--ad-panel-fs);
+            line-height: 1.2;
+            font-size: var(--ae-panel);
           }
 
-          .ad-panel-title::before {
+          .ae-panel-title::before {
             content: '';
+            flex: 0 0 auto;
             width: 3px;
             height: 1.1em;
             border-radius: 2px;
-            background: var(--ad-red);
+            background: var(--ae-red);
           }
 
           /* ── Back button ── */
-          .ap-back {
+          .ae-back {
+            flex: 0 0 auto;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            flex-shrink: 0;
             min-height: 2.5rem;
             padding: 0.45rem 0.95rem 0.45rem 0.7rem;
             border-radius: 10px;
@@ -867,57 +815,74 @@ const EditProduct = () => {
             transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
           }
 
-          .ap-back svg { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+          .ae-back svg { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
 
-          .ap-back:hover {
+          .ae-back:hover {
             background: #ffffff;
             color: #000000;
             border-color: #ffffff;
           }
 
-          .ap-back:hover svg { transform: translateX(-3px); }
+          .ae-back:hover svg { transform: translateX(-3px); }
 
-          /* ── Form labels + fields ── */
-          .ap-label {
+          /* ── Form layout inside panels ── */
+          .ae-fields {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: calc(var(--ae-gap) * 1.25);
+          }
+
+          .ae-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: calc(var(--ae-gap) * 1.25);
+          }
+
+          .ae-block { min-width: 0; }
+
+          /* ── Labels + fields ── */
+          .ae-label {
             display: block;
-            margin-bottom: 0.55rem;
-            color: var(--ad-white-soft);
-            font-size: var(--ad-label-fs);
+            margin-bottom: 0.5rem;
+            color: var(--ae-white-soft);
+            font-size: var(--ae-label);
             font-weight: 700;
-            letter-spacing: 0.14em;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
           }
 
-          .ap-req { color: var(--ad-red); }
+          .ae-req { color: var(--ae-red); }
 
-          .ap-field {
+          .ae-field {
+            display: block;
             width: 100%;
             min-width: 0;
+            min-height: var(--ae-ctl);
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.22);
             border-radius: 12px;
-            padding: var(--ad-field-py) var(--ad-field-px);
+            padding: 0.6rem 1rem;
             color: #ffffff;
             font-family: inherit;
-            font-size: var(--ad-field-fs);
+            font-size: var(--ae-fs);
             font-weight: 500;
             outline: none;
             transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
           }
 
-          .ap-field:hover { border-color: rgba(255, 255, 255, 0.4); }
+          .ae-field:hover { border-color: rgba(255, 255, 255, 0.4); }
 
-          .ap-field:focus {
-            border-color: var(--ad-red);
+          .ae-field:focus {
+            border-color: var(--ae-red);
             background: rgba(255, 45, 63, 0.04);
             box-shadow: 0 0 0 3px rgba(255, 45, 63, 0.18);
           }
 
-          .ap-field::placeholder { color: rgba(255, 255, 255, 0.35); }
+          .ae-field::placeholder { color: rgba(255, 255, 255, 0.35); }
 
-          .ap-field option { background: #000000; color: #ffffff; }
+          .ae-field option { background: #000000; color: #ffffff; }
 
-          select.ap-field {
+          select.ae-field {
             cursor: pointer;
             appearance: none;
             -webkit-appearance: none;
@@ -927,47 +892,62 @@ const EditProduct = () => {
             background-position: right 1rem center;
           }
 
-          textarea.ap-field { resize: none; line-height: 1.6; }
+          textarea.ae-field {
+            resize: none;
+            line-height: 1.6;
+            min-height: 6.5rem;
+          }
 
-          input[type=number]::-webkit-inner-spin-button,
-          input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+          .ae-root input[type=number]::-webkit-inner-spin-button,
+          .ae-root input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-          input[type=number] { -moz-appearance: textfield; }
+          .ae-root input[type=number] { -moz-appearance: textfield; }
 
-          /* ── Image upload ── */
-          .ap-upload {
+          /* ── Image panel (row on phones/small tablets, column in the sidebar) ── */
+          .ae-media-body {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--ae-gap);
+          }
+
+          .ae-upload {
             position: relative;
             display: block;
-            flex-shrink: 0;
+            flex: 0 0 auto;
+            width: var(--ae-upload);
+            aspect-ratio: 1 / 1;
             border-radius: 14px;
             overflow: hidden;
             cursor: pointer;
-            border: 1px solid var(--ad-line-hover);
+            background: #000000;
+            border: 1px solid var(--ae-line-hover);
             transition: border-color 0.3s ease, transform 0.3s ease;
           }
 
-          .ap-upload:hover {
-            border-color: var(--ad-red);
+          .ae-upload:hover {
+            border-color: var(--ae-red);
             transform: translateY(-2px);
           }
 
-          .ap-upload img {
+          .ae-preview {
             display: block;
-            width: var(--ad-img);
-            height: var(--ad-img);
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            background: #000000;
           }
 
-          .ap-upload-overlay {
+          .ae-upload-overlay {
             position: absolute;
             inset: 0;
             background: rgba(0, 0, 0, 0.72);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 4px;
             color: #ffffff;
             font-size: 0.78rem;
             font-weight: 700;
@@ -975,30 +955,56 @@ const EditProduct = () => {
             transition: opacity 0.25s ease;
           }
 
-          .ap-upload:hover .ap-upload-overlay { opacity: 1; }
+          .ae-upload:hover .ae-upload-overlay { opacity: 1; }
 
-          /* touch devices have no hover: show a small persistent hint */
+          /* touch screens have no hover: keep the "Change" hint visible */
           @media (hover: none) {
-            .ap-upload-overlay {
+            .ae-upload-overlay {
               opacity: 1;
               inset: auto 0 0 0;
-              padding: 0.3rem 0;
-              background: rgba(0, 0, 0, 0.7);
+              flex-direction: row;
+              padding: 0.35rem;
+              background: rgba(0, 0, 0, 0.65);
             }
 
-            .ap-upload-overlay svg { display: none; }
+            .ae-upload:hover { transform: none; }
           }
 
-          /* ── Remove-image button ── */
-          .ap-remove {
+          .ae-media-info {
+            flex: 1 1 9rem;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.6rem;
+          }
+
+          .ae-hint {
+            color: var(--ae-white-soft);
+            font-size: 0.8rem;
+            font-weight: 500;
+            line-height: 1.5;
+          }
+
+          .ae-hint strong {
+            display: block;
+            margin-bottom: 0.2rem;
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 700;
+          }
+
+          /* ── Remove-new-image button ── */
+          .ae-remove {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.4rem;
             min-height: 2.25rem;
             padding: 0.4rem 0.85rem;
             border-radius: 10px;
             background: transparent;
-            color: var(--ad-red);
+            color: var(--ae-red);
             border: 1px solid rgba(255, 45, 63, 0.6);
             font-family: inherit;
             font-size: 0.78rem;
@@ -1007,130 +1013,202 @@ const EditProduct = () => {
             transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
           }
 
-          .ap-remove:hover {
-            background: var(--ad-red);
+          .ae-remove:hover {
+            background: var(--ae-red);
             color: #ffffff;
-            border-color: var(--ad-red);
+            border-color: var(--ae-red);
           }
 
           /* ── Size chips ── */
-          .ap-chip {
-            min-height: 2.5rem;
-            padding: var(--ad-chip-py) var(--ad-chip-px);
+          .ae-sizes {
+            display: grid;
+            grid-template-columns: repeat(var(--ae-chip-cols), minmax(0, 1fr));
+            gap: 0.5rem;
+          }
+
+          .ae-chip {
+            min-height: var(--ae-ctl);
+            padding: 0.4rem 0.5rem;
             border-radius: 10px;
             font-family: inherit;
-            font-size: var(--ad-chip-fs);
+            font-size: 0.88rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
           }
 
-          .ap-chip--off {
+          .ae-chip--off {
             background: transparent;
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.3);
           }
 
-          .ap-chip--off:hover {
-            border-color: var(--ad-red);
-            color: var(--ad-red);
+          .ae-chip--off:hover {
+            border-color: var(--ae-red);
+            color: var(--ae-red);
             transform: translateY(-1px);
           }
 
-          .ap-chip--on {
-            background: var(--ad-red);
+          .ae-chip--on {
+            background: var(--ae-red);
             color: #ffffff;
-            border: 1px solid var(--ad-red);
+            border: 1px solid var(--ae-red);
             box-shadow: 0 0 20px rgba(255, 45, 63, 0.4);
           }
 
-          /* ── Per-size stock card ── */
-          .ap-stock {
+          /* ── Per-size stock cards ── */
+          .ae-stock-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+            gap: calc(var(--ae-gap) * 0.8);
+            margin-top: var(--ae-gap);
+          }
+
+          .ae-stock {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
             min-width: 0;
-            padding: 0.8rem;
-            border: 1px solid var(--ad-line);
-            border-radius: 14px;
+            padding: 0.7rem 0.85rem;
+            border: 1px solid var(--ae-line);
+            border-radius: 12px;
             background: transparent;
-            animation: ad-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+            animation: ae-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
             transition: border-color 0.3s ease;
           }
 
-          .ap-stock:hover,
-          .ap-stock:focus-within { border-color: var(--ad-line-hover); }
+          .ae-stock:hover,
+          .ae-stock:focus-within { border-color: var(--ae-line-hover); }
 
-          .ap-stock-badge {
-            width: 30px;
-            height: 30px;
+          .ae-stock-info {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            min-width: 0;
+          }
+
+          .ae-stock-text { min-width: 0; }
+
+          .ae-stock-badge {
+            width: 2.25rem;
+            height: 2.25rem;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 10px;
-            color: var(--ad-red);
+            color: var(--ae-red);
             background: rgba(255, 45, 63, 0.1);
-            border: 1px solid var(--ad-line);
-            font-size: 0.74rem;
+            border: 1px solid var(--ae-line);
+            font-size: 0.8rem;
             font-weight: 800;
           }
 
-          .ap-stock-name {
-            margin: 0;
+          .ae-stock-name {
             color: #ffffff;
-            font-size: 0.9rem;
+            font-size: 0.92rem;
+            font-weight: 700;
+            white-space: nowrap;
+          }
+
+          .ae-stock-sub {
+            margin-top: 2px;
+            color: var(--ae-white-soft);
+            font-size: 0.74rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .ae-stock-qty {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+          }
+
+          .ae-stock-input {
+            width: 5rem;
+            text-align: center;
+            padding: 0.4rem 0.5rem;
             font-weight: 700;
           }
 
-          .ap-stock-sub {
-            margin: 3px 0 0;
-            color: var(--ad-white-soft);
-            font-size: 0.74rem;
+          .ae-unit {
+            color: var(--ae-white-soft);
+            font-size: 0.78rem;
+            font-weight: 600;
+          }
+
+          /* ── Sticky action bar (Cancel + Save) ── */
+          .ae-actions {
+            position: sticky;
+            bottom: max(0.5rem, env(safe-area-inset-bottom));
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: var(--ae-gap);
+            padding: 0.6rem;
+            border: 1px solid var(--ae-line);
+            border-radius: var(--ae-radius);
+            background: rgba(0, 0, 0, 0.78);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+          }
+
+          .ae-actions-note {
+            display: none;
+            flex: 1 1 auto;
+            min-width: 0;
+            padding-left: 0.5rem;
+            color: var(--ae-white-soft);
+            font-size: 0.8rem;
             font-weight: 500;
           }
 
-          /* ── Divider ── */
-          .ap-divider {
-            height: 1px;
-            background: var(--ad-line);
-            margin-bottom: var(--ad-sect);
-          }
-
-          /* ── Submit / Cancel ── */
-          .ap-submit,
-          .ap-cancel {
+          .ae-submit,
+          .ae-cancel {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.6rem;
-            min-height: 2.9rem;
-            padding: var(--ad-btn-py) var(--ad-btn-px);
+            min-height: var(--ae-ctl);
+            padding: 0.6rem 1.4rem;
             border-radius: 12px;
             font-family: inherit;
-            font-size: var(--ad-btn-fs);
+            font-size: 0.95rem;
             letter-spacing: 0.02em;
+            white-space: nowrap;
             cursor: pointer;
           }
 
-          .ap-submit {
+          .ae-submit {
+            flex: 1 1 auto;
+            order: 2;
             color: #ffffff;
-            background: var(--ad-red);
-            border: 1px solid var(--ad-red);
+            background: var(--ae-red);
+            border: 1px solid var(--ae-red);
             font-weight: 800;
             transition: transform 0.25s ease, box-shadow 0.25s ease;
           }
 
-          .ap-submit:hover:not(:disabled) {
+          .ae-submit:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 0 30px rgba(255, 45, 63, 0.55);
           }
 
-          .ap-submit:active:not(:disabled) { transform: translateY(0); }
+          .ae-submit:active:not(:disabled) { transform: translateY(0); }
 
-          .ap-submit:disabled {
+          .ae-submit:disabled {
             opacity: 0.6;
             cursor: not-allowed;
           }
 
-          .ap-cancel {
+          .ae-cancel {
+            flex: 0 0 auto;
+            order: 1;
             color: #ffffff;
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.4);
@@ -1138,247 +1216,223 @@ const EditProduct = () => {
             transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
           }
 
-          .ap-cancel:hover {
+          .ae-cancel:hover {
             background: #ffffff;
             color: #000000;
             border-color: #ffffff;
           }
 
-          .ap-back:focus-visible,
-          .ap-chip:focus-visible,
-          .ap-remove:focus-visible,
-          .ap-submit:focus-visible,
-          .ap-cancel:focus-visible,
-          .ap-upload:focus-within {
+          .ae-back:focus-visible,
+          .ae-chip:focus-visible,
+          .ae-remove:focus-visible,
+          .ae-submit:focus-visible,
+          .ae-cancel:focus-visible,
+          .ae-upload:focus-within {
             outline: 2px solid #ffffff;
             outline-offset: 2px;
           }
 
-          /* ═══════════ Responsive scale ═══════════ */
+          /* ══════════ Responsive scale ══════════ */
 
-          /* ≥ 360px: standard phones */
-          @media (min-width: 360px) {
-            .ad-root {
-              --ad-px: 0.75rem;
-              --ad-panel-p: 1.15rem;
-              --ad-title: 2rem;
-              --ad-img: 6rem;
-              --ad-stock-min: 7.75rem;
+          /* ≥ 375px: iPhone-size phones */
+          @media (min-width: 375px) {
+            .ae-root {
+              --ae-px:    1rem;
+              --ae-py:    1.1rem;
+              --ae-pad:   1rem;
+              --ae-title: 2.05rem;
+              --ae-label: 0.7rem;
             }
+
+            .ae-stock-input { width: 5.5rem; }
           }
 
-          /* ≥ 480px: large phones / landscape */
+          /* ≥ 480px: category + price side by side, bigger upload */
           @media (min-width: 480px) {
-            .ad-root {
-              --ad-px: 1rem;
-              --ad-py: 1rem;
-              --ad-pb: 4.5rem;
-              --ad-panel-p: 1.4rem;
-              --ad-gap: 1.1rem;
-              --ad-title: 2.25rem;
-              --ad-over: 0.72rem;
-              --ad-panel-fs: 1.1rem;
-              --ad-label-fs: 0.7rem;
-              --ad-img: 6.75rem;
-              --ad-chip-fs: 0.85rem;
-              --ad-stock-min: 8.5rem;
+            .ae-root {
+              --ae-py:     1.25rem;
+              --ae-gap:    0.875rem;
+              --ae-pad:    1.1rem;
+              --ae-panel:  1.05rem;
+              --ae-upload: 8.5rem;
             }
 
-            .ep-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-
-            .ep-chips {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 0.6rem;
-            }
-
-            .ap-chip { min-width: 3.25rem; }
-
-            /* actions share the row: Save grows, Cancel hugs content */
-            .ep-actions { flex-direction: row-reverse; }
-            .ep-actions .ap-submit { flex: 1 1 auto; }
-            .ep-actions .ap-cancel { flex: 0 0 auto; }
+            .ae-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .ae-stock-sub { overflow: visible; }
           }
 
-          /* ≥ 640px: tablets (portrait) */
+          /* ≥ 640px: chips keep a sensible width, action bar note appears */
           @media (min-width: 640px) {
-            .ad-root {
-              --ad-px: 1.5rem;
-              --ad-py: 1.25rem;
-              --ad-panel-p: 1.75rem;
-              --ad-panel-r: 16px;
-              --ad-gap: 1.25rem;
-              --ad-gap-lg: 1.5rem;
-              --ad-sect: 1.5rem;
-              --ad-title: 2.5rem;
-              --ad-field-px: 1rem;
-              --ad-field-py: 0.75rem;
-              --ad-img: 7.5rem;
-              --ad-chip-px: 1.1rem;
-              --ad-stock-min: 9rem;
-              --ad-btn-px: 1.75rem;
+            .ae-root {
+              --ae-px:     1.5rem;
+              --ae-py:     1.5rem;
+              --ae-gap:    1rem;
+              --ae-pad:    1.25rem;
+              --ae-over:   0.74rem;
+              --ae-title:  2.4rem;
+              --ae-label:  0.72rem;
+              --ae-panel:  1.1rem;
+              --ae-upload: 10rem;
             }
 
-            .ep-head {
-              flex-direction: row-reverse;
-              align-items: flex-start;
-              justify-content: space-between;
-              gap: 1.5rem;
+            .ae-sizes {
+              grid-template-columns: repeat(var(--ae-chip-cols), minmax(0, 4.75rem));
             }
+
+            .ae-actions { padding: 0.65rem 0.65rem 0.65rem 1rem; }
+            .ae-actions-note { display: block; }
+            .ae-submit { flex: 0 0 auto; min-width: 12rem; }
+
+            .ae-stock-input { width: 6rem; }
           }
 
-          /* ≥ 768px: small laptops / tablets landscape */
+          /* ≥ 768px: image becomes a sidebar next to the form */
           @media (min-width: 768px) {
-            .ad-root {
-              --ad-max: 56rem;
-              --ad-px: 2rem;
-              --ad-py: 1.75rem;
-              --ad-pb: 5rem;
-              --ad-panel-p: 2rem;
-              --ad-sect: 1.75rem;
-              --ad-title: 2.75rem;
-              --ad-panel-fs: 1.15rem;
-              --ad-field-fs: 0.95rem;
-              --ad-img: 8.5rem;
-              --ad-btn-px: 2.25rem;
-              --ad-stock-min: 9.25rem;
+            .ae-root {
+              --ae-py:     1.75rem;
+              --ae-ctl:    2.6rem;
+              --ae-fs:     0.95rem;
+              --ae-title:  2.55rem;
+              --ae-panel:  1.1rem;
+              --ae-aside:  250px;
+              --ae-sticky: 5.75rem;
             }
 
-            /* buttons align to the end and stop stretching */
-            .ep-actions { justify-content: flex-start; }
-            .ep-actions .ap-submit { flex: 0 0 auto; }
-          }
-
-          /* ≥ 1024px: laptops — image card moves to a sticky left column */
-          @media (min-width: 1024px) {
-            .ad-root {
-              --ad-max: 70rem;
-              --ad-px: 2.5rem;
-              --ad-py: 2rem;
-              --ad-panel-p: 2.25rem;
-              --ad-gap-lg: 2.25rem;
-              --ad-title: 3rem;
-              --ad-panel-fs: 1.2rem;
-              --ad-label-fs: 0.72rem;
-              --ad-stock-min: 8.5rem;
+            .ae-layout {
+              grid-template-columns: var(--ae-aside) minmax(0, 1fr);
             }
 
-            .ep-grid {
-              grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
-              align-items: start;
-            }
-
-            .ep-aside {
+            .ae-aside {
               position: sticky;
-              top: 6.5rem;
-              padding: 1rem;
-              border: 1px solid var(--ad-line);
-              border-radius: 16px;
+              top: var(--ae-sticky);
             }
 
-            .ep-media {
+            .ae-media-body {
               flex-direction: column;
               align-items: stretch;
-              gap: 1rem;
             }
 
-            .ep-media .ap-upload { width: 100%; }
+            .ae-upload { width: 100%; }
+            .ae-media-info { flex: 0 1 auto; align-items: stretch; }
 
-            .ep-media .ap-upload img {
-              width: 100%;
-              height: auto;
-              aspect-ratio: 1 / 1;
+            .ae-actions { grid-column: 1 / -1; }
+
+            /* the sizes row is cramped next to the sidebar: keep chips fluid */
+            .ae-sizes {
+              grid-template-columns: repeat(var(--ae-chip-cols), minmax(0, 1fr));
+            }
+          }
+
+          /* ≥ 1024px: laptops */
+          @media (min-width: 1024px) {
+            .ae-root {
+              --ae-px:     2rem;
+              --ae-py:     2rem;
+              --ae-gap:    1.25rem;
+              --ae-pad:    1.4rem;
+              --ae-radius: 16px;
+              --ae-panel:  1.15rem;
+              --ae-aside:  300px;
+              --ae-sticky: 6rem;
             }
 
-            .ep-media-info { align-items: stretch; }
-            .ep-media-info .ap-remove { justify-content: center; }
+            .ae-sizes {
+              grid-template-columns: repeat(var(--ae-chip-cols), minmax(0, 5rem));
+            }
           }
 
           /* ≥ 1280px: desktops */
           @media (min-width: 1280px) {
-            .ad-root {
-              --ad-max: 76rem;
-              --ad-px: 3rem;
-              --ad-py: 2.5rem;
-              --ad-panel-p: 2.5rem;
-              --ad-gap: 1.5rem;
-              --ad-title: 3.25rem;
-              --ad-field-fs: 1rem;
-              --ad-field-py: 0.8rem;
-              --ad-chip-px: 1.3rem;
-              --ad-stock-min: 9.5rem;
+            .ae-root {
+              --ae-py:     2.25rem;
+              --ae-pad:    1.6rem;
+              --ae-fs:     0.97rem;
+              --ae-title:  2.8rem;
+              --ae-panel:  1.2rem;
+              --ae-aside:  340px;
+              --ae-sticky: 6.25rem;
             }
-
-            .ep-grid { grid-template-columns: minmax(17rem, 20rem) minmax(0, 1fr); }
           }
 
           /* ≥ 1536px: large monitors */
           @media (min-width: 1536px) {
-            .ad-root {
-              --ad-max: 86rem;
-              --ad-px: 3.5rem;
-              --ad-panel-p: 3rem;
-              --ad-gap-lg: 3rem;
-              --ad-title: 3.5rem;
-              --ad-panel-fs: 1.3rem;
-              --ad-label-fs: 0.76rem;
-              --ad-field-fs: 1.05rem;
-              --ad-btn-fs: 1rem;
-              --ad-stock-min: 10rem;
+            .ae-root {
+              --ae-max:   1680px;
+              --ae-px:    2.5rem;
+              --ae-py:    2.5rem;
+              --ae-gap:   1.5rem;
+              --ae-pad:   1.85rem;
+              --ae-ctl:   2.75rem;
+              --ae-fs:    1rem;
+              --ae-over:  0.8rem;
+              --ae-label: 0.78rem;
+              --ae-title: 3rem;
+              --ae-panel: 1.3rem;
+              --ae-aside: 380px;
             }
 
-            .ep-grid { grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr); }
+            .ae-chip { font-size: 0.95rem; }
+            .ae-stock-name { font-size: 0.98rem; }
           }
 
           /* ≥ 1920px: ultra-wide */
           @media (min-width: 1920px) {
-            .ad-root {
-              --ad-max: 96rem;
-              --ad-title: 3.75rem;
-              --ad-field-fs: 1.1rem;
-            }
+            .ae-root { --ae-max: 1840px; }
           }
 
-          /* short landscape phones: keep the aside from sticking over content */
+          /* short landscape phones: don't let the sidebar stick over content */
           @media (max-height: 520px) {
-            .ep-aside { position: static; }
+            .ae-aside { position: static; }
           }
 
           /* ── Reduced motion ── */
           @media (prefers-reduced-motion: reduce) {
-            .ad-rise,
-            .ad-title-bar,
-            .ap-stock {
+            .ae-rise,
+            .ae-title-bar,
+            .ae-stock {
               animation: none !important;
               opacity: 1 !important;
               transform: none !important;
             }
 
-            .ap-back,
-            .ap-back svg,
-            .ap-field,
-            .ap-upload,
-            .ap-upload-overlay,
-            .ap-remove,
-            .ap-chip,
-            .ap-submit,
-            .ap-cancel {
+            .ae-back,
+            .ae-back svg,
+            .ae-field,
+            .ae-upload,
+            .ae-upload-overlay,
+            .ae-remove,
+            .ae-chip,
+            .ae-submit,
+            .ae-cancel {
               transition: none !important;
             }
           }
         `}</style>
 
-        {/* Content */}
-        <div className="ep-wrap">
+        <div className="ae-shell">
 
-          {/* Header: back + title */}
+          {/* Header: title + back */}
 
-          <div className="ep-head ad-rise">
+          <div className="ae-head ae-rise">
+
+            <div className="ae-head-text">
+
+              <p className="ae-overline">
+                Inventory
+              </p>
+
+              <h1 className="ae-title">
+                Edit Product
+              </h1>
+
+              <div className="ae-title-bar" />
+
+            </div>
 
             <button
               type="button"
               onClick={() => navigate("/admin/products")}
-              className="ap-back"
+              className="ae-back"
             >
               <svg
                 width="14"
@@ -1396,325 +1450,331 @@ const EditProduct = () => {
               Back
             </button>
 
-            <div className="ep-head-text">
-
-              <p className="ad-overline">
-                Inventory
-              </p>
-
-              <h1 className="ad-title">
-                Edit Product
-              </h1>
-
-              <div className="ad-title-bar" />
-
-            </div>
-
           </div>
 
 
-          {/* Form panel */}
+          <div className="ae-layout">
 
-          <div
-            className="ad-panel ad-rise"
-            style={{ animationDelay: "0.15s" }}
-          >
+            {/* Image panel */}
 
-            <h2 className="ad-panel-title">
-              Product Details
-            </h2>
+            <aside
+              className="ae-panel ae-rise ae-aside"
+              style={{ animationDelay: "0.1s" }}
+            >
 
-            <div className="ep-grid">
+              <h2 className="ae-panel-title">
+                Product Image
+              </h2>
 
-              {/* ── Left: image ── */}
+              <div className="ae-media-body">
 
-              <aside className="ep-aside">
+                <label className="ae-upload">
 
-                <span className="ap-label">
-                  Product Image
-                </span>
-
-                <div className="ep-media">
-
-                  <label className="ap-upload">
-
+                  {preview && (
                     <img
                       src={preview}
                       alt={product.name || "Product preview"}
+                      className="ae-preview"
                     />
+                  )}
+
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handleImage}
+                  />
+
+                  <div className="ae-upload-overlay">
+
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+
+                    Change
+                  </div>
+
+                </label>
+
+                <div className="ae-media-info">
+
+                  <p className="ae-hint">
+                    <strong>Main photo</strong>
+                    Tap the image to change it. Max 5 MB.
+                  </p>
+
+                  {images.length > 0 && (
+
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="ae-remove"
+                    >
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+
+                      Remove
+                    </button>
+
+                  )}
+
+                </div>
+
+              </div>
+
+            </aside>
+
+
+            {/* Form column */}
+
+            <div className="ae-col">
+
+              {/* Details */}
+
+              <section
+                className="ae-panel ae-rise"
+                style={{ animationDelay: "0.15s" }}
+              >
+
+                <h2 className="ae-panel-title">
+                  Product Details
+                </h2>
+
+                <div className="ae-fields">
+
+                  {/* Name */}
+
+                  <div className="ae-block">
+
+                    <label className="ae-label" htmlFor="ae-name">
+                      Name{" "}
+                      <span className="ae-req">*</span>
+                    </label>
 
                     <input
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={handleImage}
+                      id="ae-name"
+                      className="ae-field"
+                      value={product.name}
+                      autoFocus
+                      onChange={e =>
+                        setProduct({
+                          ...product,
+                          name: e.target.value
+                        })
+                      }
                     />
 
-                    <div className="ap-upload-overlay">
+                  </div>
 
-                      <div className="flex flex-col items-center gap-1">
 
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                          <polyline points="17 8 12 3 7 8" />
-                          <line x1="12" y1="3" x2="12" y2="15" />
-                        </svg>
+                  {/* Description */}
 
-                        Change
-                      </div>
+                  <div className="ae-block">
+
+                    <label className="ae-label" htmlFor="ae-desc">
+                      Description
+                    </label>
+
+                    <textarea
+                      id="ae-desc"
+                      className="ae-field"
+                      value={product.description}
+                      rows={4}
+                      onChange={e =>
+                        setProduct({
+                          ...product,
+                          description: e.target.value
+                        })
+                      }
+                    />
+
+                  </div>
+
+
+                  {/* Category + Price */}
+
+                  <div className="ae-row">
+
+                    <div className="ae-block">
+
+                      <label className="ae-label" htmlFor="ae-cat">
+                        Category
+                      </label>
+
+                      <select
+                        id="ae-cat"
+                        className="ae-field"
+                        value={product.category}
+                        onChange={e =>
+                          setProduct({
+                            ...product,
+                            category: e.target.value
+                          })
+                        }
+                      >
+                        {[
+                          "shirt",
+                          "tshirt",
+                          "hoodie",
+                          "pants"
+                        ].map(c => (
+                          <option key={c} value={c}>
+                            {c.charAt(0).toUpperCase() + c.slice(1)}
+                          </option>
+                        ))}
+                      </select>
 
                     </div>
 
-                  </label>
+                    <div className="ae-block">
 
-                  <div className="ep-media-info">
+                      <label className="ae-label" htmlFor="ae-price">
+                        Price (₹){" "}
+                        <span className="ae-req">*</span>
+                      </label>
 
-                    <p className="ep-hint">
-                      Tap the image to change it. Max 5 MB.
-                    </p>
+                      <input
+                        id="ae-price"
+                        className="ae-field"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.01"
+                        value={product.price}
+                        onChange={e =>
+                          setProduct({
+                            ...product,
+                            price: e.target.value
+                          })
+                        }
+                      />
 
-                    {images.length > 0 && (
+                    </div>
 
+                  </div>
+
+                </div>
+
+              </section>
+
+
+              {/* Sizes + Stock */}
+
+              <section
+                className="ae-panel ae-rise"
+                style={{ animationDelay: "0.2s" }}
+              >
+
+                <h2 className="ae-panel-title">
+                  Sizes &amp; Stock
+                </h2>
+
+                <div className="ae-sizes">
+
+                  {[
+                    "S",
+                    "M",
+                    "L",
+                    "XL",
+                    "XXL"
+                  ].map(size => {
+
+                    const selected = product.sizes.some(
+                      item => item.size === size
+                    );
+
+                    return (
                       <button
+                        key={size}
                         type="button"
-                        onClick={removeImage}
-                        className="ap-remove"
+                        aria-pressed={selected}
+                        onClick={() => toggleSize(size)}
+                        className={`ae-chip ${
+                          selected
+                            ? "ae-chip--on"
+                            : "ae-chip--off"
+                        }`}
                       >
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        >
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-
-                        Remove
+                        {size}
                       </button>
+                    );
 
-                    )}
-
-                  </div>
-
-                </div>
-
-              </aside>
-
-
-              {/* ── Right: fields ── */}
-
-              <div className="ep-main">
-
-                {/* Name */}
-
-                <div className="ep-field-block">
-
-                  <span className="ap-label">
-                    Name{" "}
-                    <span className="ap-req">*</span>
-                  </span>
-
-                  <input
-                    className="ap-field"
-                    value={product.name}
-                    autoFocus
-                    onChange={e =>
-                      setProduct({
-                        ...product,
-                        name: e.target.value
-                      })
-                    }
-                  />
+                  })}
 
                 </div>
 
+                {/* Stock inputs */}
 
-                {/* Description */}
+                {product.sizes.length > 0 && (
 
-                <div className="ep-field-block">
+                  <div className="ae-stock-grid">
 
-                  <span className="ap-label">
-                    Description
-                  </span>
+                    {product.sizes.map(sizeItem => {
 
-                  <textarea
-                    className="ap-field"
-                    value={product.description}
-                    rows={4}
-                    onChange={e =>
-                      setProduct({
-                        ...product,
-                        description: e.target.value
-                      })
-                    }
-                  />
-
-                </div>
-
-
-                {/* Category + Price */}
-
-                <div className="ep-two ep-field-block">
-
-                  <div>
-
-                    <span className="ap-label">
-                      Category
-                    </span>
-
-                    <select
-                      className="ap-field"
-                      value={product.category}
-                      onChange={e =>
-                        setProduct({
-                          ...product,
-                          category: e.target.value
-                        })
-                      }
-                    >
-                      {[
-                        "shirt",
-                        "tshirt",
-                        "hoodie",
-                        "pants"
-                      ].map(c => (
-                        <option key={c} value={c}>
-                          {c.charAt(0).toUpperCase() + c.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-
-                  </div>
-
-                  <div>
-
-                    <span className="ap-label">
-                      Price (₹){" "}
-                      <span className="ap-req">*</span>
-                    </span>
-
-                    <input
-                      className="ap-field"
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      step="0.01"
-                      value={product.price}
-                      onChange={e =>
-                        setProduct({
-                          ...product,
-                          price: e.target.value
-                        })
-                      }
-                    />
-
-                  </div>
-
-                </div>
-
-
-                {/* Sizes + Stock */}
-
-                <div className="ep-field-block">
-
-                  <span className="ap-label">
-                    Sizes & Stock
-                  </span>
-
-                  <div className="ep-chips" style={{ marginBottom: "1.1rem" }}>
-
-                    {[
-                      "S",
-                      "M",
-                      "L",
-                      "XL",
-                      "XXL"
-                    ].map(size => {
-
-                      const selected = product.sizes.some(
-                        item => item.size === size
-                      );
+                      const stockValue =
+                        getSizeObject(sizeItem.size)?.stock;
 
                       return (
-                        <button
-                          key={size}
-                          type="button"
-                          onClick={() => toggleSize(size)}
-                          className={`ap-chip ${
-                            selected
-                              ? "ap-chip--on"
-                              : "ap-chip--off"
-                          }`}
+
+                        <div
+                          key={sizeItem.size}
+                          className="ae-stock"
                         >
-                          {size}
-                        </button>
-                      );
 
-                    })}
+                          <div className="ae-stock-info">
 
-                  </div>
+                            <div className="ae-stock-badge">
+                              {sizeItem.size}
+                            </div>
 
-                  {/* Stock inputs */}
+                            <div className="ae-stock-text">
 
-                  {product.sizes.length > 0 && (
-
-                    <div className="ep-stocks">
-
-                      {product.sizes.map(sizeItem => {
-
-                        const stockValue =
-                          getSizeObject(sizeItem.size)?.stock;
-
-                        return (
-
-                          <div
-                            key={sizeItem.size}
-                            className="ap-stock"
-                          >
-
-                            <div className="flex items-center justify-between gap-3 mb-3">
-
-                              <div style={{ minWidth: 0 }}>
-
-                                <p className="ap-stock-name">
-                                  Size{" "}
-                                  {sizeItem.size}
-                                </p>
-
-                                <p className="ap-stock-sub">
-                                  Available stock
-                                </p>
-
+                              <div className="ae-stock-name">
+                                Size{" "}
+                                {sizeItem.size}
                               </div>
 
-                              <span className="ap-stock-badge">
-                                {sizeItem.size}
-                              </span>
+                              <div className="ae-stock-sub">
+                                Available stock
+                              </div>
 
                             </div>
 
+                          </div>
+
+                          <div className="ae-stock-qty">
+
                             <input
-                              className="ap-field"
+                              className="ae-field ae-stock-input"
                               type="number"
                               inputMode="numeric"
                               min="0"
                               max="1000000"
                               step="1"
                               value={stockValue ?? ""}
-                              placeholder="e.g. 10"
+                              placeholder="0"
+                              aria-label={`Stock for size ${sizeItem.size}`}
                               onChange={e =>
                                 updateSizeStock(
                                   sizeItem.size,
@@ -1723,37 +1783,49 @@ const EditProduct = () => {
                               }
                             />
 
+                            <span className="ae-unit">pcs</span>
+
                           </div>
 
-                        );
+                        </div>
 
-                      })}
+                      );
 
-                    </div>
+                    })}
 
-                  )}
+                  </div>
 
-                </div>
+                )}
 
-              </div>
+              </section>
 
             </div>
 
 
-            {/* Divider */}
+            {/* Sticky action bar */}
 
-            <div className="ap-divider" style={{ marginTop: "0.25rem" }} />
+            <div
+              className="ae-actions ae-rise"
+              style={{ animationDelay: "0.25s" }}
+            >
 
+              <span className="ae-actions-note">
+                Fields marked <span className="ae-req">*</span> are required.
+              </span>
 
-            {/* Action buttons */}
-
-            <div className="ep-actions">
+              <button
+                type="button"
+                onClick={() => navigate("/admin/products")}
+                className="ae-cancel"
+              >
+                Cancel
+              </button>
 
               <button
                 type="button"
                 onClick={handleUpdate}
                 disabled={isSaving}
-                className="ap-submit"
+                className="ae-submit"
               >
 
                 {isSaving ? (
@@ -1767,7 +1839,7 @@ const EditProduct = () => {
                       stroke="currentColor"
                       strokeWidth="2.5"
                       strokeLinecap="round"
-                      style={{ animation: "spin 1s linear infinite" }}
+                      style={{ animation: "ae-spin 1s linear infinite" }}
                     >
                       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                     </svg>
@@ -1798,14 +1870,6 @@ const EditProduct = () => {
 
                 )}
 
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate("/admin/products")}
-                className="ap-cancel"
-              >
-                Cancel
               </button>
 
             </div>
